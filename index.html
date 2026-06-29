@@ -3,438 +3,447 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南</title>
 <style>
-  :root {
-    --bg: #f5f5f5;
-    --card: #ffffff;
-    --ink: #1a1a2e;
-    --muted: #888899;
-    --rule: #e8e8ed;
-    --accent: #c44536;
-    --accent2: #2d6a4f;
-    --red: #c44536;
-    --green: #2d6a4f;
-    --blue: #3366cc;
-    --orange: #d97706;
-    --tab-height: 56px;
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; overflow: hidden; }
+  /* ===== Reset & Base ===== */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
+    background: #f5f3f7;
+    color: #1a1a2e;
     font-size: 14px;
     line-height: 1.5;
+    overflow: hidden;
   }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; outline: none; }
 
   /* ===== App Shell ===== */
-  .app { display: flex; flex-direction: column; height: 100%; max-width: 480px; margin: 0 auto; position: relative; overflow: hidden; }
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    background: #f5f3f7;
+  }
 
-  /* ===== Header ===== */
-  .header {
-    background: var(--card);
-    padding: 12px 16px;
+  /* ===== Top Header (Desktop + Mobile) ===== */
+  .top-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--rule);
+    padding: 10px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e8e8ed;
     flex-shrink: 0;
   }
-  .header h1 { font-size: 18px; font-weight: 700; }
-  .header .subtitle { font-size: 11px; color: var(--muted); }
-  .header-right { display: flex; gap: 12px; }
-  .header-right span { font-size: 12px; color: var(--muted); cursor: pointer; padding: 4px 8px; border-radius: 4px; }
-  .header-right span:hover { background: var(--bg); }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c44536 0%, #e86a4f 40%, #f4a261 100%);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .brand-text { display: flex; flex-direction: column; }
+  .brand-name { font-size: 18px; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
+  .brand-subtitle { font-size: 11px; color: #888899; line-height: 1.3; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .header-btn {
+    font-size: 12px;
+    color: #888899;
+    padding: 5px 12px;
+    border-radius: 6px;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .header-btn:hover { background: #f0f0f5; }
 
-  /* ===== Sub Nav (Tab1) ===== */
+  /* ===== App Body (Sidebar + Main) ===== */
+  .app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ===== Sidebar (Desktop) ===== */
+  .sidebar {
+    width: 190px;
+    background: #fff;
+    border-right: 1px solid #e8e8ed;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+    overflow-y: auto;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 20px;
+    font-size: 14px;
+    color: #888899;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+  }
+  .sidebar-item:hover { background: #f8f6fa; color: #1a1a2e; }
+  .sidebar-item.active {
+    color: #c44536;
+    background: rgba(196, 69, 54, 0.06);
+    border-left-color: #c44536;
+    font-weight: 600;
+  }
+  .sidebar-item .icon { font-size: 18px; }
+
+  /* ===== Main Content Area ===== */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+
+  /* ===== Pages ===== */
+  .page { display: none; padding: 14px 16px; }
+  .page.active { display: block; }
+
+  /* ===== Sub Navigation ===== */
   .sub-nav {
     display: flex;
-    background: var(--card);
-    padding: 0 12px;
-    border-bottom: 1px solid var(--rule);
+    background: #fff;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    flex-shrink: 0;
   }
   .sub-nav::-webkit-scrollbar { display: none; }
   .sub-nav-item {
-    flex-shrink: 0;
-    padding: 10px 14px;
+    flex: 1;
+    text-align: center;
+    padding: 9px 10px;
     font-size: 13px;
-    color: var(--muted);
+    color: #888899;
     cursor: pointer;
-    border-bottom: 2px solid transparent;
+    border-radius: 10px;
     transition: all 0.2s;
     white-space: nowrap;
+    font-weight: 500;
   }
   .sub-nav-item.active {
-    color: var(--accent);
+    color: #fff;
+    background: #c44536;
     font-weight: 600;
-    border-bottom-color: var(--accent);
   }
 
-  /* ===== Main Content ===== */
-  .main {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
-  }
-  .page { display: none; padding: 12px 14px; }
-  .page.active { display: block; }
+  /* ===== Sub Pages ===== */
+  .sub-page { display: none; }
+  .sub-page.active { display: block; }
 
-  /* ===== Section Header ===== */
+  /* ===== Section Titles ===== */
   .section-title {
     font-size: 16px;
     font-weight: 700;
-    margin: 12px 0 8px;
+    margin: 6px 0 8px;
     display: flex;
     align-items: center;
     gap: 6px;
   }
   .section-title .badge {
     font-size: 10px;
-    background: var(--accent);
+    background: #c44536;
     color: #fff;
     padding: 1px 6px;
-    border-radius: 3px;
+    border-radius: 4px;
     font-weight: 600;
   }
   .section-sub {
     font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 10px;
+    color: #888899;
+    margin-bottom: 12px;
   }
 
   /* ===== Asset Table ===== */
-  .asset-table { margin-bottom: 16px; }
-  .asset-group {
-    margin-bottom: 10px;
-    background: var(--card);
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  }
-  .asset-group-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: var(--bg);
-    font-size: 13px;
-    font-weight: 600;
-  }
-  .asset-group-header .count { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .asset-table { margin-bottom: 10px; }
+  .asset-group { margin-bottom: 0; }
   .asset-row {
     display: flex;
     align-items: center;
-    padding: 11px 14px;
-    border-bottom: 1px solid var(--rule);
+    padding: 12px 16px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    margin-bottom: 10px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: all 0.15s;
   }
-  .asset-row:last-child { border-bottom: none; }
-  .asset-row:active { background: var(--bg); }
-  .asset-name { flex: 1; font-size: 13px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .asset-row:active { transform: scale(0.98); }
+  .asset-name {
+    flex: 1;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
   .asset-tag {
     font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 3px;
+    padding: 2px 7px;
+    border-radius: 4px;
     font-weight: 500;
     white-space: nowrap;
   }
-
-  /* ===== Index Detail Page ===== */
-  .index-detail-page {
-    display: none; position: absolute; top: 0; left: 0; right: 0;
-    bottom: calc(var(--tab-height) + var(--safe-bottom));
-    z-index: 10; background: #f7f5fa; flex-direction: column;
-  }
-  .index-detail-page.open { display: flex; }
-
-  .detail-page-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 14px 16px; background: #fff; flex-shrink: 0;
-  }
-  .detail-gradient-icon {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: linear-gradient(135deg, #ff7eb3 0%, #8fd3f4 100%);
-    flex-shrink: 0;
-  }
-  .detail-page-header .title { font-size: 17px; font-weight: 700; color: #1a1a2e; }
-
-  .detail-body { flex: 1; overflow-y: auto; padding: 0 14px 14px; }
-
-  .detail-main-card {
-    background: #fff; border-radius: 16px; padding: 18px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-top: 8px;
-  }
-  .detail-card-section + .detail-card-section { margin-top: 18px; }
-
-  .detail-index-title { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-  .detail-index-code { font-size: 12px; color: #9999aa; }
-
-  .detail-info-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 0; border-bottom: 1px solid #f0f0f5;
-  }
-  .detail-info-row:last-child { border-bottom: none; }
-  .detail-info-row .label { font-size: 13px; color: #888899; }
-  .detail-info-row .value { font-size: 13px; color: #1a1a2e; font-weight: 500; }
-  .detail-info-row .value.yield { color: #ff5a4d; font-size: 15px; font-weight: 700; }
-
-  .detail-chart-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-  }
-  .detail-chart-title {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 15px; font-weight: 700; color: #1a1a2e;
-  }
-  .detail-chart-title .hint {
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #f0f0f5; color: #888899; font-size: 11px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .detail-chart-update { font-size: 11px; color: #aaaaaa; }
-
-  .detail-chart-legend {
-    display: flex; align-items: center; gap: 14px; margin-bottom: 12px;
-  }
-  .detail-legend-item {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 11px; color: #666677;
-  }
-  .detail-legend-line { width: 12px; height: 2px; border-radius: 1px; }
-  .detail-legend-line.blue { background: #4080ff; }
-  .detail-legend-line.orange { background: #ffaa22; }
-
-  .detail-chart-select {
-    margin-left: auto; font-size: 12px; color: #666677;
-    border: 1px solid #e8e8ed; border-radius: 4px; padding: 2px 6px;
-    background: #fff; outline: none;
-  }
-
-  .detail-chart-canvas {
-    width: 100%; height: 180px; display: block;
-  }
-
-  .detail-slider {
-    position: relative; height: 22px; margin-top: 8px;
-  }
-  .detail-slider-track {
-    position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%);
-    height: 4px; background: #e8e8ed; border-radius: 2px;
-  }
-  .detail-slider-range {
-    position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%);
-    height: 4px; background: rgba(64,128,255,0.25); border-radius: 2px;
-  }
-  .detail-slider-handle {
-    position: absolute; top: 50%; transform: translate(-50%, -50%);
-    width: 14px; height: 14px; border-radius: 3px;
-    background: #fff; border: 1px solid #d0d0dd;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 8px; color: #888899; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  .detail-slider-handle.left { left: 0; }
-  .detail-slider-handle.right { right: 0; transform: translate(50%, -50%); }
-
-  .detail-data-note {
-    margin-top: 16px; padding: 0 4px;
-  }
-  .detail-data-note .title { font-size: 12px; color: #888899; margin-bottom: 6px; }
-  .detail-data-note .item {
-    font-size: 11px; color: #9999aa; line-height: 1.7;
-    display: flex; gap: 6px;
-  }
-  .detail-data-note .item::before {
-    content: '・'; color: #9999aa;
-  }
-
-  .detail-fav-btn {
-    font-size: 22px; cursor: pointer; color: #d0d0dd;
-    transition: color 0.2s; margin-left: auto;
-  }
-  .detail-fav-btn.active { color: #ffaa22; }
   .asset-yield {
     font-size: 16px;
     font-weight: 700;
-    color: var(--accent);
-    margin: 0 12px;
+    color: #c44536;
+    margin: 0 14px;
     min-width: 56px;
     text-align: right;
   }
-  .asset-meta { text-align: right; font-size: 10px; color: var(--muted); line-height: 1.3; min-width: 60px; }
+  .asset-meta { text-align: right; font-size: 10px; color: #888899; line-height: 1.3; min-width: 68px; }
   .asset-meta .update { display: block; }
-  .asset-detail {
-    display: none;
-    padding: 10px 14px 12px;
-    background: #fafafa;
-    border-top: 1px solid var(--rule);
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.7;
-  }
-  .asset-detail.open { display: block; }
-  .asset-detail .row { display: flex; justify-content: space-between; }
-  .asset-detail .label { color: var(--muted); }
-  .asset-detail .value { color: var(--ink); text-align: right; }
-  .asset-detail .source { color: var(--blue); font-size: 11px; }
-
   .fav-btn {
-    font-size: 16px;
+    font-size: 17px;
     cursor: pointer;
-    color: var(--rule);
+    color: #d0d0dd;
     margin-left: 4px;
     transition: color 0.2s;
-    width: 24px;
+    width: 26px;
     text-align: center;
     flex-shrink: 0;
   }
-  .fav-btn.active { color: var(--orange); }
+  .fav-btn.active { color: #d97706; }
 
-  /* ===== Index Browser (List) ===== */
-  .index-list-container { margin-bottom: 16px; }
-  .index-list-header {
-    display: flex; padding: 8px 14px; font-size: 11px; color: var(--muted);
-    border-bottom: 1px solid var(--rule); background: var(--card);
-    border-radius: 10px 10px 0 0; font-weight: 600;
+  .asset-detail {
+    display: none;
+    padding: 10px 16px 14px;
+    background: #faf9fc;
+    border-radius: 0 0 12px 12px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #888899;
+    line-height: 1.7;
+    border: 1px solid #f0edf2;
+    border-top: none;
   }
-  .index-list-header .col-rank { width: 28px; text-align: left; }
+  .asset-detail.open { display: block; }
+  .asset-detail .row { display: flex; justify-content: space-between; padding: 3px 0; }
+  .asset-detail .label { color: #888899; }
+  .asset-detail .value { color: #1a1a2e; text-align: right; }
+  .asset-detail .source { color: #3366cc; font-size: 11px; }
+
+  /* ===== Index List ===== */
+  .index-list-container { margin-bottom: 10px; }
+  .index-list-header {
+    display: flex;
+    padding: 10px 16px;
+    font-size: 11px;
+    color: #888899;
+    background: #fff;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .index-list-header .col-rank { width: 30px; text-align: left; }
   .index-list-header .col-name { flex: 1; }
-  .index-list-header .col-yield { width: 56px; text-align: right; }
-  .index-list-header .col-funds { width: 52px; text-align: right; }
-  .index-list-body { background: var(--card); border-radius: 0 0 10px 10px; overflow: hidden; }
+  .index-list-header .col-yield { width: 60px; text-align: right; }
+  .index-list-header .col-funds { width: 54px; text-align: right; }
+  .index-list-body { background: #fff; border-radius: 0 0 12px 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 10px; }
   .index-list-row {
-    display: flex; align-items: center; padding: 10px 14px;
-    border-bottom: 1px solid var(--rule); cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 11px 16px;
+    border-bottom: 1px solid #f0edf2;
+    cursor: pointer;
     transition: background 0.15s;
   }
   .index-list-row:last-child { border-bottom: none; }
-  .index-list-row:active { background: var(--bg); }
-  .index-list-row .col-rank { width: 28px; font-size: 11px; color: var(--muted); font-weight: 600; }
-  .index-list-row .col-rank.top1 { color: var(--accent); font-size: 13px; }
-  .index-list-row .col-rank.top2 { color: #d97706; font-size: 13px; }
-  .index-list-row .col-rank.top3 { color: #3366cc; font-size: 13px; }
+  .index-list-row:hover { background: #faf9fc; }
+  .index-list-row .col-rank { width: 30px; font-size: 11px; color: #888899; font-weight: 600; }
+  .index-list-row .col-rank.top1 { color: #c44536; font-size: 14px; }
+  .index-list-row .col-rank.top2 { color: #d97706; font-size: 14px; }
+  .index-list-row .col-rank.top3 { color: #3366cc; font-size: 14px; }
   .index-list-row .col-name { flex: 1; }
   .index-list-row .col-name .iname { font-size: 13px; font-weight: 600; }
-  .index-list-row .col-name .icode { font-size: 10px; color: var(--muted); margin-top: 1px; }
-  .index-list-row .col-yield { width: 56px; text-align: right; font-size: 16px; font-weight: 700; color: var(--accent); }
-  .index-list-row .col-funds { width: 52px; text-align: right; font-size: 12px; color: var(--ink); }
-  .index-list-row .col-funds .lbl { font-size: 9px; color: var(--muted); display: block; }
+  .index-list-row .col-name .icode { font-size: 10px; color: #888899; margin-top: 1px; }
+  .index-list-row .col-yield { width: 60px; text-align: right; font-size: 16px; font-weight: 700; color: #c44536; }
+  .index-list-row .col-funds { width: 54px; text-align: right; font-size: 12px; color: #1a1a2e; }
+  .index-list-row .col-funds .lbl { font-size: 9px; color: #888899; display: block; }
 
-  /* ===== Sub-section content ===== */
-  .sub-page { display: none; }
-  .sub-page.active { display: block; }
+  /* ===== Show More ===== */
+  .show-more-btn {
+    display: block;
+    width: 100%;
+    padding: 11px;
+    background: #fff;
+    border: 1px dashed #d0d0dd;
+    border-radius: 12px;
+    color: #c44536;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.2s;
+    margin-bottom: 10px;
+  }
+  .show-more-btn:hover { background: #faf9fc; }
+  .show-more-btn:active { background: #f0edf2; }
 
-  /* ===== Fund List ===== */
-  .fund-list { margin-bottom: 16px; }
+  /* ===== Fund Cards ===== */
+  .fund-list { margin-bottom: 10px; }
   .fund-card {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 8px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  .fund-card .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-  .fund-card .name { font-size: 13px; font-weight: 600; }
-  .fund-card .code { font-size: 11px; color: var(--muted); }
-  .fund-card .yield { font-size: 18px; font-weight: 700; color: var(--accent); }
-  .fund-card .tags { display: flex; gap: 4px; margin: 6px 0 4px; flex-wrap: wrap; }
+  .fund-card .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .fund-card .name { font-size: 14px; font-weight: 600; }
+  .fund-card .code { font-size: 11px; color: #888899; margin-top: 1px; }
+  .fund-card .yield { font-size: 19px; font-weight: 700; color: #c44536; }
+  .fund-card .tags { display: flex; gap: 4px; margin: 8px 0 6px; flex-wrap: wrap; }
   .fund-card .tag {
     font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    background: var(--bg);
-    color: var(--muted);
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #f0edf2;
+    color: #888899;
   }
-  .fund-card .tag.monthly { background: rgba(45, 106, 79, 0.1); color: var(--green); font-weight: 600; }
-  .fund-card .meta { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+  .fund-card .tag.monthly { background: rgba(45, 106, 79, 0.1); color: #2d6a4f; font-weight: 600; }
+  .fund-card .meta { font-size: 11px; color: #888899; display: flex; justify-content: space-between; align-items: center; }
 
-  /* ===== Knowledge Page ===== */
-  .knowledge-item {
-    background: var(--card);
+  /* ===== Monthly Tab Switch ===== */
+  .tab-switch-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 4px 0 14px;
+    background: #f0edf2;
     border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 10px;
+    padding: 3px;
+  }
+  .tab-switch-wrap .sw-item {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    color: #888899;
+    cursor: pointer;
+    padding: 7px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .tab-switch-wrap .sw-item.active {
+    color: #fff;
+    background: #c44536;
+    font-weight: 600;
+  }
+
+  /* ===== Knowledge ===== */
+  .knowledge-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     cursor: pointer;
     transition: transform 0.15s;
   }
   .knowledge-item:active { transform: scale(0.98); }
-  .knowledge-item .title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .knowledge-item .desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
-  .knowledge-item .tag-row { display: flex; gap: 4px; margin-top: 8px; }
+  .knowledge-item .title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .knowledge-item .desc { font-size: 13px; color: #888899; line-height: 1.7; }
+  .knowledge-item .tag-row { display: flex; gap: 6px; margin-top: 10px; }
   .knowledge-item .tag {
     font-size: 10px;
-    padding: 2px 8px;
+    padding: 2px 10px;
     border-radius: 100px;
-    background: var(--bg);
-    color: var(--muted);
+    background: #f0edf2;
+    color: #888899;
   }
-  .knowledge-item .tag.beginner { background: rgba(45, 106, 79, 0.1); color: var(--green); }
+  .knowledge-item .tag.beginner { background: rgba(45, 106, 79, 0.1); color: #2d6a4f; }
 
-  /* ===== Profile Page ===== */
+  /* ===== Profile ===== */
   .profile-header {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px 20px;
     text-align: center;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
   .profile-header .avatar {
-    width: 56px; height: 56px; border-radius: 50%;
-    background: var(--accent);
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #c44536, #e86a4f);
     color: #fff;
     display: flex; align-items: center; justify-content: center;
-    font-size: 24px; font-weight: 700;
-    margin: 0 auto 10px;
+    font-size: 26px; font-weight: 700;
+    margin: 0 auto 12px;
+    box-shadow: 0 2px 8px rgba(196, 69, 54, 0.2);
   }
-  .profile-header .nick { font-size: 16px; font-weight: 600; }
-  .profile-header .bio { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .profile-header .nick { font-size: 17px; font-weight: 600; }
+  .profile-header .bio { font-size: 12px; color: #888899; margin-top: 4px; }
 
-  .profile-section { margin-bottom: 12px; }
-  .profile-section .section-title { margin: 0 0 8px; font-size: 14px; }
+  .profile-section { margin-bottom: 14px; }
+  .profile-section .section-title { margin: 0 0 10px; font-size: 15px; }
   .fav-item {
-    background: var(--card);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 6px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  .fav-item:active { background: var(--bg); }
+  .fav-item:active { background: #faf9fc; }
   .fav-item .info { flex: 1; }
   .fav-item .name { font-size: 13px; font-weight: 600; }
-  .fav-item .sub { font-size: 11px; color: var(--muted); }
-  .fav-item .yield { font-size: 15px; font-weight: 700; color: var(--accent); }
+  .fav-item .sub { font-size: 11px; color: #888899; margin-top: 2px; }
+  .fav-item .yield { font-size: 16px; font-weight: 700; color: #c44536; }
   .fav-empty {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 30px 20px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 36px 20px;
     text-align: center;
-    color: var(--muted);
+    color: #888899;
     font-size: 13px;
     line-height: 1.8;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  .fav-empty .icon { font-size: 32px; display: block; margin-bottom: 8px; }
+  .fav-empty .icon { font-size: 36px; display: block; margin-bottom: 10px; }
 
-  /* ===== Bottom Tab ===== */
+  /* ===== Bottom Tabs (Mobile) ===== */
   .bottom-tabs {
-    display: flex;
-    background: var(--card);
-    border-top: 1px solid var(--rule);
+    display: none;
+    background: #fff;
+    border-top: 1px solid #e8e8ed;
     flex-shrink: 0;
-    padding-bottom: var(--safe-bottom);
-    height: calc(var(--tab-height) + var(--safe-bottom));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
   }
   .tab-item {
     flex: 1;
@@ -443,28 +452,173 @@
     align-items: center;
     justify-content: center;
     font-size: 10px;
-    color: var(--muted);
+    color: #888899;
     cursor: pointer;
     padding: 6px 0 4px;
     transition: color 0.2s;
-    border: none;
-    background: none;
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
   }
   .tab-item .tab-icon { font-size: 20px; margin-bottom: 2px; }
-  .tab-item.active { color: var(--accent); font-weight: 600; }
+  .tab-item.active { color: #c44536; font-weight: 600; }
 
-  /* ===== Loading ===== */
-  .loading-dots { display: inline-flex; gap: 3px; }
-  .loading-dots span {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: var(--muted);
-    animation: pulse 1.2s ease-in-out infinite;
+  /* ===== Index Detail Page (Overlay) ===== */
+  .index-detail-page {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 100;
+    background: #f7f5fa;
+    flex-direction: column;
   }
-  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes pulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+  .index-detail-page.open { display: flex; }
+
+  .detail-page-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: #fff;
+    flex-shrink: 0;
+    border-bottom: 1px solid #e8e8ed;
+  }
+  .detail-back { font-size: 24px; color: #888899; cursor: pointer; padding-right: 4px; line-height: 1; }
+  .detail-gradient-icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff7eb3 0%, #8fd3f4 100%);
+    flex-shrink: 0;
+  }
+  .detail-page-header .title { font-size: 17px; font-weight: 700; color: #1a1a2e; }
+
+  .detail-body { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
+
+  .detail-main-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-top: 12px;
+  }
+  .detail-card-section + .detail-card-section { margin-top: 20px; }
+
+  .detail-index-title { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .detail-index-code { font-size: 12px; color: #9999aa; }
+
+  .detail-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 0;
+    border-bottom: 1px solid #f0edf5;
+  }
+  .detail-info-row:last-child { border-bottom: none; }
+  .detail-info-row .label { font-size: 13px; color: #888899; }
+  .detail-info-row .value { font-size: 13px; color: #1a1a2e; font-weight: 500; text-align: right; }
+  .detail-info-row .value.yield { color: #c44536; font-size: 15px; font-weight: 700; }
+
+  .detail-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .detail-chart-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .detail-chart-title .hint {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #f0edf5; color: #888899; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .detail-chart-update { font-size: 11px; color: #aaaaaa; }
+
+  .detail-chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .detail-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #666677;
+  }
+  .detail-legend-line { width: 12px; height: 2px; border-radius: 1px; }
+  .detail-legend-line.blue { background: #4080ff; }
+  .detail-legend-line.orange { background: #ffaa22; }
+
+  .detail-chart-select {
+    margin-left: auto;
+    font-size: 12px;
+    color: #666677;
+    border: 1px solid #e0dde5;
+    border-radius: 6px;
+    padding: 4px 8px;
+    background: #fff;
+    outline: none;
+  }
+
+  .detail-chart-canvas {
+    width: 100%;
+    height: 190px;
+    display: block;
+  }
+
+  .detail-slider {
+    position: relative;
+    height: 24px;
+    margin-top: 10px;
+  }
+  .detail-slider-track {
+    position: absolute; top: 50%; left: 0; right: 0;
+    transform: translateY(-50%);
+    height: 4px; background: #e0dde5; border-radius: 2px;
+  }
+  .detail-slider-range {
+    position: absolute; top: 50%; left: 0; right: 0;
+    transform: translateY(-50%);
+    height: 4px; background: rgba(64,128,255,0.25); border-radius: 2px;
+  }
+  .detail-slider-handle {
+    position: absolute;
+    top: 50%; transform: translate(-50%, -50%);
+    width: 14px; height: 16px; border-radius: 3px;
+    background: #fff; border: 1px solid #d0d0dd;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; color: #888899;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .detail-slider-handle.left { left: 0; }
+  .detail-slider-handle.right { right: 0; transform: translate(50%, -50%); }
+
+  .detail-data-note {
+    margin-top: 16px;
+    padding: 0 4px;
+  }
+  .detail-data-note .title { font-size: 12px; color: #888899; margin-bottom: 6px; }
+  .detail-data-note .item {
+    font-size: 11px; color: #9999aa; line-height: 1.7;
+    display: flex; gap: 6px;
+  }
+  .detail-data-note .item::before {
+    content: '\00B7'; color: #9999aa;
+  }
+
+  .detail-fav-btn {
+    font-size: 22px;
+    cursor: pointer;
+    color: #d0d0dd;
+    transition: color 0.2s;
+    margin-left: auto;
+    line-height: 1;
+  }
+  .detail-fav-btn.active { color: #d97706; }
 
   /* ===== Toast ===== */
   .toast {
@@ -472,10 +626,10 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.78);
     color: #fff;
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 10px 22px;
+    border-radius: 10px;
     font-size: 13px;
     z-index: 999;
     opacity: 0;
@@ -484,130 +638,165 @@
   }
   .toast.show { opacity: 1; }
 
-  /* ===== Show More Button ===== */
-  .show-more-btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background: var(--card);
-    border: 1px dashed var(--rule);
-    border-radius: 10px;
-    color: var(--accent);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-    transition: background 0.2s;
-    margin-bottom: 10px;
-    outline: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .show-more-btn:hover { background: var(--bg); }
-  .show-more-btn:active { background: var(--rule); }
+  /* ===== Footer info ===== */
+  .index-footer { text-align: center; padding: 12px 0 6px; color: #888899; font-size: 12px; }
 
-  /* ===== Responsive ===== */
-  @media (min-width: 481px) {
-    .app { border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); }
+  /* ===== Loading dots ===== */
+  .loading-dots { display: inline-flex; gap: 3px; }
+  .loading-dots span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #888899;
+    animation: pulse 1.2s ease-in-out infinite;
   }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+  /* ===== Responsive: Desktop ===== */
+  @media (min-width: 768px) {
+    .top-header { padding: 12px 24px; }
+    .sidebar { display: flex; }
+    .bottom-tabs { display: none !important; }
+    .index-detail-page { left: 190px; }
+    .page { padding: 16px 20px; }
+  }
+
+  /* ===== Responsive: Mobile ===== */
+  @media (max-width: 767px) {
+    .sidebar { display: none; }
+    .bottom-tabs { display: flex; }
+    .index-detail-page { left: 0; }
+    .page { padding: 12px 14px; }
+    .top-header { padding: 10px 14px; }
+    .brand-icon { width: 28px; height: 28px; font-size: 12px; }
+    .brand-name { font-size: 16px; }
+    .brand-subtitle { display: none; }
+    .detail-main-card { padding: 16px; }
+  }
+
+  /* ===== Misc ===== */
+  .gap-8 { height: 8px; }
 </style>
 </head>
 <body>
 
-<div class="app" id="app">
+<div class="app-shell">
 
-  <!-- Header -->
-  <div class="header">
-    <div>
-      <h1>📊 食息指南</h1>
-      <div class="subtitle">低利率时代的理财之道</div>
+  <!-- ===== Top Header ===== -->
+  <header class="top-header">
+    <div class="brand">
+      <div class="brand-icon">息</div>
+      <div class="brand-text">
+        <span class="brand-name">食息指南</span>
+        <span class="brand-subtitle">低利率时代的理财之道</span>
+      </div>
     </div>
-    <div class="header-right">
-      <span id="refreshBtn">🔄 刷新</span>
+    <div class="header-actions">
+      <span class="header-btn" id="refreshBtn">&#x21bb; 刷新</span>
     </div>
-  </div>
+  </header>
 
-  <!-- Main Area -->
-  <div class="main" id="mainContent">
+  <!-- ===== App Body ===== -->
+  <div class="app-body">
 
-    <!-- ========== PAGE 1: 数据页 ========== -->
-    <div class="page active" id="pageData">
+    <!-- ===== Sidebar (Desktop) ===== -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-item active" data-tab="pageData">
+        <span class="icon">&#x1f4ca;</span>
+        <span>数据</span>
+      </div>
+      <div class="sidebar-item" data-tab="pageKnowledge">
+        <span class="icon">&#x1f4d6;</span>
+        <span>知识</span>
+      </div>
+      <div class="sidebar-item" data-tab="pageProfile">
+        <span class="icon">&#x1f464;</span>
+        <span>我的</span>
+      </div>
+    </nav>
 
-      <!-- Sub Navigation -->
-      <div class="sub-nav" id="subNav">
-        <div class="sub-nav-item active" data-sub="yield">主流资产食息率</div>
-        <div class="sub-nav-item" data-sub="index">红利指数</div>
-        <div class="sub-nav-item" data-sub="monthly">月月分红</div>
+    <!-- ===== Main Content ===== -->
+    <main class="main-content" id="mainContent">
+
+      <!-- ====== PAGE 1: Data ====== -->
+      <div class="page active" id="pageData">
+
+        <!-- Sub Navigation -->
+        <div class="sub-nav" id="subNav">
+          <div class="sub-nav-item active" data-sub="yield">主流资产食息率</div>
+          <div class="sub-nav-item" data-sub="index">红利指数</div>
+          <div class="sub-nav-item" data-sub="monthly">月月分红</div>
+        </div>
+
+        <!-- Sub: Yield -->
+        <div class="sub-page active" id="subYield">
+          <div class="section-title">&#x1f4c8; 主流资产食息率</div>
+          <div class="section-sub">更新于 2026-06-28 &middot; 点击行查看详情，点击&#x2606;收藏</div>
+          <div class="asset-table" id="assetTable"></div>
+        </div>
+
+        <!-- Sub: Index -->
+        <div class="sub-page" id="subIndex">
+          <div class="section-title">&#x1f50d; 红利指数</div>
+          <div class="section-sub">共 48 个指数 &middot; 按跟踪基金产品数量排序</div>
+          <div class="index-list-container" id="indexListContainer"></div>
+          <div class="index-footer"><span id="indexUpdateTime"></span></div>
+        </div>
+
+        <!-- Sub: Monthly -->
+        <div class="sub-page" id="subMonthly">
+          <div class="section-title">&#x1f4b0; 月月分红</div>
+          <div class="section-sub">每月派息基金，打造稳定现金流</div>
+          <div class="tab-switch-wrap" id="monthlyTabSwitch">
+            <span class="sw-item active" data-type="etf">ETF</span>
+            <span class="sw-item" data-type="fund">指数基金</span>
+          </div>
+          <div class="fund-list" id="monthlyEtfList"></div>
+          <div class="fund-list" id="monthlyFundList" style="display:none"></div>
+        </div>
+
       </div>
 
-      <!-- Sub: 主流资产食息率 -->
-      <div class="sub-page active" id="subYield">
-        <div class="section-title">📈 主流资产食息率</div>
-        <div class="section-sub">更新于 2026-06-28 · 点击行查看详情，点击☆收藏</div>
-        <div class="asset-table" id="assetTable"></div>
+      <!-- ====== PAGE 2: Knowledge ====== -->
+      <div class="page" id="pageKnowledge">
+        <div class="section-title">&#x1f4d6; 食息指南</div>
+        <div class="section-sub">从入门到精通，一步步构建你的食息收入</div>
+        <div id="knowledgeList"></div>
       </div>
 
-      <!-- Sub: 红利指数 -->
-      <div class="sub-page" id="subIndex">
-        <div class="section-title">🔍 红利指数</div>
-        <div class="section-sub">共 48 个指数 · 按跟踪基金产品数量排序</div>
-        <div class="index-list-container" id="indexListContainer"></div>
-        <div style="text-align:center;padding:12px 0;color:var(--muted);font-size:12px">
-          <span id="indexUpdateTime"></span>
+      <!-- ====== PAGE 3: Profile ====== -->
+      <div class="page" id="pageProfile">
+        <div class="profile-header">
+          <div class="avatar">食</div>
+          <div class="nick">食息达人</div>
+          <div class="bio">记录我的食息之路 &middot; 收藏心仪资产</div>
+        </div>
+        <div class="profile-section">
+          <div class="section-title">&#x2b50; 我的收藏</div>
+          <div id="favList"></div>
         </div>
       </div>
 
-      <!-- Sub: 月月分红 -->
-      <div class="sub-page" id="subMonthly">
-        <div class="section-title">💰 月月分红</div>
-        <div class="section-sub">每月派息基金，打造稳定现金流</div>
-        <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px">
-          <span class="tab-switch active" data-type="etf" style="font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 12px;border-bottom:2px solid var(--accent)">ETF</span>
-          <span class="tab-switch" data-type="fund" style="font-size:13px;color:var(--muted);cursor:pointer;padding:4px 12px;border-bottom:2px solid transparent">指数基金</span>
-        </div>
-        <div class="fund-list" id="monthlyEtfList"></div>
-        <div class="fund-list" id="monthlyFundList" style="display:none"></div>
-      </div>
-    </div>
-
-    <!-- ========== PAGE 2: 知识页 ========== -->
-    <div class="page" id="pageKnowledge" style="padding: 12px 14px;">
-      <div class="section-title">📖 食息指南</div>
-      <div class="section-sub">从入门到精通，一步步构建你的食息收入</div>
-      <div id="knowledgeList"></div>
-    </div>
-
-    <!-- ========== PAGE 3: 个人页 ========== -->
-    <div class="page" id="pageProfile" style="padding: 12px 14px;">
-      <div class="profile-header">
-        <div class="avatar">食</div>
-        <div class="nick">食息达人</div>
-        <div class="bio">记录我的食息之路 · 收藏心仪资产</div>
-      </div>
-      <div class="profile-section">
-        <div class="section-title">⭐ 我的收藏</div>
-        <div id="favList"></div>
-      </div>
-    </div>
-
+    </main>
   </div>
 
-  <!-- ===== Index Detail Page (overlay) ===== -->
+  <!-- ===== Index Detail Overlay ===== -->
   <div class="index-detail-page" id="indexDetail">
     <div class="detail-page-header">
-      <span class="detail-back" id="detailBack" style="font-size:22px;color:#888899;cursor:pointer;padding-right:4px">‹</span>
+      <span class="detail-back" id="detailBack">&#x2039;</span>
       <div class="detail-gradient-icon"></div>
       <div class="title">指标详情</div>
-      <div class="detail-fav-btn" id="detailFavBtn">☆</div>
+      <div class="detail-fav-btn" id="detailFavBtn">&#x2606;</div>
     </div>
     <div class="detail-body">
       <div class="detail-main-card">
-        <!-- 指数头部标识区 -->
+        <!-- Header -->
         <div class="detail-card-section">
           <div class="detail-index-title" id="detailName"></div>
           <div class="detail-index-code" id="detailCode"></div>
         </div>
 
-        <!-- 基础信息键值对 -->
+        <!-- Info rows -->
         <div class="detail-card-section">
           <div class="detail-info-row">
             <span class="label">指数简称</span>
@@ -635,7 +824,7 @@
           </div>
         </div>
 
-        <!-- 股息率图表模块 -->
+        <!-- Chart -->
         <div class="detail-card-section">
           <div class="detail-chart-header">
             <div class="detail-chart-title">
@@ -663,7 +852,6 @@
         </div>
       </div>
 
-      <!-- 数据说明 -->
       <div class="detail-data-note">
         <div class="title">数据说明:</div>
         <div class="item">本表中"股息率"指标选取主要红利指数近12个月动态股息率。</div>
@@ -671,21 +859,21 @@
     </div>
   </div>
 
-  <!-- Bottom Tabs -->
-  <div class="bottom-tabs">
+  <!-- ===== Bottom Tabs (Mobile) ===== -->
+  <nav class="bottom-tabs" id="bottomTabs">
     <button class="tab-item active" data-tab="pageData">
-      <span class="tab-icon">📊</span>
+      <span class="tab-icon">&#x1f4ca;</span>
       <span>数据</span>
     </button>
     <button class="tab-item" data-tab="pageKnowledge">
-      <span class="tab-icon">📖</span>
+      <span class="tab-icon">&#x1f4d6;</span>
       <span>知识</span>
     </button>
     <button class="tab-item" data-tab="pageProfile">
-      <span class="tab-icon">👤</span>
+      <span class="tab-icon">&#x1f464;</span>
       <span>我的</span>
     </button>
-  </div>
+  </nav>
 
 </div>
 
@@ -694,8 +882,6 @@
 
 <script>
 // ===== DATA =====
-
-// 资产生息率数据（用户提供的原始数据）
 const assetData = [
   { type: '红利', name: '港股通央企红利', yield: '5.14%', date: '2026-06-28', note: '近12个月股息率', source: 'Wind' },
   { type: '红利', name: '香港银行', yield: '3.96%', date: '2026-06-28', note: '近12个月股息率', source: 'Wind' },
@@ -715,8 +901,6 @@ const assetData = [
   { type: '货币基金', name: '天弘余额宝', yield: '0.86%', date: '2026-06-26', note: '7日年化收益率', source: 'Wind' }
 ];
 
-// ===== 红利指数数据（来源：食息指南PRO Excel-Wind 快照，48个指数） =====
-// 排序：按跟踪标的基金数量降序（ETF跟踪数来自Sheet2境内红利ETF统计）
 const indexData = [
   { code: '930914.CSI', name: '港股通高股息(HKD)', fullname: '中证港股通高股息投资指数(HKD)', publisher: '中证指数有限公司', listedDate: '2016-11-25', market: '港股', components: 30, currency: 'HKD', weight: '因子加权|股息率加权', fundCount: 7, yield: '5.11%', yieldNum: 5.11, yrChange: -0.0421, fullReturn: 'h20915.CSI;h20914.CSI' },
   { code: '930955.CSI', name: '红利低波100', fullname: '中证红利低波动100指数', publisher: '中证指数有限公司', listedDate: '2017-05-26', market: '沪深', components: 100, currency: 'CNY', weight: '因子加权|股息率加权', fundCount: 6, yield: '5.15%', yieldNum: 5.15, yrChange: -0.0880, fullReturn: 'h20955.CSI' },
@@ -767,9 +951,7 @@ const indexData = [
   { code: 'CESFHY.CSI', name: '中华预期高股息', fullname: '中华交易服务预期高股息指数', publisher: '中华证券交易服务有限公司', listedDate: '2019-06-24', market: '港股', components: 40, currency: 'HKD', weight: '因子加权|股息率加权', fundCount: 0, yield: '7.08%', yieldNum: 7.08, yrChange: -0.1602, fullReturn: 'CES213.CSI;CES113.CSI' },
   { code: '932584.CSI', name: '智选港股通红利低波', fullname: '中证智选港股通红利低波动策略指数', publisher: '中证指数有限公司', listedDate: '2026-06-11', market: '港股', components: 50, currency: 'HKD', weight: '因子加权|波动率加权', fundCount: 0, yield: '7.25%', yieldNum: 7.25, yrChange: -0.1205, fullReturn: '932584CNY110.CSI;932584CNY210.CSI;932584HKD210.CSI' }
 ];
-// 已按 fundCount 降序排列（ETF跟踪多的在前）
 
-// 月月分红ETF
 const etfData = [
   { code: '159726.SZ', name: '红利ETF', yield: '4.85%', freq: '每月', type: '红利', size: '28.6亿', note: '近12月每月派息' },
   { code: '515180.SH', name: '100红利ETF', yield: '4.62%', freq: '每月', type: '红利', size: '45.2亿', note: '近12月每月派息' },
@@ -778,7 +960,6 @@ const etfData = [
   { code: '517090.SH', name: '央企红利ETF', yield: '5.73%', freq: '每月', type: '红利', size: '12.4亿', note: '近12月每月派息' }
 ];
 
-// 月月分红指数基金
 const fundData = [
   { code: '012345', name: 'XX中证红利指数A', yield: '4.95%', freq: '每月', type: '指数基金', size: '65.8亿', note: '每月15日派息' },
   { code: '012346', name: 'XX红利低波指数A', yield: '4.35%', freq: '每月', type: '指数基金', size: '42.1亿', note: '每月20日派息' },
@@ -786,7 +967,6 @@ const fundData = [
   { code: '012348', name: 'XX港股通红利指数A', yield: '5.55%', freq: '每月', type: '指数基金', size: '15.6亿', note: '每月25日派息' }
 ];
 
-// 知识内容
 const knowledgeData = [
   { title: '什么是食息投资？', desc: '食息投资是一种以获取稳定现金分红为核心目标的投资策略。与追求股价上涨的资本利得不同，食息投资者更关注企业或资产持续派发红利的能力。', tags: ['入门', '概念'], level: 'beginner' },
   { title: '股息率怎么算？', desc: '股息率 = 每股年度分红 ÷ 当前股价 × 100%。例如某股票股价10元，每股分红0.5元，股息率就是5%。注意区分"静态股息率"和"TTM股息率"。', tags: ['入门', '计算'], level: 'beginner' },
@@ -805,7 +985,6 @@ let showAllIndices = false;
 
 // ===== RENDER FUNCTIONS =====
 
-// 资产类型颜色映射
 const typeColors = {
   '红利': { bg: 'rgba(196, 69, 54, 0.12)', color: '#c44536' },
   '贷款利率': { bg: 'rgba(51, 102, 204, 0.12)', color: '#3366cc' },
@@ -818,171 +997,148 @@ const typeColors = {
   '货币基金': { bg: 'rgba(234, 179, 8, 0.15)', color: '#b8860b' }
 };
 
-// 渲染资产生息率
 function renderAssetTable() {
   const container = document.getElementById('assetTable');
-  let html = `<div class="asset-group">`;
+  let html = '';
   assetData.forEach((item, idx) => {
     const isFav = favorites.includes(item.name);
-    const uid = `asset-${idx}`;
+    const uid = 'asset-' + idx;
     const tc = typeColors[item.type] || { bg: 'rgba(100,116,139,0.1)', color: '#64748b' };
-    html += `
-      <div class="asset-row" data-uid="${uid}" data-name="${item.name}">
-        <div class="asset-name">
-          ${item.name}
-          <span class="asset-tag" style="background:${tc.bg};color:${tc.color}">${item.type}</span>
-        </div>
-        <div class="asset-yield">${item.yield}</div>
-        <div class="asset-meta"><span class="update">${item.date}</span></div>
-        <div class="fav-btn ${isFav ? 'active' : ''}" data-fav="${item.name}">${isFav ? '⭐' : '☆'}</div>
-      </div>
-      <div class="asset-detail" data-detail="${uid}">
-        <div class="row"><span class="label">利率说明</span><span class="value">${item.note}</span></div>
-        <div class="row"><span class="label">数据来源</span><span class="value source">${item.source}</span></div>
-        <div class="row"><span class="label">更新日期</span><span class="value">${item.date}</span></div>
-      </div>
-    `;
+    html += '<div class="asset-row" data-uid="' + uid + '" data-name="' + item.name + '">' +
+      '<div class="asset-name">' + item.name +
+        '<span class="asset-tag" style="background:' + tc.bg + ';color:' + tc.color + '">' + item.type + '</span>' +
+      '</div>' +
+      '<div class="asset-yield">' + item.yield + '</div>' +
+      '<div class="asset-meta"><span class="update">' + item.date + '</span></div>' +
+      '<div class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + item.name + '">' + (isFav ? '\u2B50' : '\u2606') + '</div>' +
+    '</div>' +
+    '<div class="asset-detail" data-detail="' + uid + '">' +
+      '<div class="row"><span class="label">利率说明</span><span class="value">' + item.note + '</span></div>' +
+      '<div class="row"><span class="label">数据来源</span><span class="value source">' + item.source + '</span></div>' +
+      '<div class="row"><span class="label">更新日期</span><span class="value">' + item.date + '</span></div>' +
+    '</div>';
   });
-  html += `</div>`;
   container.innerHTML = html;
 
-  // 点击行展开详情
-  container.querySelectorAll('.asset-row').forEach(row => {
+  container.querySelectorAll('.asset-row').forEach(function(row) {
     row.addEventListener('click', function(e) {
       if (e.target.closest('.fav-btn')) return;
-      const uid = this.dataset.uid;
-      const detail = document.querySelector(`.asset-detail[data-detail="${uid}"]`);
+      var uid = this.dataset.uid;
+      var detail = document.querySelector('.asset-detail[data-detail="' + uid + '"]');
       if (detail) detail.classList.toggle('open');
     });
   });
 
-  // 收藏按钮
-  container.querySelectorAll('.fav-btn').forEach(btn => {
+  container.querySelectorAll('.fav-btn').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
-      const name = this.dataset.fav;
+      var name = this.dataset.fav;
       toggleFav(name);
     });
   });
 }
 
-// 渲染红利指数列表
 function renderIndices() {
-  const container = document.getElementById('indexListContainer');
-  const totalCount = indexData.length;
-  const displayData = showAllIndices ? indexData : indexData.filter(idx => idx.fundCount >= 2);
+  var container = document.getElementById('indexListContainer');
+  var totalCount = indexData.length;
+  var displayData = showAllIndices ? indexData : indexData.filter(function(idx) { return idx.fundCount >= 2; });
 
-  let html = '';
+  var html = '<div class="index-list-header">' +
+    '<span class="col-rank">#</span>' +
+    '<span class="col-name">指数简称</span>' +
+    '<span class="col-yield">股息率</span>' +
+    '<span class="col-funds">产品数</span>' +
+  '</div>';
+  html += '<div class="index-list-body">';
 
-  // 表头
-  html += `<div class="index-list-header">
-    <span class="col-rank">#</span>
-    <span class="col-name">指数简称</span>
-    <span class="col-yield">股息率</span>
-    <span class="col-funds">产品数</span>
-  </div>`;
-  html += `<div class="index-list-body">`;
-
-  displayData.forEach((idx, i) => {
-    const rank = i + 1;
-    let rankClass = 'col-rank';
+  displayData.forEach(function(idx, i) {
+    var rank = i + 1;
+    var rankClass = 'col-rank';
     if (rank === 1) rankClass += ' top1';
     else if (rank === 2) rankClass += ' top2';
     else if (rank === 3) rankClass += ' top3';
-    html += `
-      <div class="index-list-row" data-code="${idx.code}">
-        <span class="${rankClass}">${rank}</span>
-        <div class="col-name">
-          <div class="iname">${idx.name}</div>
-          <div class="icode">${idx.code}</div>
-        </div>
-        <div class="col-yield">${idx.yield}</div>
-        <div class="col-funds">${idx.fundCount}<span class="lbl">ETF</span></div>
-      </div>
-    `;
+    html += '<div class="index-list-row" data-code="' + idx.code + '">' +
+      '<span class="' + rankClass + '">' + rank + '</span>' +
+      '<div class="col-name">' +
+        '<div class="iname">' + idx.name + '</div>' +
+        '<div class="icode">' + idx.code + '</div>' +
+      '</div>' +
+      '<div class="col-yield">' + idx.yield + '</div>' +
+      '<div class="col-funds">' + idx.fundCount + '<span class="lbl">ETF</span></div>' +
+    '</div>';
   });
-  html += `</div>`;
-
+  html += '</div>';
   container.innerHTML = html;
 
-  // 添加查看更多/收起按钮
-  const showMoreBtn = document.createElement('button');
+  var showMoreBtn = document.createElement('button');
   showMoreBtn.className = 'show-more-btn';
   showMoreBtn.id = 'showMoreBtn';
   showMoreBtn.textContent = showAllIndices
-    ? '▲ 收起，仅显示有ETF跟踪的指数'
-    : '▼ 查看更多（共 ' + totalCount + ' 个指数）';
+    ? '\u25B2 收起，仅显示有ETF跟踪的指数'
+    : '\u25BC 查看更多（共 ' + totalCount + ' 个指数）';
   container.appendChild(showMoreBtn);
 
-  document.getElementById('indexUpdateTime').textContent = `显示 ${displayData.length}/${totalCount} 个指数 · 数据更新于 ${new Date().toLocaleString('zh-CN')}`;
+  document.getElementById('indexUpdateTime').textContent = '显示 ' + displayData.length + '/' + totalCount + ' 个指数 \u00B7 数据更新于 ' + new Date().toLocaleString('zh-CN');
 
-  // 点击行进入详情
-  container.querySelectorAll('.index-list-row').forEach(row => {
+  container.querySelectorAll('.index-list-row').forEach(function(row) {
     row.addEventListener('click', function() {
-      const code = this.dataset.code;
+      var code = this.dataset.code;
       showIndexDetail(code);
     });
   });
 
-  // 查看更多按钮
   showMoreBtn.addEventListener('click', function() {
     showAllIndices = !showAllIndices;
     renderIndices();
   });
 }
 
-// 生成近一年模拟曲线数据
 function generateChartData(baseYield) {
-  const points = 52;
-  const data = [];
-  const today = new Date();
-  for (let i = points - 1; i >= 0; i--) {
-    const d = new Date(today);
+  var points = 52;
+  var data = [];
+  var today = new Date();
+  for (var i = points - 1; i >= 0; i--) {
+    var d = new Date(today);
     d.setDate(d.getDate() - i * 7);
-    const dateStr = d.toISOString().slice(0, 10);
-    // 股息率围绕 baseYield 小幅波动
-    const yieldVal = baseYield + (Math.random() - 0.5) * 0.8;
-    // 余额宝年化围绕 1.5% 波动
-    const yuebaoVal = 1.5 + (Math.random() - 0.5) * 0.3;
+    var dateStr = d.toISOString().slice(0, 10);
+    var yieldVal = baseYield + (Math.random() - 0.5) * 0.8;
+    var yuebaoVal = 1.5 + (Math.random() - 0.5) * 0.3;
     data.push({ date: dateStr, yield: yieldVal, yuebao: yuebaoVal });
   }
   return data;
 }
 
-// 绘制股息率折线图
 function drawDetailChart(data) {
-  const canvas = document.getElementById('detailChartCanvas');
+  var canvas = document.getElementById('detailChartCanvas');
   if (!canvas || !data.length) return;
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  var dpr = window.devicePixelRatio || 1;
   canvas.width = rect.width * dpr;
   canvas.height = rect.height * dpr;
-  const ctx = canvas.getContext('2d');
+  var ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
 
-  const width = rect.width;
-  const height = rect.height;
-  const padding = { top: 10, right: 10, bottom: 24, left: 34 };
-  const chartW = width - padding.left - padding.right;
-  const chartH = height - padding.top - padding.bottom;
+  var width = rect.width;
+  var height = rect.height;
+  var padding = { top: 10, right: 10, bottom: 24, left: 34 };
+  var chartW = width - padding.left - padding.right;
+  var chartH = height - padding.top - padding.bottom;
 
   ctx.clearRect(0, 0, width, height);
 
-  // 固定 Y 轴刻度
-  const yTicks = [0.4, 2.2, 3.9, 5.6, 7.3];
-  const minY = yTicks[0];
-  const maxY = yTicks[yTicks.length - 1];
-  const yRange = maxY - minY;
+  var yTicks = [0.4, 2.2, 3.9, 5.6, 7.3];
+  var minY = yTicks[0];
+  var maxY = yTicks[yTicks.length - 1];
+  var yRange = maxY - minY;
 
-  // 网格线与 Y 轴标签
   ctx.font = '10px -apple-system, sans-serif';
   ctx.fillStyle = '#aaaaaa';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
   ctx.strokeStyle = '#f0f0f5';
   ctx.lineWidth = 1;
-  yTicks.forEach(tick => {
-    const y = padding.top + chartH - ((tick - minY) / yRange) * chartH;
+  yTicks.forEach(function(tick) {
+    var y = padding.top + chartH - ((tick - minY) / yRange) * chartH;
     ctx.beginPath();
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
@@ -990,7 +1146,6 @@ function drawDetailChart(data) {
     ctx.fillText(tick.toFixed(1), padding.left - 6, y);
   });
 
-  // X 轴时间标签（首尾）
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillStyle = '#aaaaaa';
@@ -998,40 +1153,34 @@ function drawDetailChart(data) {
   ctx.textAlign = 'right';
   ctx.fillText(data[data.length - 1].date, width - padding.right, height - 14);
 
-  // 映射函数
-  const getX = i => padding.left + (i / (data.length - 1)) * chartW;
-  const getY = v => padding.top + chartH - ((v - minY) / yRange) * chartH;
+  var getX = function(i) { return padding.left + (i / (data.length - 1)) * chartW; };
+  var getY = function(v) { return padding.top + chartH - ((v - minY) / yRange) * chartH; };
 
-  // 绘制余额宝折线（橙色）
   ctx.strokeStyle = '#ffaa22';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  data.forEach((p, i) => {
-    const x = getX(i), y = getY(p.yuebao);
+  data.forEach(function(p, i) {
+    var x = getX(i), y = getY(p.yuebao);
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.stroke();
 
-  // 绘制股息率折线（蓝色）
   ctx.strokeStyle = '#4080ff';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  data.forEach((p, i) => {
-    const x = getX(i), y = getY(p.yield);
+  data.forEach(function(p, i) {
+    var x = getX(i), y = getY(p.yield);
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   });
   ctx.stroke();
 }
 
-// 当前详情页图表数据缓存
-let currentDetailChartData = [];
+var currentDetailChartData = [];
 
-// 显示指数详情
 function showIndexDetail(code) {
-  const idx = indexData.find(i => i.code === code);
+  var idx = indexData.find(function(i) { return i.code === code; });
   if (!idx) return;
 
-  // 头部名称与代码
   document.getElementById('detailName').textContent = idx.fullname;
   document.getElementById('detailCode').textContent = idx.code;
   document.getElementById('detailShortName').textContent = idx.name;
@@ -1039,59 +1188,51 @@ function showIndexDetail(code) {
   document.getElementById('detailWeight').textContent = idx.weight;
   document.getElementById('detailYield').textContent = idx.yield;
 
-  // 每月千元分红所需本金：本金 = 12×1000 / (股息率%) = 120 / yieldNum（万元）
-  const monthlyInv = idx.yieldNum ? (120 / idx.yieldNum).toFixed(2) : '--';
+  var monthlyInv = idx.yieldNum ? (120 / idx.yieldNum).toFixed(2) : '--';
   document.getElementById('detailMonthlyInv').textContent = monthlyInv;
 
-  // 更新日期
-  const today = new Date();
+  var today = new Date();
   document.getElementById('detailChartUpdate').textContent =
-    `更新日期：${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+    '\u66F4\u65B0\u65E5\u671F\uFF1A' + today.getFullYear() + '.' + String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
 
-  // 收藏状态
-  const isFav = favorites.includes(idx.code);
-  const favBtn = document.getElementById('detailFavBtn');
-  favBtn.textContent = isFav ? '⭐' : '☆';
-  favBtn.className = `detail-fav-btn${isFav ? ' active' : ''}`;
+  var isFav = favorites.includes(idx.code);
+  var favBtn = document.getElementById('detailFavBtn');
+  favBtn.textContent = isFav ? '\u2B50' : '\u2606';
+  favBtn.className = 'detail-fav-btn' + (isFav ? ' active' : '');
 
-  // 生成并绘制图表
   currentDetailChartData = generateChartData(idx.yieldNum);
-  setTimeout(() => drawDetailChart(currentDetailChartData), 50);
+  setTimeout(function() { drawDetailChart(currentDetailChartData); }, 50);
 
-  // 显示详情页
   document.getElementById('indexDetail').classList.add('open');
 }
 
-// 渲染基金列表
 function renderFundList(containerId, data) {
-  const container = document.getElementById(containerId);
+  var container = document.getElementById(containerId);
   if (!container) return;
   if (data.length === 0) {
-    container.innerHTML = `<div class="fav-empty"><span class="icon">📭</span>暂无数据<br>敬请期待</div>`;
+    container.innerHTML = '<div class="fav-empty"><span class="icon">\uD83D\uDCED</span>\u6682\u65E0\u6570\u636E<br>\u656C\u8BF7\u671F\u5F85</div>';
     return;
   }
-  container.innerHTML = data.map(f => {
-    const isFav = favorites.includes(f.code);
-    return `
-      <div class="fund-card">
-        <div class="top">
-          <div><div class="name">${f.name}</div><div class="code">${f.code}</div></div>
-          <div class="yield">${f.yield}</div>
-        </div>
-        <div class="tags">
-          <span class="tag monthly">${f.freq}</span>
-          <span class="tag">${f.type}</span>
-          <span class="tag">规模 ${f.size}</span>
-        </div>
-        <div class="meta">
-          <span>${f.note}</span>
-          <span class="fav-btn ${isFav ? 'active' : ''}" data-fav="${f.code}">${isFav ? '⭐' : '☆'}</span>
-        </div>
-      </div>
-    `;
+  container.innerHTML = data.map(function(f) {
+    var isFav = favorites.includes(f.code);
+    return '<div class="fund-card">' +
+      '<div class="top">' +
+        '<div><div class="name">' + f.name + '</div><div class="code">' + f.code + '</div></div>' +
+        '<div class="yield">' + f.yield + '</div>' +
+      '</div>' +
+      '<div class="tags">' +
+        '<span class="tag monthly">' + f.freq + '</span>' +
+        '<span class="tag">' + f.type + '</span>' +
+        '<span class="tag">\u89C4\u6A21 ' + f.size + '</span>' +
+      '</div>' +
+      '<div class="meta">' +
+        '<span>' + f.note + '</span>' +
+        '<span class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + f.code + '">' + (isFav ? '\u2B50' : '\u2606') + '</span>' +
+      '</div>' +
+    '</div>';
   }).join('');
 
-  container.querySelectorAll('.fav-btn').forEach(btn => {
+  container.querySelectorAll('.fav-btn').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
       e.stopPropagation();
       toggleFav(this.dataset.fav);
@@ -1099,70 +1240,65 @@ function renderFundList(containerId, data) {
   });
 }
 
-// 渲染知识页
 function renderKnowledge() {
-  const container = document.getElementById('knowledgeList');
-  container.innerHTML = knowledgeData.map(k => `
-    <div class="knowledge-item">
-      <div class="title">${k.title}</div>
-      <div class="desc">${k.desc}</div>
-      <div class="tag-row">
-        ${k.tags.map(t => `<span class="tag ${k.level}">${t}</span>`).join('')}
-      </div>
-    </div>
-  `).join('');
+  var container = document.getElementById('knowledgeList');
+  container.innerHTML = knowledgeData.map(function(k) {
+    return '<div class="knowledge-item">' +
+      '<div class="title">' + k.title + '</div>' +
+      '<div class="desc">' + k.desc + '</div>' +
+      '<div class="tag-row">' +
+        k.tags.map(function(t) { return '<span class="tag ' + k.level + '">' + t + '</span>'; }).join('') +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
-// 渲染收藏
 function renderFavorites() {
-  const container = document.getElementById('favList');
+  var container = document.getElementById('favList');
   if (favorites.length === 0) {
-    container.innerHTML = `
-      <div class="fav-empty">
-        <span class="icon">⭐</span>
-        还没有收藏任何资产<br>
-        在数据页点击 ☆ 即可收藏
-      </div>
-    `;
+    container.innerHTML = '<div class="fav-empty">' +
+      '<span class="icon">\u2B50</span>' +
+      '\u8FD8\u6CA1\u6709\u6536\u85CF\u4EFB\u4F55\u8D44\u4EA7<br>' +
+      '\u5728\u6570\u636E\u9875\u70B9\u51FB \u2606 \u5373\u53EF\u6536\u85CF' +
+    '</div>';
     return;
   }
 
-  // 查找收藏的数据
-  const favItems = [];
-  favorites.forEach(fav => {
-    const found = assetData.find(a => a.name === fav);
-    if (found) favItems.push({ name: found.name, yield: found.yield, sub: found.type + ' · ' + found.source });
-    const foundEtf = etfData.find(e => e.code === fav);
-    if (foundEtf) favItems.push({ name: foundEtf.name, yield: foundEtf.yield, sub: foundEtf.code + ' · ' + foundEtf.type });
-    const foundFund = fundData.find(f => f.code === fav);
-    if (foundFund) favItems.push({ name: foundFund.name, yield: foundFund.yield, sub: foundFund.code + ' · ' + foundFund.type });
+  var favItems = [];
+  favorites.forEach(function(fav) {
+    var found = assetData.find(function(a) { return a.name === fav; });
+    if (found) favItems.push({ name: found.name, yield: found.yield, sub: found.type + ' \u00B7 ' + found.source });
+    var foundEtf = etfData.find(function(e) { return e.code === fav; });
+    if (foundEtf) favItems.push({ name: foundEtf.name, yield: foundEtf.yield, sub: foundEtf.code + ' \u00B7 ' + foundEtf.type });
+    var foundFund = fundData.find(function(f) { return f.code === fav; });
+    if (foundFund) favItems.push({ name: foundFund.name, yield: foundFund.yield, sub: foundFund.code + ' \u00B7 ' + foundFund.type });
   });
 
-  container.innerHTML = favItems.map(f => `
-    <div class="fav-item">
-      <div class="info">
-        <div class="name">${f.name}</div>
-        <div class="sub">${f.sub}</div>
-      </div>
-      <div class="yield">${f.yield}</div>
-    </div>
-  `).join('');
+  container.innerHTML = favItems.map(function(f) {
+    return '<div class="fav-item">' +
+      '<div class="info">' +
+        '<div class="name">' + f.name + '</div>' +
+        '<div class="sub">' + f.sub + '</div>' +
+      '</div>' +
+      '<div class="yield">' + f.yield + '</div>' +
+    '</div>';
+  }).join('');
 }
 
 // ===== ACTIONS =====
 
 function toggleFav(name) {
-  const idx = favorites.indexOf(name);
+  var idx = favorites.indexOf(name);
   if (idx > -1) {
     favorites.splice(idx, 1);
-    showToast('已取消收藏');
+    showToast('\u5DF2\u53D6\u6D88\u6536\u85CF');
   } else {
     if (favorites.length >= 20) {
-      showToast('收藏已满（最多20个）');
+      showToast('\u6536\u85CF\u5DF2\u6EE1\uFF08\u6700\u591A20\u4E2A\uFF09');
       return;
     }
     favorites.push(name);
-    showToast('已收藏 ⭐');
+    showToast('\u5DF2\u6536\u85CF \u2B50');
   }
   localStorage.setItem('shixi_favs', JSON.stringify(favorites));
   renderAssetTable();
@@ -1172,102 +1308,120 @@ function toggleFav(name) {
 }
 
 function showToast(msg) {
-  const el = document.getElementById('toast');
+  var el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(el._timer);
-  el._timer = setTimeout(() => el.classList.remove('show'), 1500);
+  el._timer = setTimeout(function() { el.classList.remove('show'); }, 1500);
 }
 
 // ===== TAB SWITCHING =====
 
-// 主 Tab 切换
-document.querySelectorAll('.tab-item').forEach(tab => {
-  tab.addEventListener('click', function() {
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    this.classList.add('active');
-    const pageId = this.dataset.tab;
-    document.getElementById(pageId).classList.add('active');
-    currentTab = pageId;
+function switchTab(tabId) {
+  // Update sidebar
+  document.querySelectorAll('.sidebar-item').forEach(function(el) { el.classList.remove('active'); });
+  var sbItem = document.querySelector('.sidebar-item[data-tab="' + tabId + '"]');
+  if (sbItem) sbItem.classList.add('active');
 
-    // 切换头部提示
-    const titles = { pageData: '📊 数据', pageKnowledge: '📖 知识', pageProfile: '👤 我的' };
-    document.querySelector('.header h1').textContent = titles[pageId];
+  // Update bottom tabs
+  document.querySelectorAll('.tab-item').forEach(function(el) { el.classList.remove('active'); });
+  var btItem = document.querySelector('.tab-item[data-tab="' + tabId + '"]');
+  if (btItem) btItem.classList.add('active');
 
-    // 如果在数据页，恢复副标题
-    if (pageId === 'pageData') {
-      document.querySelector('.header .subtitle').textContent = '低利率时代的理财之道';
-    }
+  // Update pages
+  document.querySelectorAll('.page').forEach(function(el) { el.classList.remove('active'); });
+  document.getElementById(tabId).classList.add('active');
+  currentTab = tabId;
+}
+
+// Sidebar clicks
+document.querySelectorAll('.sidebar-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    switchTab(this.dataset.tab);
   });
 });
 
-// 子 Tab 切换
-document.querySelectorAll('.sub-nav-item').forEach(item => {
+// Bottom tab clicks
+document.querySelectorAll('.tab-item').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    switchTab(this.dataset.tab);
+  });
+});
+
+// Sub nav clicks
+document.querySelectorAll('.sub-nav-item').forEach(function(item) {
   item.addEventListener('click', function() {
-    document.querySelectorAll('.sub-nav-item').forEach(i => i.classList.remove('active'));
-    document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sub-nav-item').forEach(function(i) { i.classList.remove('active'); });
+    document.querySelectorAll('.sub-page').forEach(function(p) { p.classList.remove('active'); });
     this.classList.add('active');
-    const subId = this.dataset.sub;
-    const map = { yield: 'subYield', index: 'subIndex', monthly: 'subMonthly' };
+    var subId = this.dataset.sub;
+    var map = { yield: 'subYield', index: 'subIndex', monthly: 'subMonthly' };
     document.getElementById(map[subId]).classList.add('active');
     currentSub = subId;
   });
 });
 
-// 刷新按钮
+// Monthly ETF/Fund switch
+document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(i) { i.classList.remove('active'); });
+    this.classList.add('active');
+    var type = this.dataset.type;
+    document.getElementById('monthlyEtfList').style.display = (type === 'etf') ? 'block' : 'none';
+    document.getElementById('monthlyFundList').style.display = (type === 'fund') ? 'block' : 'none';
+  });
+});
+
+// Refresh
 document.getElementById('refreshBtn').addEventListener('click', function() {
-  showToast('数据已刷新 ✓');
+  showToast('\u6570\u636E\u5DF2\u5237\u65B0 \u2713');
   renderIndices();
 });
 
-// 指数详情 - 返回按钮
+// Detail back
 document.getElementById('detailBack').addEventListener('click', function() {
   document.getElementById('indexDetail').classList.remove('open');
 });
 
-// 指数详情 - 收藏按钮
+// Detail fav
 document.getElementById('detailFavBtn').addEventListener('click', function() {
-  const codeEl = document.getElementById('detailCode');
+  var codeEl = document.getElementById('detailCode');
   if (!codeEl) return;
-  const code = codeEl.textContent;
+  var code = codeEl.textContent;
   toggleFav(code);
-  // 更新状态
-  const isFav = favorites.includes(code);
-  this.textContent = isFav ? '⭐' : '☆';
-  this.className = `detail-fav-btn${isFav ? ' active' : ''}`;
-  renderIndices(); // 刷新列表页的收藏状态
+  var isFav = favorites.includes(code);
+  this.textContent = isFav ? '\u2B50' : '\u2606';
+  this.className = 'detail-fav-btn' + (isFav ? ' active' : '');
+  renderIndices();
 });
 
-// 图表周期选择器
+// Chart range
 document.getElementById('detailChartRange').addEventListener('change', function() {
-  const range = this.value;
-  let points = 52;
+  var range = this.value;
+  var points = 52;
   if (range === '6m') points = 26;
   if (range === '3m') points = 13;
-  const idx = indexData.find(i => i.code === document.getElementById('detailCode').textContent);
+  var idx = indexData.find(function(i) { return i.code === document.getElementById('detailCode').textContent; });
   if (idx) {
     currentDetailChartData = generateChartDataByPoints(idx.yieldNum, points);
     drawDetailChart(currentDetailChartData);
   }
 });
 
-// 按点数生成模拟数据
 function generateChartDataByPoints(baseYield, points) {
-  const data = [];
-  const today = new Date();
-  for (let i = points - 1; i >= 0; i--) {
-    const d = new Date(today);
+  var data = [];
+  var today = new Date();
+  for (var i = points - 1; i >= 0; i--) {
+    var d = new Date(today);
     d.setDate(d.getDate() - i * 7);
-    const dateStr = d.toISOString().slice(0, 10);
-    const yieldVal = baseYield + (Math.random() - 0.5) * 0.8;
-    const yuebaoVal = 1.5 + (Math.random() - 0.5) * 0.3;
+    var dateStr = d.toISOString().slice(0, 10);
+    var yieldVal = baseYield + (Math.random() - 0.5) * 0.8;
+    var yuebaoVal = 1.5 + (Math.random() - 0.5) * 0.3;
     data.push({ date: dateStr, yield: yieldVal, yuebao: yuebaoVal });
   }
   return data;
 }
 
-// 窗口尺寸变化时重绘图表
 window.addEventListener('resize', function() {
   if (document.getElementById('indexDetail').classList.contains('open') && currentDetailChartData.length) {
     drawDetailChart(currentDetailChartData);
@@ -1281,30 +1435,6 @@ renderFundList('monthlyEtfList', etfData);
 renderFundList('monthlyFundList', fundData);
 renderKnowledge();
 renderFavorites();
-
-// ETF/基金 tab 切换
-document.querySelectorAll('.tab-switch').forEach(item => {
-  item.addEventListener('click', function() {
-    document.querySelectorAll('.tab-switch').forEach(i => {
-      i.style.color = 'var(--muted)';
-      i.style.fontWeight = '400';
-      i.style.borderBottomColor = 'transparent';
-    });
-    this.style.color = 'var(--accent)';
-    this.style.fontWeight = '600';
-    this.style.borderBottomColor = 'var(--accent)';
-    const type = this.dataset.type;
-    if (type === 'etf') {
-      document.getElementById('monthlyEtfList').style.display = 'block';
-      document.getElementById('monthlyFundList').style.display = 'none';
-    } else {
-      document.getElementById('monthlyEtfList').style.display = 'none';
-      document.getElementById('monthlyFundList').style.display = 'block';
-    }
-  });
-});
-
-// 更新资产生息率的整体最后更新时间
 </script>
 </body>
 </html>
