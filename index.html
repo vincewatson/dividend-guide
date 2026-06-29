@@ -4,156 +4,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>食息指南</title>
+<title>食息指南 — 低利率时代的理财之道</title>
 <style>
-  /* ===== Reset & Base ===== */
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; }
+  /* ===== Reset & Variables ===== */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overscroll-behavior: none; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
-    background: #f5f3f7;
-    color: #1a1a2e;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+    background: #f4f2f7;
+    color: #1c1c1e;
     font-size: 14px;
     line-height: 1.5;
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
   }
   button { font-family: inherit; cursor: pointer; border: none; background: none; outline: none; }
 
   /* ===== App Shell ===== */
   .app-shell {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    max-width: 960px;
-    margin: 0 auto;
-    position: relative;
-    overflow: hidden;
-    background: #f5f3f7;
+    display: flex; flex-direction: column;
+    height: 100%; max-width: 1024px; margin: 0 auto;
+    position: relative; overflow: hidden;
+    background: #f4f2f7;
   }
 
-  /* ===== Top Header (Desktop + Mobile) ===== */
+  /* ===== Top Header ===== */
   .top-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px;
-    background: #fff;
-    border-bottom: 1px solid #e8e8ed;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
     flex-shrink: 0;
   }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .brand { display: flex; align-items: center; gap: 12px; }
   .brand-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #c44536 0%, #e86a4f 40%, #f4a261 100%);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(108,92,231,0.25);
   }
   .brand-text { display: flex; flex-direction: column; }
-  .brand-name { font-size: 18px; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
-  .brand-subtitle { font-size: 11px; color: #888899; line-height: 1.3; }
+  .brand-name { font-size: 18px; font-weight: 700; color: #1c1c1e; letter-spacing: -0.02em; }
+  .brand-subtitle { font-size: 11px; color: #8e8e93; letter-spacing: 0.01em; }
   .header-actions { display: flex; gap: 8px; align-items: center; }
   .header-btn {
-    font-size: 12px;
-    color: #888899;
-    padding: 5px 12px;
-    border-radius: 6px;
-    transition: background 0.15s;
-    cursor: pointer;
+    font-size: 12px; color: #8e8e93; padding: 6px 14px;
+    border-radius: 8px; transition: all 0.15s;
+    background: rgba(0,0,0,0.03); cursor: pointer;
+    font-weight: 500;
   }
-  .header-btn:hover { background: #f0f0f5; }
+  .header-btn:hover { background: rgba(0,0,0,0.06); }
 
-  /* ===== App Body (Sidebar + Main) ===== */
-  .app-body {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-  }
+  /* ===== App Body ===== */
+  .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
 
   /* ===== Sidebar (Desktop) ===== */
   .sidebar {
-    width: 190px;
-    background: #fff;
-    border-right: 1px solid #e8e8ed;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 12px 0;
-    overflow-y: auto;
+    width: 180px; background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(0,0,0,0.06);
+    flex-shrink: 0; display: flex; flex-direction: column;
+    padding: 16px 0; overflow-y: auto;
   }
   .sidebar-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 13px 20px;
-    font-size: 14px;
-    color: #888899;
-    cursor: pointer;
-    transition: all 0.15s;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 20px; font-size: 14px; color: #8e8e93;
+    cursor: pointer; transition: all 0.15s; font-weight: 500;
     border-left: 3px solid transparent;
-    font-weight: 500;
   }
-  .sidebar-item:hover { background: #f8f6fa; color: #1a1a2e; }
+  .sidebar-item:hover { background: rgba(108,92,231,0.04); color: #1c1c1e; }
   .sidebar-item.active {
-    color: #c44536;
-    background: rgba(196, 69, 54, 0.06);
-    border-left-color: #c44536;
-    font-weight: 600;
+    color: #6C5CE7; background: rgba(108,92,231,0.08);
+    border-left-color: #6C5CE7; font-weight: 600;
   }
   .sidebar-item .icon { font-size: 18px; }
 
-  /* ===== Main Content Area ===== */
-  .main-content {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
-  }
+  /* ===== Main Content ===== */
+  .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 
   /* ===== Pages ===== */
-  .page { display: none; padding: 14px 16px; }
+  .page { display: none; padding: 20px 24px; }
   .page.active { display: block; }
 
-  /* ===== Sub Navigation ===== */
+  /* ===== Sub Navigation (Capsule style) ===== */
   .sub-nav {
-    display: flex;
-    background: #fff;
-    border-radius: 12px;
-    padding: 4px;
-    margin-bottom: 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    display: flex; background: rgba(0,0,0,0.04);
+    border-radius: 12px; padding: 3px; margin-bottom: 20px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
   .sub-nav::-webkit-scrollbar { display: none; }
   .sub-nav-item {
-    flex: 1;
-    text-align: center;
-    padding: 9px 10px;
-    font-size: 13px;
-    color: #888899;
-    cursor: pointer;
-    border-radius: 10px;
-    transition: all 0.2s;
-    white-space: nowrap;
-    font-weight: 500;
+    flex: 1; text-align: center; padding: 10px 12px;
+    font-size: 13px; color: #8e8e93; cursor: pointer;
+    border-radius: 10px; transition: all 0.25s;
+    white-space: nowrap; font-weight: 500;
   }
   .sub-nav-item.active {
-    color: #fff;
-    background: #c44536;
-    font-weight: 600;
+    color: #fff; background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+    font-weight: 600; box-shadow: 0 2px 8px rgba(108,92,231,0.25);
   }
 
   /* ===== Sub Pages ===== */
@@ -162,503 +111,277 @@
 
   /* ===== Section Titles ===== */
   .section-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 6px 0 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-size: 18px; font-weight: 700; margin: 4px 0 8px;
+    display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;
   }
-  .section-title .badge {
-    font-size: 10px;
-    background: #c44536;
-    color: #fff;
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-weight: 600;
-  }
-  .section-sub {
-    font-size: 12px;
-    color: #888899;
-    margin-bottom: 12px;
-  }
+  .section-sub { font-size: 12px; color: #8e8e93; margin-bottom: 16px; }
 
-  /* ===== Asset Table ===== */
-  .asset-table { margin-bottom: 10px; }
-  .asset-group { margin-bottom: 0; }
-  .asset-row {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    background: #fff;
-    border-radius: 12px;
+  /* ===== Cards ===== */
+  .card {
+    background: #fff; border-radius: 14px; padding: 16px 18px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    margin-bottom: 10px;
-    cursor: pointer;
     transition: all 0.15s;
   }
+  .card + .card { margin-top: 10px; }
+
+  /* ===== Asset Table ===== */
+  .asset-table { margin-bottom: 8px; }
+  .asset-row {
+    display: flex; align-items: center;
+    padding: 14px 16px; background: #fff;
+    border-radius: 14px; margin-bottom: 8px;
+    cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .asset-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
   .asset-row:active { transform: scale(0.98); }
-  .asset-name {
-    flex: 1;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .asset-tag {
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .asset-yield {
-    font-size: 16px;
-    font-weight: 700;
-    color: #c44536;
-    margin: 0 14px;
-    min-width: 56px;
-    text-align: right;
-  }
-  .asset-meta { text-align: right; font-size: 10px; color: #888899; line-height: 1.3; min-width: 68px; }
+  .asset-name { flex: 1; font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .asset-tag { font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 600; white-space: nowrap; }
+  .asset-yield { font-size: 17px; font-weight: 700; color: #6C5CE7; margin: 0 14px; min-width: 56px; text-align: right; }
+  .asset-meta { text-align: right; font-size: 10px; color: #8e8e93; line-height: 1.3; min-width: 68px; }
   .asset-meta .update { display: block; }
   .fav-btn {
-    font-size: 17px;
-    cursor: pointer;
-    color: #d0d0dd;
-    margin-left: 4px;
-    transition: color 0.2s;
-    width: 26px;
-    text-align: center;
-    flex-shrink: 0;
+    font-size: 17px; cursor: pointer; color: #d1d1d6;
+    margin-left: 4px; transition: color 0.2s; width: 26px; text-align: center; flex-shrink: 0;
   }
-  .fav-btn.active { color: #d97706; }
+  .fav-btn.active { color: #f6a623; }
 
   .asset-detail {
-    display: none;
-    padding: 10px 16px 14px;
-    background: #faf9fc;
-    border-radius: 0 0 12px 12px;
-    margin-top: -10px;
-    margin-bottom: 10px;
-    font-size: 12px;
-    color: #888899;
-    line-height: 1.7;
-    border: 1px solid #f0edf2;
-    border-top: none;
+    display: none; padding: 12px 16px 16px;
+    background: #faf9fc; border-radius: 0 0 14px 14px;
+    margin-top: -8px; margin-bottom: 8px;
+    font-size: 12px; color: #8e8e93; line-height: 1.7;
+    border: 1px solid #f0edf5; border-top: none;
   }
   .asset-detail.open { display: block; }
   .asset-detail .row { display: flex; justify-content: space-between; padding: 3px 0; }
-  .asset-detail .label { color: #888899; }
-  .asset-detail .value { color: #1a1a2e; text-align: right; }
-  .asset-detail .source { color: #3366cc; font-size: 11px; }
+  .asset-detail .label { color: #8e8e93; }
+  .asset-detail .value { color: #1c1c1e; text-align: right; font-weight: 500; }
+  .asset-detail .source { color: #6C5CE7; font-size: 11px; }
 
   /* ===== Index List ===== */
-  .index-list-container { margin-bottom: 10px; }
+  .index-list-container { margin-bottom: 8px; }
   .index-list-header {
-    display: flex;
-    padding: 10px 16px;
-    font-size: 11px;
-    color: #888899;
-    background: #fff;
-    border-radius: 12px 12px 0 0;
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex; padding: 12px 16px; font-size: 11px; color: #8e8e93;
+    background: #fff; border-radius: 14px 14px 0 0; font-weight: 600;
+    letter-spacing: 0.03em; text-transform: uppercase;
+    border-bottom: 1px solid #f0edf5;
   }
-  .index-list-header .col-rank { width: 30px; text-align: left; }
+  .index-list-header .col-rank { width: 30px; }
   .index-list-header .col-name { flex: 1; }
   .index-list-header .col-yield { width: 60px; text-align: right; }
   .index-list-header .col-funds { width: 54px; text-align: right; }
-  .index-list-body { background: #fff; border-radius: 0 0 12px 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 10px; }
+  .index-list-body { background: #fff; border-radius: 0 0 14px 14px; overflow: hidden; margin-bottom: 8px; }
   .index-list-row {
-    display: flex;
-    align-items: center;
-    padding: 11px 16px;
-    border-bottom: 1px solid #f0edf2;
-    cursor: pointer;
-    transition: background 0.15s;
+    display: flex; align-items: center; padding: 12px 16px;
+    border-bottom: 1px solid #f0edf5; cursor: pointer; transition: background 0.15s;
   }
   .index-list-row:last-child { border-bottom: none; }
   .index-list-row:hover { background: #faf9fc; }
-  .index-list-row .col-rank { width: 30px; font-size: 11px; color: #888899; font-weight: 600; }
-  .index-list-row .col-rank.top1 { color: #c44536; font-size: 14px; }
-  .index-list-row .col-rank.top2 { color: #d97706; font-size: 14px; }
-  .index-list-row .col-rank.top3 { color: #3366cc; font-size: 14px; }
+  .index-list-row .col-rank { width: 30px; font-size: 12px; color: #8e8e93; font-weight: 600; }
+  .index-list-row .col-rank.top1 { color: #6C5CE7; font-size: 15px; font-weight: 700; }
+  .index-list-row .col-rank.top2 { color: #d97706; font-size: 15px; }
+  .index-list-row .col-rank.top3 { color: #3366cc; font-size: 15px; }
   .index-list-row .col-name { flex: 1; }
-  .index-list-row .col-name .iname { font-size: 13px; font-weight: 600; }
-  .index-list-row .col-name .icode { font-size: 10px; color: #888899; margin-top: 1px; }
-  .index-list-row .col-yield { width: 60px; text-align: right; font-size: 16px; font-weight: 700; color: #c44536; }
-  .index-list-row .col-funds { width: 54px; text-align: right; font-size: 12px; color: #1a1a2e; }
-  .index-list-row .col-funds .lbl { font-size: 9px; color: #888899; display: block; }
+  .index-list-row .col-name .iname { font-size: 14px; font-weight: 600; }
+  .index-list-row .col-name .icode { font-size: 10px; color: #8e8e93; margin-top: 2px; }
+  .index-list-row .col-yield { width: 60px; text-align: right; font-size: 16px; font-weight: 700; color: #6C5CE7; }
+  .index-list-row .col-funds { width: 54px; text-align: right; font-size: 12px; color: #1c1c1e; }
+  .index-list-row .col-funds .lbl { font-size: 9px; color: #8e8e93; display: block; }
 
-  /* ===== Show More ===== */
   .show-more-btn {
-    display: block;
-    width: 100%;
-    padding: 11px;
-    background: #fff;
-    border: 1px dashed #d0d0dd;
-    border-radius: 12px;
-    color: #c44536;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-    transition: background 0.2s;
-    margin-bottom: 10px;
+    display: block; width: 100%; padding: 12px;
+    background: #fff; border: 1px dashed #d1d1d6;
+    border-radius: 14px; color: #6C5CE7;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    text-align: center; transition: all 0.2s; margin-bottom: 8px;
   }
-  .show-more-btn:hover { background: #faf9fc; }
-  .show-more-btn:active { background: #f0edf2; }
+  .show-more-btn:hover { background: rgba(108,92,231,0.04); border-color: #6C5CE7; }
+  .show-more-btn:active { transform: scale(0.98); }
 
   /* ===== Fund Cards ===== */
-  .fund-list { margin-bottom: 10px; }
+  .fund-list { margin-bottom: 8px; }
   .fund-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    background: #fff; border-radius: 14px; padding: 16px 18px;
+    margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
   .fund-card .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
   .fund-card .name { font-size: 14px; font-weight: 600; }
-  .fund-card .code { font-size: 11px; color: #888899; margin-top: 1px; }
-  .fund-card .yield { font-size: 19px; font-weight: 700; color: #c44536; }
-  .fund-card .tags { display: flex; gap: 4px; margin: 8px 0 6px; flex-wrap: wrap; }
+  .fund-card .code { font-size: 11px; color: #8e8e93; margin-top: 2px; }
+  .fund-card .yield { font-size: 20px; font-weight: 700; color: #6C5CE7; }
+  .fund-card .tags { display: flex; gap: 6px; margin: 8px 0 6px; flex-wrap: wrap; }
   .fund-card .tag {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background: #f0edf2;
-    color: #888899;
+    font-size: 10px; padding: 3px 10px; border-radius: 100px;
+    background: #f0edf5; color: #8e8e93; font-weight: 500;
   }
-  .fund-card .tag.monthly { background: rgba(45, 106, 79, 0.1); color: #2d6a4f; font-weight: 600; }
-  .fund-card .meta { font-size: 11px; color: #888899; display: flex; justify-content: space-between; align-items: center; }
+  .fund-card .tag.monthly { background: rgba(108,92,231,0.1); color: #6C5CE7; font-weight: 600; }
+  .fund-card .meta { font-size: 11px; color: #8e8e93; display: flex; justify-content: space-between; align-items: center; }
 
   /* ===== Monthly Tab Switch ===== */
   .tab-switch-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin: 4px 0 14px;
-    background: #f0edf2;
-    border-radius: 10px;
-    padding: 3px;
+    display: flex; align-items: center; gap: 0;
+    margin: 4px 0 16px; background: rgba(0,0,0,0.04);
+    border-radius: 10px; padding: 3px;
   }
   .tab-switch-wrap .sw-item {
-    flex: 1;
-    text-align: center;
-    font-size: 13px;
-    color: #888899;
-    cursor: pointer;
-    padding: 7px 12px;
-    border-radius: 8px;
-    transition: all 0.2s;
-    font-weight: 500;
+    flex: 1; text-align: center; font-size: 13px;
+    color: #8e8e93; cursor: pointer; padding: 8px 12px;
+    border-radius: 8px; transition: all 0.2s; font-weight: 500;
   }
   .tab-switch-wrap .sw-item.active {
-    color: #fff;
-    background: #c44536;
-    font-weight: 600;
+    color: #fff; background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+    font-weight: 600; box-shadow: 0 2px 6px rgba(108,92,231,0.2);
   }
 
   /* ===== Knowledge ===== */
   .knowledge-item {
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
+    background: #fff; border-radius: 14px; padding: 18px;
+    margin-bottom: 10px; cursor: pointer; transition: all 0.15s;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    cursor: pointer;
-    transition: transform 0.15s;
   }
-  .knowledge-item:active { transform: scale(0.98); }
+  .knowledge-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
   .knowledge-item .title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-  .knowledge-item .desc { font-size: 13px; color: #888899; line-height: 1.7; }
+  .knowledge-item .desc { font-size: 13px; color: #8e8e93; line-height: 1.7; }
   .knowledge-item .tag-row { display: flex; gap: 6px; margin-top: 10px; }
   .knowledge-item .tag {
-    font-size: 10px;
-    padding: 2px 10px;
-    border-radius: 100px;
-    background: #f0edf2;
-    color: #888899;
+    font-size: 10px; padding: 3px 10px; border-radius: 100px;
+    background: #f0edf5; color: #8e8e93;
   }
-  .knowledge-item .tag.beginner { background: rgba(45, 106, 79, 0.1); color: #2d6a4f; }
+  .knowledge-item .tag.beginner { background: rgba(108,92,231,0.1); color: #6C5CE7; }
 
   /* ===== Profile ===== */
   .profile-header {
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px 20px;
-    text-align: center;
-    margin-bottom: 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    background: linear-gradient(135deg, #6C5CE7, #a29bfe);
+    border-radius: 16px; padding: 28px 20px; text-align: center;
+    margin-bottom: 16px; color: #fff;
+    box-shadow: 0 4px 16px rgba(108,92,231,0.25);
   }
   .profile-header .avatar {
-    width: 60px; height: 60px; border-radius: 50%;
-    background: linear-gradient(135deg, #c44536, #e86a4f);
-    color: #fff;
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
     display: flex; align-items: center; justify-content: center;
-    font-size: 26px; font-weight: 700;
+    font-size: 28px; font-weight: 700;
     margin: 0 auto 12px;
-    box-shadow: 0 2px 8px rgba(196, 69, 54, 0.2);
   }
-  .profile-header .nick { font-size: 17px; font-weight: 600; }
-  .profile-header .bio { font-size: 12px; color: #888899; margin-top: 4px; }
+  .profile-header .nick { font-size: 18px; font-weight: 700; }
+  .profile-header .bio { font-size: 12px; opacity: 0.8; margin-top: 4px; }
 
-  .profile-section { margin-bottom: 14px; }
-  .profile-section .section-title { margin: 0 0 10px; font-size: 15px; }
+  .profile-section .section-title { font-size: 15px; margin: 0 0 10px; }
   .fav-item {
-    background: #fff;
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
+    background: #fff; border-radius: 12px; padding: 12px 16px;
+    margin-bottom: 8px; display: flex; align-items: center;
+    justify-content: space-between; cursor: pointer;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  .fav-item:active { background: #faf9fc; }
+  .fav-item:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .fav-item .info { flex: 1; }
   .fav-item .name { font-size: 13px; font-weight: 600; }
-  .fav-item .sub { font-size: 11px; color: #888899; margin-top: 2px; }
-  .fav-item .yield { font-size: 16px; font-weight: 700; color: #c44536; }
+  .fav-item .sub { font-size: 11px; color: #8e8e93; margin-top: 2px; }
+  .fav-item .yield { font-size: 16px; font-weight: 700; color: #6C5CE7; }
   .fav-empty {
-    background: #fff;
-    border-radius: 12px;
-    padding: 36px 20px;
-    text-align: center;
-    color: #888899;
-    font-size: 13px;
-    line-height: 1.8;
+    background: #fff; border-radius: 14px; padding: 40px 20px;
+    text-align: center; color: #8e8e93; font-size: 13px; line-height: 1.8;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  .fav-empty .icon { font-size: 36px; display: block; margin-bottom: 10px; }
+  .fav-empty .icon { font-size: 38px; display: block; margin-bottom: 10px; }
 
   /* ===== Bottom Tabs (Mobile) ===== */
   .bottom-tabs {
     display: none;
-    background: #fff;
-    border-top: 1px solid #e8e8ed;
-    flex-shrink: 0;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: calc(54px + env(safe-area-inset-bottom, 0px));
   }
   .tab-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    color: #888899;
-    cursor: pointer;
-    padding: 6px 0 4px;
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 10px; color: #8e8e93; cursor: pointer; padding: 6px 0 4px;
     transition: color 0.2s;
   }
   .tab-item .tab-icon { font-size: 20px; margin-bottom: 2px; }
-  .tab-item.active { color: #c44536; font-weight: 600; }
+  .tab-item.active { color: #6C5CE7; font-weight: 600; }
 
-  /* ===== Index Detail Page (Overlay) ===== */
-  .index-detail-page {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 100;
-    background: #f7f5fa;
-    flex-direction: column;
-  }
+  /* ===== Index Detail Overlay ===== */
+  .index-detail-page { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; background: #f4f2f7; flex-direction: column; }
   .index-detail-page.open { display: flex; }
 
   .detail-page-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 18px;
-    background: #fff;
-    flex-shrink: 0;
-    border-bottom: 1px solid #e8e8ed;
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px; background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.06);
   }
-  .detail-back { font-size: 24px; color: #888899; cursor: pointer; padding-right: 4px; line-height: 1; }
+  .detail-back { font-size: 24px; color: #8e8e93; cursor: pointer; padding-right: 4px; line-height: 1; }
   .detail-gradient-icon {
-    width: 24px; height: 24px; border-radius: 50%;
-    background: linear-gradient(135deg, #ff7eb3 0%, #8fd3f4 100%);
+    width: 24px; height: 24px; border-radius: 8px;
+    background: linear-gradient(135deg, #6C5CE7, #a29bfe);
     flex-shrink: 0;
   }
-  .detail-page-header .title { font-size: 17px; font-weight: 700; color: #1a1a2e; }
-
+  .detail-page-header .title { font-size: 17px; font-weight: 700; color: #1c1c1e; }
   .detail-body { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
+  .detail-main-card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-top: 12px; }
+  .detail-card-section + .detail-card-section { margin-top: 22px; padding-top: 22px; border-top: 1px solid #f0edf5; }
+  .detail-index-title { font-size: 22px; font-weight: 700; color: #1c1c1e; margin-bottom: 4px; letter-spacing: -0.02em; }
+  .detail-index-code { font-size: 12px; color: #8e8e93; }
+  .detail-info-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; }
+  .detail-info-row + .detail-info-row { border-top: 1px solid #f0edf5; }
+  .detail-info-row .label { font-size: 13px; color: #8e8e93; }
+  .detail-info-row .value { font-size: 13px; color: #1c1c1e; font-weight: 500; text-align: right; }
+  .detail-info-row .value.yield { color: #6C5CE7; font-size: 16px; font-weight: 700; }
 
-  .detail-main-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    margin-top: 12px;
-  }
-  .detail-card-section + .detail-card-section { margin-top: 20px; }
-
-  .detail-index-title { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-  .detail-index-code { font-size: 12px; color: #9999aa; }
-
-  .detail-info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 11px 0;
-    border-bottom: 1px solid #f0edf5;
-  }
-  .detail-info-row:last-child { border-bottom: none; }
-  .detail-info-row .label { font-size: 13px; color: #888899; }
-  .detail-info-row .value { font-size: 13px; color: #1a1a2e; font-weight: 500; text-align: right; }
-  .detail-info-row .value.yield { color: #c44536; font-size: 15px; font-weight: 700; }
-
-  .detail-chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .detail-chart-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #1a1a2e;
-  }
-  .detail-chart-title .hint {
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #f0edf5; color: #888899; font-size: 11px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .detail-chart-update { font-size: 11px; color: #aaaaaa; }
-
-  .detail-chart-legend {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
-  .detail-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: #666677;
-  }
-  .detail-legend-line { width: 12px; height: 2px; border-radius: 1px; }
-  .detail-legend-line.blue { background: #4080ff; }
-  .detail-legend-line.orange { background: #ffaa22; }
-
-  .detail-chart-select {
-    margin-left: auto;
-    font-size: 12px;
-    color: #666677;
-    border: 1px solid #e0dde5;
-    border-radius: 6px;
-    padding: 4px 8px;
-    background: #fff;
-    outline: none;
-  }
-
-  .detail-chart-canvas {
-    width: 100%;
-    height: 190px;
-    display: block;
-  }
-
-  .detail-slider {
-    position: relative;
-    height: 24px;
-    margin-top: 10px;
-  }
-  .detail-slider-track {
-    position: absolute; top: 50%; left: 0; right: 0;
-    transform: translateY(-50%);
-    height: 4px; background: #e0dde5; border-radius: 2px;
-  }
-  .detail-slider-range {
-    position: absolute; top: 50%; left: 0; right: 0;
-    transform: translateY(-50%);
-    height: 4px; background: rgba(64,128,255,0.25); border-radius: 2px;
-  }
-  .detail-slider-handle {
-    position: absolute;
-    top: 50%; transform: translate(-50%, -50%);
-    width: 14px; height: 16px; border-radius: 3px;
-    background: #fff; border: 1px solid #d0d0dd;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 8px; color: #888899;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
+  .detail-chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .detail-chart-title { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: #1c1c1e; }
+  .detail-chart-title .hint { width: 16px; height: 16px; border-radius: 50%; background: #f0edf5; color: #8e8e93; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+  .detail-chart-update { font-size: 11px; color: #b0b0b8; }
+  .detail-chart-legend { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+  .detail-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8e8e93; }
+  .detail-legend-line { width: 14px; height: 2.5px; border-radius: 2px; }
+  .detail-legend-line.purple { background: #6C5CE7; }
+  .detail-legend-line.orange { background: #f6a623; }
+  .detail-chart-select { margin-left: auto; font-size: 12px; color: #8e8e93; border: 1px solid #e0dde5; border-radius: 8px; padding: 4px 10px; background: #fff; outline: none; }
+  .detail-chart-canvas { width: 100%; height: 200px; display: block; }
+  .detail-slider { position: relative; height: 24px; margin-top: 12px; }
+  .detail-slider-track { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); height: 4px; background: #e0dde5; border-radius: 2px; }
+  .detail-slider-range { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); height: 4px; background: rgba(108,92,231,0.2); border-radius: 2px; }
+  .detail-slider-handle { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 14px; height: 16px; border-radius: 3px; background: #fff; border: 1px solid #d1d1d6; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #8e8e93; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .detail-slider-handle.left { left: 0; }
   .detail-slider-handle.right { right: 0; transform: translate(50%, -50%); }
-
-  .detail-data-note {
-    margin-top: 16px;
-    padding: 0 4px;
-  }
-  .detail-data-note .title { font-size: 12px; color: #888899; margin-bottom: 6px; }
-  .detail-data-note .item {
-    font-size: 11px; color: #9999aa; line-height: 1.7;
-    display: flex; gap: 6px;
-  }
-  .detail-data-note .item::before {
-    content: '\00B7'; color: #9999aa;
-  }
-
-  .detail-fav-btn {
-    font-size: 22px;
-    cursor: pointer;
-    color: #d0d0dd;
-    transition: color 0.2s;
-    margin-left: auto;
-    line-height: 1;
-  }
-  .detail-fav-btn.active { color: #d97706; }
+  .detail-data-note { margin-top: 16px; padding: 0 4px; }
+  .detail-data-note .title { font-size: 12px; color: #8e8e93; margin-bottom: 6px; }
+  .detail-data-note .item { font-size: 11px; color: #b0b0b8; line-height: 1.7; display: flex; gap: 6px; }
+  .detail-data-note .item::before { content: '\00B7'; color: #b0b0b8; }
+  .detail-fav-btn { font-size: 22px; cursor: pointer; color: #d1d1d6; transition: color 0.2s; margin-left: auto; line-height: 1; }
+  .detail-fav-btn.active { color: #f6a623; }
 
   /* ===== Toast ===== */
   .toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.78);
-    color: #fff;
-    padding: 10px 22px;
-    border-radius: 10px;
-    font-size: 13px;
-    z-index: 999;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px;
+    border-radius: 12px; font-size: 13px; z-index: 999;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    backdrop-filter: blur(4px);
   }
   .toast.show { opacity: 1; }
 
-  /* ===== Footer info ===== */
-  .index-footer { text-align: center; padding: 12px 0 6px; color: #888899; font-size: 12px; }
+  /* ===== Footer ===== */
+  .index-footer { text-align: center; padding: 12px 0 6px; color: #8e8e93; font-size: 12px; }
 
-  /* ===== Loading dots ===== */
+  /* ===== Loading ===== */
   .loading-dots { display: inline-flex; gap: 3px; }
-  .loading-dots span {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: #888899;
-    animation: pulse 1.2s ease-in-out infinite;
-  }
+  .loading-dots span { width: 5px; height: 5px; border-radius: 50%; background: #8e8e93; animation: pulse 1.2s ease-in-out infinite; }
   .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
   .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes pulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
 
   /* ===== Responsive: Desktop ===== */
   @media (min-width: 768px) {
-    .top-header { padding: 12px 24px; }
     .sidebar { display: flex; }
     .bottom-tabs { display: none !important; }
-    .index-detail-page { left: 190px; }
-    .page { padding: 16px 20px; }
+    .index-detail-page { left: 180px; }
+    .page { padding: 20px 24px; }
   }
 
   /* ===== Responsive: Mobile ===== */
@@ -666,16 +389,14 @@
     .sidebar { display: none; }
     .bottom-tabs { display: flex; }
     .index-detail-page { left: 0; }
-    .page { padding: 12px 14px; }
-    .top-header { padding: 10px 14px; }
-    .brand-icon { width: 28px; height: 28px; font-size: 12px; }
+    .page { padding: 14px; }
+    .top-header { padding: 12px 14px; }
+    .brand-icon { width: 30px; height: 30px; font-size: 13px; }
     .brand-name { font-size: 16px; }
     .brand-subtitle { display: none; }
     .detail-main-card { padding: 16px; }
+    .profile-header { padding: 24px 16px; }
   }
-
-  /* ===== Misc ===== */
-  .gap-8 { height: 8px; }
 </style>
 </head>
 <body>
@@ -692,60 +413,52 @@
       </div>
     </div>
     <div class="header-actions">
-      <span class="header-btn" id="refreshBtn">&#x21bb; 刷新</span>
+      <span class="header-btn" id="refreshBtn">↻ 刷新</span>
     </div>
   </header>
 
   <!-- ===== App Body ===== -->
   <div class="app-body">
 
-    <!-- ===== Sidebar (Desktop) ===== -->
+    <!-- ===== Sidebar ===== -->
     <nav class="sidebar" id="sidebar">
       <div class="sidebar-item active" data-tab="pageData">
-        <span class="icon">&#x1f4ca;</span>
-        <span>数据</span>
+        <span class="icon">📊</span><span>数据</span>
       </div>
       <div class="sidebar-item" data-tab="pageKnowledge">
-        <span class="icon">&#x1f4d6;</span>
-        <span>知识</span>
+        <span class="icon">📖</span><span>知识</span>
       </div>
       <div class="sidebar-item" data-tab="pageProfile">
-        <span class="icon">&#x1f464;</span>
-        <span>我的</span>
+        <span class="icon">👤</span><span>我的</span>
       </div>
     </nav>
 
     <!-- ===== Main Content ===== -->
     <main class="main-content" id="mainContent">
 
-      <!-- ====== PAGE 1: Data ====== -->
+      <!-- PAGE 1: Data -->
       <div class="page active" id="pageData">
-
-        <!-- Sub Navigation -->
         <div class="sub-nav" id="subNav">
           <div class="sub-nav-item active" data-sub="yield">主流资产食息率</div>
           <div class="sub-nav-item" data-sub="index">红利指数</div>
           <div class="sub-nav-item" data-sub="monthly">月月分红</div>
         </div>
 
-        <!-- Sub: Yield -->
         <div class="sub-page active" id="subYield">
-          <div class="section-title">&#x1f4c8; 主流资产食息率</div>
-          <div class="section-sub">更新于 2026-06-28 &middot; 点击行查看详情，点击&#x2606;收藏</div>
+          <div class="section-title">📈 主流资产食息率</div>
+          <div class="section-sub">更新于 2026-06-28 · 点击行查看详情</div>
           <div class="asset-table" id="assetTable"></div>
         </div>
 
-        <!-- Sub: Index -->
         <div class="sub-page" id="subIndex">
-          <div class="section-title">&#x1f50d; 红利指数</div>
-          <div class="section-sub">共 48 个指数 &middot; 按跟踪基金产品数量排序</div>
+          <div class="section-title">🔍 红利指数</div>
+          <div class="section-sub">共 48 个指数 · 按跟踪基金产品数量排序</div>
           <div class="index-list-container" id="indexListContainer"></div>
           <div class="index-footer"><span id="indexUpdateTime"></span></div>
         </div>
 
-        <!-- Sub: Monthly -->
         <div class="sub-page" id="subMonthly">
-          <div class="section-title">&#x1f4b0; 月月分红</div>
+          <div class="section-title">💰 月月分红</div>
           <div class="section-sub">每月派息基金，打造稳定现金流</div>
           <div class="tab-switch-wrap" id="monthlyTabSwitch">
             <span class="sw-item active" data-type="etf">ETF</span>
@@ -754,25 +467,24 @@
           <div class="fund-list" id="monthlyEtfList"></div>
           <div class="fund-list" id="monthlyFundList" style="display:none"></div>
         </div>
-
       </div>
 
-      <!-- ====== PAGE 2: Knowledge ====== -->
+      <!-- PAGE 2: Knowledge -->
       <div class="page" id="pageKnowledge">
-        <div class="section-title">&#x1f4d6; 食息指南</div>
+        <div class="section-title">📖 食息指南</div>
         <div class="section-sub">从入门到精通，一步步构建你的食息收入</div>
         <div id="knowledgeList"></div>
       </div>
 
-      <!-- ====== PAGE 3: Profile ====== -->
+      <!-- PAGE 3: Profile -->
       <div class="page" id="pageProfile">
         <div class="profile-header">
           <div class="avatar">食</div>
           <div class="nick">食息达人</div>
-          <div class="bio">记录我的食息之路 &middot; 收藏心仪资产</div>
+          <div class="bio">记录我的食息之路 · 收藏心仪资产</div>
         </div>
         <div class="profile-section">
-          <div class="section-title">&#x2b50; 我的收藏</div>
+          <div class="section-title">⭐ 我的收藏</div>
           <div id="favList"></div>
         </div>
       </div>
@@ -783,58 +495,32 @@
   <!-- ===== Index Detail Overlay ===== -->
   <div class="index-detail-page" id="indexDetail">
     <div class="detail-page-header">
-      <span class="detail-back" id="detailBack">&#x2039;</span>
+      <span class="detail-back" id="detailBack">‹</span>
       <div class="detail-gradient-icon"></div>
       <div class="title">指标详情</div>
-      <div class="detail-fav-btn" id="detailFavBtn">&#x2606;</div>
+      <div class="detail-fav-btn" id="detailFavBtn">☆</div>
     </div>
     <div class="detail-body">
       <div class="detail-main-card">
-        <!-- Header -->
         <div class="detail-card-section">
           <div class="detail-index-title" id="detailName"></div>
           <div class="detail-index-code" id="detailCode"></div>
         </div>
-
-        <!-- Info rows -->
         <div class="detail-card-section">
-          <div class="detail-info-row">
-            <span class="label">指数简称</span>
-            <span class="value" id="detailShortName"></span>
-          </div>
-          <div class="detail-info-row">
-            <span class="label">指数成分个数</span>
-            <span class="value" id="detailComponents"></span>
-          </div>
-          <div class="detail-info-row">
-            <span class="label">指数加权方式</span>
-            <span class="value" id="detailWeight"></span>
-          </div>
-          <div class="detail-info-row">
-            <span class="label">指数样本调整周期</span>
-            <span class="value">一年</span>
-          </div>
-          <div class="detail-info-row">
-            <span class="label">股息率（TTM）</span>
-            <span class="value yield" id="detailYield"></span>
-          </div>
-          <div class="detail-info-row">
-            <span class="label">每月千元分红需总投入（万元）</span>
-            <span class="value" id="detailMonthlyInv"></span>
-          </div>
+          <div class="detail-info-row"><span class="label">指数简称</span><span class="value" id="detailShortName"></span></div>
+          <div class="detail-info-row"><span class="label">指数成分个数</span><span class="value" id="detailComponents"></span></div>
+          <div class="detail-info-row"><span class="label">指数加权方式</span><span class="value" id="detailWeight"></span></div>
+          <div class="detail-info-row"><span class="label">指数样本调整周期</span><span class="value">一年</span></div>
+          <div class="detail-info-row"><span class="label">股息率（TTM）</span><span class="value yield" id="detailYield"></span></div>
+          <div class="detail-info-row"><span class="label">每月千元分红需总投入（万元）</span><span class="value" id="detailMonthlyInv"></span></div>
         </div>
-
-        <!-- Chart -->
         <div class="detail-card-section">
           <div class="detail-chart-header">
-            <div class="detail-chart-title">
-              股息率
-              <span class="hint">?</span>
-            </div>
+            <div class="detail-chart-title">股息率<span class="hint">?</span></div>
             <div class="detail-chart-update" id="detailChartUpdate">更新日期：2025.07.21</div>
           </div>
           <div class="detail-chart-legend">
-            <div class="detail-legend-item"><span class="detail-legend-line blue"></span>股息率</div>
+            <div class="detail-legend-item"><span class="detail-legend-line purple"></span>股息率</div>
             <div class="detail-legend-item"><span class="detail-legend-line orange"></span>余额宝 7 日年化</div>
             <select class="detail-chart-select" id="detailChartRange">
               <option value="1y">1 年</option>
@@ -851,7 +537,6 @@
           </div>
         </div>
       </div>
-
       <div class="detail-data-note">
         <div class="title">数据说明:</div>
         <div class="item">本表中"股息率"指标选取主要红利指数近12个月动态股息率。</div>
@@ -861,23 +546,13 @@
 
   <!-- ===== Bottom Tabs (Mobile) ===== -->
   <nav class="bottom-tabs" id="bottomTabs">
-    <button class="tab-item active" data-tab="pageData">
-      <span class="tab-icon">&#x1f4ca;</span>
-      <span>数据</span>
-    </button>
-    <button class="tab-item" data-tab="pageKnowledge">
-      <span class="tab-icon">&#x1f4d6;</span>
-      <span>知识</span>
-    </button>
-    <button class="tab-item" data-tab="pageProfile">
-      <span class="tab-icon">&#x1f464;</span>
-      <span>我的</span>
-    </button>
+    <button class="tab-item active" data-tab="pageData"><span class="tab-icon">📊</span><span>数据</span></button>
+    <button class="tab-item" data-tab="pageKnowledge"><span class="tab-icon">📖</span><span>知识</span></button>
+    <button class="tab-item" data-tab="pageProfile"><span class="tab-icon">👤</span><span>我的</span></button>
   </nav>
 
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -951,6 +626,7 @@ const indexData = [
   { code: 'CESFHY.CSI', name: '中华预期高股息', fullname: '中华交易服务预期高股息指数', publisher: '中华证券交易服务有限公司', listedDate: '2019-06-24', market: '港股', components: 40, currency: 'HKD', weight: '因子加权|股息率加权', fundCount: 0, yield: '7.08%', yieldNum: 7.08, yrChange: -0.1602, fullReturn: 'CES213.CSI;CES113.CSI' },
   { code: '932584.CSI', name: '智选港股通红利低波', fullname: '中证智选港股通红利低波动策略指数', publisher: '中证指数有限公司', listedDate: '2026-06-11', market: '港股', components: 50, currency: 'HKD', weight: '因子加权|波动率加权', fundCount: 0, yield: '7.25%', yieldNum: 7.25, yrChange: -0.1205, fullReturn: '932584CNY110.CSI;932584CNY210.CSI;932584HKD210.CSI' }
 ];
+// 已按 fundCount 降序排列
 
 const etfData = [
   { code: '159726.SZ', name: '红利ETF', yield: '4.85%', freq: '每月', type: '红利', size: '28.6亿', note: '近12月每月派息' },
@@ -986,15 +662,15 @@ let showAllIndices = false;
 // ===== RENDER FUNCTIONS =====
 
 const typeColors = {
-  '红利': { bg: 'rgba(196, 69, 54, 0.12)', color: '#c44536' },
-  '贷款利率': { bg: 'rgba(51, 102, 204, 0.12)', color: '#3366cc' },
-  'REITs': { bg: 'rgba(128, 90, 213, 0.12)', color: '#805ad5' },
-  '租金': { bg: 'rgba(217, 119, 6, 0.12)', color: '#d97706' },
-  '保险': { bg: 'rgba(45, 106, 79, 0.12)', color: '#2d6a4f' },
-  '同业存单': { bg: 'rgba(13, 148, 136, 0.12)', color: '#0d9488' },
-  '国债': { bg: 'rgba(30, 64, 175, 0.12)', color: '#1e40af' },
-  '存款': { bg: 'rgba(100, 116, 139, 0.12)', color: '#64748b' },
-  '货币基金': { bg: 'rgba(234, 179, 8, 0.15)', color: '#b8860b' }
+  '红利': { bg: 'rgba(108,92,231,0.1)', color: '#6C5CE7' },
+  '贷款利率': { bg: 'rgba(51,102,204,0.1)', color: '#3366cc' },
+  'REITs': { bg: 'rgba(128,90,213,0.1)', color: '#805ad5' },
+  '租金': { bg: 'rgba(217,119,6,0.1)', color: '#d97706' },
+  '保险': { bg: 'rgba(45,106,79,0.1)', color: '#2d6a4f' },
+  '同业存单': { bg: 'rgba(13,148,136,0.1)', color: '#0d9488' },
+  '国债': { bg: 'rgba(30,64,175,0.1)', color: '#1e40af' },
+  '存款': { bg: 'rgba(100,116,139,0.1)', color: '#64748b' },
+  '货币基金': { bg: 'rgba(234,179,8,0.12)', color: '#b8860b' }
 };
 
 function renderAssetTable() {
@@ -1002,439 +678,153 @@ function renderAssetTable() {
   let html = '';
   assetData.forEach((item, idx) => {
     const isFav = favorites.includes(item.name);
-    const uid = 'asset-' + idx;
+    const uid = 'asset-'+idx;
     const tc = typeColors[item.type] || { bg: 'rgba(100,116,139,0.1)', color: '#64748b' };
-    html += '<div class="asset-row" data-uid="' + uid + '" data-name="' + item.name + '">' +
-      '<div class="asset-name">' + item.name +
-        '<span class="asset-tag" style="background:' + tc.bg + ';color:' + tc.color + '">' + item.type + '</span>' +
-      '</div>' +
-      '<div class="asset-yield">' + item.yield + '</div>' +
-      '<div class="asset-meta"><span class="update">' + item.date + '</span></div>' +
-      '<div class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + item.name + '">' + (isFav ? '\u2B50' : '\u2606') + '</div>' +
-    '</div>' +
-    '<div class="asset-detail" data-detail="' + uid + '">' +
-      '<div class="row"><span class="label">利率说明</span><span class="value">' + item.note + '</span></div>' +
-      '<div class="row"><span class="label">数据来源</span><span class="value source">' + item.source + '</span></div>' +
-      '<div class="row"><span class="label">更新日期</span><span class="value">' + item.date + '</span></div>' +
+    html += '<div class="asset-row" data-uid="'+uid+'" data-name="'+item.name+'">'+
+      '<div class="asset-name">'+item.name+'<span class="asset-tag" style="background:'+tc.bg+';color:'+tc.color+'">'+item.type+'</span></div>'+
+      '<div class="asset-yield">'+item.yield+'</div>'+
+      '<div class="asset-meta"><span class="update">'+item.date+'</span></div>'+
+      '<div class="fav-btn'+(isFav?' active':'')+'" data-fav="'+item.name+'">'+(isFav?'⭐':'☆')+'</div>'+
+    '</div>'+
+    '<div class="asset-detail" data-detail="'+uid+'">'+
+      '<div class="row"><span class="label">利率说明</span><span class="value">'+item.note+'</span></div>'+
+      '<div class="row"><span class="label">数据来源</span><span class="value source">'+item.source+'</span></div>'+
+      '<div class="row"><span class="label">更新日期</span><span class="value">'+item.date+'</span></div>'+
     '</div>';
   });
   container.innerHTML = html;
-
   container.querySelectorAll('.asset-row').forEach(function(row) {
     row.addEventListener('click', function(e) {
       if (e.target.closest('.fav-btn')) return;
-      var uid = this.dataset.uid;
-      var detail = document.querySelector('.asset-detail[data-detail="' + uid + '"]');
+      var detail = document.querySelector('.asset-detail[data-detail="'+this.dataset.uid+'"]');
       if (detail) detail.classList.toggle('open');
     });
   });
-
   container.querySelectorAll('.fav-btn').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var name = this.dataset.fav;
-      toggleFav(name);
-    });
+    btn.addEventListener('click', function(e) { e.stopPropagation(); toggleFav(this.dataset.fav); });
   });
 }
 
 function renderIndices() {
-  var container = document.getElementById('indexListContainer');
-  var totalCount = indexData.length;
-  var displayData = showAllIndices ? indexData : indexData.filter(function(idx) { return idx.fundCount >= 2; });
-
-  var html = '<div class="index-list-header">' +
-    '<span class="col-rank">#</span>' +
-    '<span class="col-name">指数简称</span>' +
-    '<span class="col-yield">股息率</span>' +
-    '<span class="col-funds">产品数</span>' +
-  '</div>';
-  html += '<div class="index-list-body">';
-
+  const container = document.getElementById('indexListContainer');
+  const totalCount = indexData.length;
+  const displayData = showAllIndices ? indexData : indexData.filter(function(idx) { return idx.fundCount >= 2; });
+  let html = '<div class="index-list-header"><span class="col-rank">#</span><span class="col-name">指数简称</span><span class="col-yield">股息率</span><span class="col-funds">产品数</span></div><div class="index-list-body">';
   displayData.forEach(function(idx, i) {
-    var rank = i + 1;
-    var rankClass = 'col-rank';
-    if (rank === 1) rankClass += ' top1';
-    else if (rank === 2) rankClass += ' top2';
-    else if (rank === 3) rankClass += ' top3';
-    html += '<div class="index-list-row" data-code="' + idx.code + '">' +
-      '<span class="' + rankClass + '">' + rank + '</span>' +
-      '<div class="col-name">' +
-        '<div class="iname">' + idx.name + '</div>' +
-        '<div class="icode">' + idx.code + '</div>' +
-      '</div>' +
-      '<div class="col-yield">' + idx.yield + '</div>' +
-      '<div class="col-funds">' + idx.fundCount + '<span class="lbl">ETF</span></div>' +
-    '</div>';
+    var rank = i+1, rc = 'col-rank';
+    if (rank===1) rc+=' top1'; else if (rank===2) rc+=' top2'; else if (rank===3) rc+=' top3';
+    html += '<div class="index-list-row" data-code="'+idx.code+'"><span class="'+rc+'">'+rank+'</span><div class="col-name"><div class="iname">'+idx.name+'</div><div class="icode">'+idx.code+'</div></div><div class="col-yield">'+idx.yield+'</div><div class="col-funds">'+idx.fundCount+'<span class="lbl">ETF</span></div></div>';
   });
   html += '</div>';
   container.innerHTML = html;
-
-  var showMoreBtn = document.createElement('button');
-  showMoreBtn.className = 'show-more-btn';
-  showMoreBtn.id = 'showMoreBtn';
-  showMoreBtn.textContent = showAllIndices
-    ? '\u25B2 收起，仅显示有ETF跟踪的指数'
-    : '\u25BC 查看更多（共 ' + totalCount + ' 个指数）';
-  container.appendChild(showMoreBtn);
-
-  document.getElementById('indexUpdateTime').textContent = '显示 ' + displayData.length + '/' + totalCount + ' 个指数 \u00B7 数据更新于 ' + new Date().toLocaleString('zh-CN');
-
+  var btn = document.createElement('button');
+  btn.className = 'show-more-btn'; btn.id = 'showMoreBtn';
+  btn.textContent = showAllIndices ? '▲ 收起，仅显示有ETF跟踪的指数' : '▼ 查看更多（共 '+totalCount+' 个指数）';
+  container.appendChild(btn);
+  document.getElementById('indexUpdateTime').textContent = '显示 '+displayData.length+'/'+totalCount+' 个指数 · 数据更新于 '+new Date().toLocaleString('zh-CN');
   container.querySelectorAll('.index-list-row').forEach(function(row) {
-    row.addEventListener('click', function() {
-      var code = this.dataset.code;
-      showIndexDetail(code);
-    });
+    row.addEventListener('click', function() { showIndexDetail(this.dataset.code); });
   });
-
-  showMoreBtn.addEventListener('click', function() {
-    showAllIndices = !showAllIndices;
-    renderIndices();
-  });
+  btn.addEventListener('click', function() { showAllIndices = !showAllIndices; renderIndices(); });
 }
 
 function generateChartData(baseYield) {
-  var points = 52;
-  var data = [];
-  var today = new Date();
-  for (var i = points - 1; i >= 0; i--) {
-    var d = new Date(today);
-    d.setDate(d.getDate() - i * 7);
-    var dateStr = d.toISOString().slice(0, 10);
-    var yieldVal = baseYield + (Math.random() - 0.5) * 0.8;
-    var yuebaoVal = 1.5 + (Math.random() - 0.5) * 0.3;
-    data.push({ date: dateStr, yield: yieldVal, yuebao: yuebaoVal });
-  }
+  var points=52, data=[], today=new Date();
+  for(var i=points-1;i>=0;i--){var d=new Date(today);d.setDate(d.getDate()-i*7);data.push({date:d.toISOString().slice(0,10),yield:baseYield+(Math.random()-0.5)*0.8,yuebao:1.5+(Math.random()-0.5)*0.3});}
   return data;
 }
+function generateChartDataByPoints(baseYield,points){var data=[],today=new Date();for(var i=points-1;i>=0;i--){var d=new Date(today);d.setDate(d.getDate()-i*7);data.push({date:d.toISOString().slice(0,10),yield:baseYield+(Math.random()-0.5)*0.8,yuebao:1.5+(Math.random()-0.5)*0.3});}return data;}
 
 function drawDetailChart(data) {
-  var canvas = document.getElementById('detailChartCanvas');
-  if (!canvas || !data.length) return;
-  var rect = canvas.getBoundingClientRect();
-  var dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  var ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-
-  var width = rect.width;
-  var height = rect.height;
-  var padding = { top: 10, right: 10, bottom: 24, left: 34 };
-  var chartW = width - padding.left - padding.right;
-  var chartH = height - padding.top - padding.bottom;
-
-  ctx.clearRect(0, 0, width, height);
-
-  var yTicks = [0.4, 2.2, 3.9, 5.6, 7.3];
-  var minY = yTicks[0];
-  var maxY = yTicks[yTicks.length - 1];
-  var yRange = maxY - minY;
-
-  ctx.font = '10px -apple-system, sans-serif';
-  ctx.fillStyle = '#aaaaaa';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-  ctx.strokeStyle = '#f0f0f5';
-  ctx.lineWidth = 1;
-  yTicks.forEach(function(tick) {
-    var y = padding.top + chartH - ((tick - minY) / yRange) * chartH;
-    ctx.beginPath();
-    ctx.moveTo(padding.left, y);
-    ctx.lineTo(width - padding.right, y);
-    ctx.stroke();
-    ctx.fillText(tick.toFixed(1), padding.left - 6, y);
-  });
-
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = '#aaaaaa';
-  ctx.fillText(data[0].date, padding.left, height - 14);
-  ctx.textAlign = 'right';
-  ctx.fillText(data[data.length - 1].date, width - padding.right, height - 14);
-
-  var getX = function(i) { return padding.left + (i / (data.length - 1)) * chartW; };
-  var getY = function(v) { return padding.top + chartH - ((v - minY) / yRange) * chartH; };
-
-  ctx.strokeStyle = '#ffaa22';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  data.forEach(function(p, i) {
-    var x = getX(i), y = getY(p.yuebao);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-
-  ctx.strokeStyle = '#4080ff';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  data.forEach(function(p, i) {
-    var x = getX(i), y = getY(p.yield);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
+  var canvas=document.getElementById('detailChartCanvas');if(!canvas||!data.length)return;
+  var rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+  var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  var w=rect.width,h=rect.height,pad={top:10,right:10,bottom:24,left:34},cw=w-pad.left-pad.right,ch=h-pad.top-pad.bottom;
+  ctx.clearRect(0,0,w,h);
+  var yTicks=[0.4,2.2,3.9,5.6,7.3],minY=yTicks[0],maxY=yTicks[yTicks.length-1],yR=maxY-minY;
+  ctx.font='10px -apple-system, sans-serif';ctx.fillStyle='#aaaaaa';ctx.textAlign='right';ctx.textBaseline='middle';ctx.strokeStyle='#f0edf5';ctx.lineWidth=1;
+  yTicks.forEach(function(t){var y=pad.top+ch-((t-minY)/yR)*ch;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(w-pad.right,y);ctx.stroke();ctx.fillText(t.toFixed(1),pad.left-6,y);});
+  ctx.textAlign='left';ctx.textBaseline='top';ctx.fillStyle='#aaaaaa';ctx.fillText(data[0].date,pad.left,h-14);ctx.textAlign='right';ctx.fillText(data[data.length-1].date,w-pad.right,h-14);
+  var gX=function(i){return pad.left+(i/(data.length-1))*cw;},gY=function(v){return pad.top+ch-((v-minY)/yR)*ch;};
+  ctx.strokeStyle='#f6a623';ctx.lineWidth=2;ctx.beginPath();data.forEach(function(p,i){var x=gX(i),y=gY(p.yuebao);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();
+  ctx.strokeStyle='#6C5CE7';ctx.lineWidth=2;ctx.beginPath();data.forEach(function(p,i){var x=gX(i),y=gY(p.yield);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();
 }
-
-var currentDetailChartData = [];
+var currentDetailChartData=[];
 
 function showIndexDetail(code) {
-  var idx = indexData.find(function(i) { return i.code === code; });
-  if (!idx) return;
-
-  document.getElementById('detailName').textContent = idx.fullname;
-  document.getElementById('detailCode').textContent = idx.code;
-  document.getElementById('detailShortName').textContent = idx.name;
-  document.getElementById('detailComponents').textContent = idx.components;
-  document.getElementById('detailWeight').textContent = idx.weight;
-  document.getElementById('detailYield').textContent = idx.yield;
-
-  var monthlyInv = idx.yieldNum ? (120 / idx.yieldNum).toFixed(2) : '--';
-  document.getElementById('detailMonthlyInv').textContent = monthlyInv;
-
-  var today = new Date();
-  document.getElementById('detailChartUpdate').textContent =
-    '\u66F4\u65B0\u65E5\u671F\uFF1A' + today.getFullYear() + '.' + String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
-
-  var isFav = favorites.includes(idx.code);
-  var favBtn = document.getElementById('detailFavBtn');
-  favBtn.textContent = isFav ? '\u2B50' : '\u2606';
-  favBtn.className = 'detail-fav-btn' + (isFav ? ' active' : '');
-
-  currentDetailChartData = generateChartData(idx.yieldNum);
-  setTimeout(function() { drawDetailChart(currentDetailChartData); }, 50);
-
+  var idx=indexData.find(function(i){return i.code===code;});if(!idx)return;
+  document.getElementById('detailName').textContent=idx.fullname;document.getElementById('detailCode').textContent=idx.code;
+  document.getElementById('detailShortName').textContent=idx.name;document.getElementById('detailComponents').textContent=idx.components;
+  document.getElementById('detailWeight').textContent=idx.weight;document.getElementById('detailYield').textContent=idx.yield;
+  var mi=idx.yieldNum?(120/idx.yieldNum).toFixed(2):'--';document.getElementById('detailMonthlyInv').textContent=mi;
+  var t=new Date();document.getElementById('detailChartUpdate').textContent='更新日期：'+t.getFullYear()+'.'+String(t.getMonth()+1).padStart(2,'0')+'.'+String(t.getDate()).padStart(2,'0');
+  var isFav=favorites.includes(idx.code),fb=document.getElementById('detailFavBtn');fb.textContent=isFav?'⭐':'☆';fb.className='detail-fav-btn'+(isFav?' active':'');
+  currentDetailChartData=generateChartData(idx.yieldNum);setTimeout(function(){drawDetailChart(currentDetailChartData);},50);
   document.getElementById('indexDetail').classList.add('open');
 }
 
-function renderFundList(containerId, data) {
-  var container = document.getElementById(containerId);
-  if (!container) return;
-  if (data.length === 0) {
-    container.innerHTML = '<div class="fav-empty"><span class="icon">\uD83D\uDCED</span>\u6682\u65E0\u6570\u636E<br>\u656C\u8BF7\u671F\u5F85</div>';
-    return;
-  }
-  container.innerHTML = data.map(function(f) {
-    var isFav = favorites.includes(f.code);
-    return '<div class="fund-card">' +
-      '<div class="top">' +
-        '<div><div class="name">' + f.name + '</div><div class="code">' + f.code + '</div></div>' +
-        '<div class="yield">' + f.yield + '</div>' +
-      '</div>' +
-      '<div class="tags">' +
-        '<span class="tag monthly">' + f.freq + '</span>' +
-        '<span class="tag">' + f.type + '</span>' +
-        '<span class="tag">\u89C4\u6A21 ' + f.size + '</span>' +
-      '</div>' +
-      '<div class="meta">' +
-        '<span>' + f.note + '</span>' +
-        '<span class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + f.code + '">' + (isFav ? '\u2B50' : '\u2606') + '</span>' +
-      '</div>' +
-    '</div>';
-  }).join('');
+function renderFundList(containerId,data){var c=document.getElementById(containerId);if(!c)return;if(!data.length){c.innerHTML='<div class="fav-empty"><span class="icon">📭</span>暂无数据<br>敬请期待</div>';return;}
+c.innerHTML=data.map(function(f){var isFav=favorites.includes(f.code);return'<div class="fund-card"><div class="top"><div><div class="name">'+f.name+'</div><div class="code">'+f.code+'</div></div><div class="yield">'+f.yield+'</div></div><div class="tags"><span class="tag monthly">'+f.freq+'</span><span class="tag">'+f.type+'</span><span class="tag">规模 '+f.size+'</span></div><div class="meta"><span>'+f.note+'</span><span class="fav-btn'+(isFav?' active':'')+'" data-fav="'+f.code+'">'+(isFav?'⭐':'☆')+'</span></div></div>';}).join('');
+c.querySelectorAll('.fav-btn').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();toggleFav(this.dataset.fav);});});}
 
-  container.querySelectorAll('.fav-btn').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      toggleFav(this.dataset.fav);
-    });
-  });
-}
+function renderKnowledge(){var c=document.getElementById('knowledgeList');c.innerHTML=knowledgeData.map(function(k){return'<div class="knowledge-item"><div class="title">'+k.title+'</div><div class="desc">'+k.desc+'</div><div class="tag-row">'+k.tags.map(function(t){return'<span class="tag '+(k.level||'')+'">'+t+'</span>';}).join('')+'</div></div>';}).join('');}
 
-function renderKnowledge() {
-  var container = document.getElementById('knowledgeList');
-  container.innerHTML = knowledgeData.map(function(k) {
-    return '<div class="knowledge-item">' +
-      '<div class="title">' + k.title + '</div>' +
-      '<div class="desc">' + k.desc + '</div>' +
-      '<div class="tag-row">' +
-        k.tags.map(function(t) { return '<span class="tag ' + k.level + '">' + t + '</span>'; }).join('') +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
+function renderFavorites(){var c=document.getElementById('favList');if(!favorites.length){c.innerHTML='<div class="fav-empty"><span class="icon">⭐</span>还没有收藏任何资产<br>在数据页点击 ☆ 即可收藏</div>';return;}
+var items=[];favorites.forEach(function(fav){var a=assetData.find(function(a){return a.name===fav;});if(a)items.push({name:a.name,yield:a.yield,sub:a.type+' · '+a.source});var e=etfData.find(function(e){return e.code===fav;});if(e)items.push({name:e.name,yield:e.yield,sub:e.code+' · '+e.type});var fd=fundData.find(function(f){return f.code===fav;});if(fd)items.push({name:fd.name,yield:fd.yield,sub:fd.code+' · '+fd.type});});
+c.innerHTML=items.map(function(f){return'<div class="fav-item"><div class="info"><div class="name">'+f.name+'</div><div class="sub">'+f.sub+'</div></div><div class="yield">'+f.yield+'</div></div>';}).join('');}
 
-function renderFavorites() {
-  var container = document.getElementById('favList');
-  if (favorites.length === 0) {
-    container.innerHTML = '<div class="fav-empty">' +
-      '<span class="icon">\u2B50</span>' +
-      '\u8FD8\u6CA1\u6709\u6536\u85CF\u4EFB\u4F55\u8D44\u4EA7<br>' +
-      '\u5728\u6570\u636E\u9875\u70B9\u51FB \u2606 \u5373\u53EF\u6536\u85CF' +
-    '</div>';
-    return;
-  }
+function toggleFav(name){var idx=favorites.indexOf(name);if(idx>-1){favorites.splice(idx,1);showToast('已取消收藏');}else{if(favorites.length>=20){showToast('收藏已满（最多20个）');return;}favorites.push(name);showToast('已收藏 ⭐');}
+localStorage.setItem('shixi_favs',JSON.stringify(favorites));renderAssetTable();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderFavorites();}
 
-  var favItems = [];
-  favorites.forEach(function(fav) {
-    var found = assetData.find(function(a) { return a.name === fav; });
-    if (found) favItems.push({ name: found.name, yield: found.yield, sub: found.type + ' \u00B7 ' + found.source });
-    var foundEtf = etfData.find(function(e) { return e.code === fav; });
-    if (foundEtf) favItems.push({ name: foundEtf.name, yield: foundEtf.yield, sub: foundEtf.code + ' \u00B7 ' + foundEtf.type });
-    var foundFund = fundData.find(function(f) { return f.code === fav; });
-    if (foundFund) favItems.push({ name: foundFund.name, yield: foundFund.yield, sub: foundFund.code + ' \u00B7 ' + foundFund.type });
-  });
-
-  container.innerHTML = favItems.map(function(f) {
-    return '<div class="fav-item">' +
-      '<div class="info">' +
-        '<div class="name">' + f.name + '</div>' +
-        '<div class="sub">' + f.sub + '</div>' +
-      '</div>' +
-      '<div class="yield">' + f.yield + '</div>' +
-    '</div>';
-  }).join('');
-}
-
-// ===== ACTIONS =====
-
-function toggleFav(name) {
-  var idx = favorites.indexOf(name);
-  if (idx > -1) {
-    favorites.splice(idx, 1);
-    showToast('\u5DF2\u53D6\u6D88\u6536\u85CF');
-  } else {
-    if (favorites.length >= 20) {
-      showToast('\u6536\u85CF\u5DF2\u6EE1\uFF08\u6700\u591A20\u4E2A\uFF09');
-      return;
-    }
-    favorites.push(name);
-    showToast('\u5DF2\u6536\u85CF \u2B50');
-  }
-  localStorage.setItem('shixi_favs', JSON.stringify(favorites));
-  renderAssetTable();
-  renderFundList('monthlyEtfList', etfData);
-  renderFundList('monthlyFundList', fundData);
-  renderFavorites();
-}
-
-function showToast(msg) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(el._timer);
-  el._timer = setTimeout(function() { el.classList.remove('show'); }, 1500);
-}
+function showToast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._timer);el._timer=setTimeout(function(){el.classList.remove('show');},1500);}
 
 // ===== TAB SWITCHING =====
-
-function switchTab(tabId) {
-  // Update sidebar
-  document.querySelectorAll('.sidebar-item').forEach(function(el) { el.classList.remove('active'); });
-  var sbItem = document.querySelector('.sidebar-item[data-tab="' + tabId + '"]');
-  if (sbItem) sbItem.classList.add('active');
-
-  // Update bottom tabs
-  document.querySelectorAll('.tab-item').forEach(function(el) { el.classList.remove('active'); });
-  var btItem = document.querySelector('.tab-item[data-tab="' + tabId + '"]');
-  if (btItem) btItem.classList.add('active');
-
-  // Update pages
-  document.querySelectorAll('.page').forEach(function(el) { el.classList.remove('active'); });
-  document.getElementById(tabId).classList.add('active');
-  currentTab = tabId;
-}
-
-// Sidebar clicks
-document.querySelectorAll('.sidebar-item').forEach(function(item) {
-  item.addEventListener('click', function() {
-    switchTab(this.dataset.tab);
+document.querySelectorAll('.sidebar-item, .tab-item').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.sidebar-item,.tab-item').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    this.classList.add('active');var pid=this.dataset.tab;document.getElementById(pid).classList.add('active');
   });
 });
 
-// Bottom tab clicks
-document.querySelectorAll('.tab-item').forEach(function(tab) {
-  tab.addEventListener('click', function() {
-    switchTab(this.dataset.tab);
-  });
-});
-
-// Sub nav clicks
-document.querySelectorAll('.sub-nav-item').forEach(function(item) {
-  item.addEventListener('click', function() {
-    document.querySelectorAll('.sub-nav-item').forEach(function(i) { i.classList.remove('active'); });
-    document.querySelectorAll('.sub-page').forEach(function(p) { p.classList.remove('active'); });
+document.querySelectorAll('.sub-nav-item').forEach(function(item){
+  item.addEventListener('click',function(){
+    document.querySelectorAll('.sub-nav-item').forEach(function(i){i.classList.remove('active');});
+    document.querySelectorAll('.sub-page').forEach(function(p){p.classList.remove('active');});
     this.classList.add('active');
-    var subId = this.dataset.sub;
-    var map = { yield: 'subYield', index: 'subIndex', monthly: 'subMonthly' };
-    document.getElementById(map[subId]).classList.add('active');
-    currentSub = subId;
+    var m={yield:'subYield',index:'subIndex',monthly:'subMonthly'};
+    document.getElementById(m[this.dataset.sub]).classList.add('active');
   });
 });
 
-// Monthly ETF/Fund switch
-document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(item) {
-  item.addEventListener('click', function() {
-    document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(i) { i.classList.remove('active'); });
-    this.classList.add('active');
-    var type = this.dataset.type;
-    document.getElementById('monthlyEtfList').style.display = (type === 'etf') ? 'block' : 'none';
-    document.getElementById('monthlyFundList').style.display = (type === 'fund') ? 'block' : 'none';
-  });
+document.getElementById('refreshBtn').addEventListener('click',function(){showToast('数据已刷新 ✓');renderIndices();});
+document.getElementById('detailBack').addEventListener('click',function(){document.getElementById('indexDetail').classList.remove('open');});
+document.getElementById('detailFavBtn').addEventListener('click',function(){
+  var code=document.getElementById('detailCode').textContent;if(!code)return;toggleFav(code);
+  var isFav=favorites.includes(code);this.textContent=isFav?'⭐':'☆';this.className='detail-fav-btn'+(isFav?' active':'');renderIndices();
 });
 
-// Refresh
-document.getElementById('refreshBtn').addEventListener('click', function() {
-  showToast('\u6570\u636E\u5DF2\u5237\u65B0 \u2713');
-  renderIndices();
+document.getElementById('detailChartRange').addEventListener('change',function(){
+  var range=this.value,pts=52;if(range==='6m')pts=26;if(range==='3m')pts=13;
+  var idx=indexData.find(function(i){return i.code===document.getElementById('detailCode').textContent;});
+  if(idx){currentDetailChartData=generateChartDataByPoints(idx.yieldNum,pts);drawDetailChart(currentDetailChartData);}
 });
 
-// Detail back
-document.getElementById('detailBack').addEventListener('click', function() {
-  document.getElementById('indexDetail').classList.remove('open');
-});
-
-// Detail fav
-document.getElementById('detailFavBtn').addEventListener('click', function() {
-  var codeEl = document.getElementById('detailCode');
-  if (!codeEl) return;
-  var code = codeEl.textContent;
-  toggleFav(code);
-  var isFav = favorites.includes(code);
-  this.textContent = isFav ? '\u2B50' : '\u2606';
-  this.className = 'detail-fav-btn' + (isFav ? ' active' : '');
-  renderIndices();
-});
-
-// Chart range
-document.getElementById('detailChartRange').addEventListener('change', function() {
-  var range = this.value;
-  var points = 52;
-  if (range === '6m') points = 26;
-  if (range === '3m') points = 13;
-  var idx = indexData.find(function(i) { return i.code === document.getElementById('detailCode').textContent; });
-  if (idx) {
-    currentDetailChartData = generateChartDataByPoints(idx.yieldNum, points);
-    drawDetailChart(currentDetailChartData);
-  }
-});
-
-function generateChartDataByPoints(baseYield, points) {
-  var data = [];
-  var today = new Date();
-  for (var i = points - 1; i >= 0; i--) {
-    var d = new Date(today);
-    d.setDate(d.getDate() - i * 7);
-    var dateStr = d.toISOString().slice(0, 10);
-    var yieldVal = baseYield + (Math.random() - 0.5) * 0.8;
-    var yuebaoVal = 1.5 + (Math.random() - 0.5) * 0.3;
-    data.push({ date: dateStr, yield: yieldVal, yuebao: yuebaoVal });
-  }
-  return data;
-}
-
-window.addEventListener('resize', function() {
-  if (document.getElementById('indexDetail').classList.contains('open') && currentDetailChartData.length) {
-    drawDetailChart(currentDetailChartData);
-  }
-});
+window.addEventListener('resize',function(){if(document.getElementById('indexDetail').classList.contains('open')&&currentDetailChartData.length){drawDetailChart(currentDetailChartData);}});
 
 // ===== INIT =====
-renderAssetTable();
-renderIndices();
-renderFundList('monthlyEtfList', etfData);
-renderFundList('monthlyFundList', fundData);
-renderKnowledge();
-renderFavorites();
+renderAssetTable();renderIndices();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderKnowledge();renderFavorites();
+
+// ETF/基金 tab switch
+document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(item){
+  item.addEventListener('click',function(){
+    document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(i){i.classList.remove('active');});
+    this.classList.add('active');
+    if(this.dataset.type==='etf'){document.getElementById('monthlyEtfList').style.display='block';document.getElementById('monthlyFundList').style.display='none';}
+    else{document.getElementById('monthlyEtfList').style.display='none';document.getElementById('monthlyFundList').style.display='block';}
+  });
+});
 </script>
 </body>
 </html>
