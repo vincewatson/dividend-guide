@@ -268,71 +268,87 @@
 
     <!-- ===== Main Nav with Dropdown ===== -->
     <nav class="main-nav" id="mainNav">
-      <!-- 数据 Tab (with dropdown) -->
+      <!-- 食息数据 Tab -->
       <div class="main-nav-item active" data-tab="pageData" id="navData">
-        📊 数据<span class="arrow">▼</span>
+        📊 食息数据
+      </div>
+
+      <!-- 红利指数 Tab (with dropdown) -->
+      <div class="main-nav-item" data-tab="pageIndex" id="navIndex">
+        📈 红利指数<span class="arrow">▼</span>
         <div class="dropdown">
-          <button class="dropdown-item active" data-sub="yield">📈 主流资产食息率</button>
-          <button class="dropdown-item" data-sub="index">🔍 红利指数</button>
-          <button class="dropdown-item" data-sub="monthly">💰 月月分红</button>
+          <button class="dropdown-item active" data-sub="browser">🔍 红利指数浏览器</button>
+          <button class="dropdown-item" data-sub="etf">🏛️ 境内红利ETF</button>
+          <button class="dropdown-item" data-sub="hketf">🇭🇰 港交所红利ETF</button>
         </div>
       </div>
 
-      <!-- 知识 Tab -->
-      <div class="main-nav-item" data-tab="pageKnowledge">
-        📖 知识
+      <!-- 月月分红 Tab -->
+      <div class="main-nav-item" data-tab="pageMonthly">
+        💰 月月分红
       </div>
 
-      <!-- 我的 Tab -->
-      <div class="main-nav-item" data-tab="pageProfile">
-        👤 我的
+      <!-- 知识专区 Tab -->
+      <div class="main-nav-item" data-tab="pageKnowledge">
+        📖 知识专区
       </div>
     </nav>
 
     <div class="nav-right">
-      <button class="nav-btn" id="refreshBtn">↻ 刷新</button>
+      <button class="nav-btn" id="profileBtn">👤 我的</button>
     </div>
   </header>
 
   <!-- ===== Main Content ===== -->
   <main class="main-content" id="mainContent">
 
-    <!-- PAGE 1: 数据 -->
+    <!-- PAGE: 食息数据 -->
     <div class="page active" id="pageData">
+      <div class="section-title">📈 主流资产食息率</div>
+      <div class="section-sub">更新于 2026-06-28 · 点击行查看详情</div>
+      <div class="asset-table" id="assetTable"></div>
+    </div>
 
-      <div class="sub-page active" id="subYield">
-        <div class="section-title">📈 主流资产食息率</div>
-        <div class="section-sub">更新于 2026-06-28 · 点击行查看详情</div>
-        <div class="asset-table" id="assetTable"></div>
-      </div>
-
-      <div class="sub-page" id="subIndex">
-        <div class="section-title">🔍 红利指数</div>
+    <!-- PAGE: 红利指数 -->
+    <div class="page" id="pageIndex">
+      <div class="sub-page active" id="subBrowser">
+        <div class="section-title">🔍 红利指数浏览器</div>
         <div class="section-sub">全部 48 个指数 · 点击表头排序 · 市场列带颜色标签</div>
         <div class="index-list-container" id="indexListContainer"></div>
         <div class="index-footer"><span id="indexUpdateTime"></span></div>
       </div>
-
-      <div class="sub-page" id="subMonthly">
-        <div class="section-title">💰 月月分红</div>
-        <div class="section-sub">每月派息基金，打造稳定现金流</div>
-        <div class="tab-switch-wrap" id="monthlyTabSwitch">
-          <span class="sw-item active" data-type="etf">ETF</span>
-          <span class="sw-item" data-type="fund">指数基金</span>
-        </div>
-        <div class="fund-list" id="monthlyEtfList"></div>
-        <div class="fund-list" id="monthlyFundList" style="display:none"></div>
+      <div class="sub-page" id="subEtf">
+        <div class="section-title">🏛️ 境内红利ETF</div>
+        <div class="section-sub">开发中 · 敬请期待</div>
+        <div class="fav-empty"><span class="icon">🚧</span>功能开发中<br>后续将展示境内红利ETF详情</div>
+      </div>
+      <div class="sub-page" id="subHkEtf">
+        <div class="section-title">🇭🇰 港交所红利ETF</div>
+        <div class="section-sub">开发中 · 敬请期待</div>
+        <div class="fav-empty"><span class="icon">🚧</span>功能开发中<br>后续将展示港交所红利ETF详情</div>
       </div>
     </div>
 
-    <!-- PAGE 2: 知识 -->
+    <!-- PAGE: 月月分红 -->
+    <div class="page" id="pageMonthly">
+      <div class="section-title">💰 月月分红</div>
+      <div class="section-sub">每月派息基金，打造稳定现金流</div>
+      <div class="tab-switch-wrap" id="monthlyTabSwitch">
+        <span class="sw-item active" data-type="etf">ETF</span>
+        <span class="sw-item" data-type="fund">指数基金</span>
+      </div>
+      <div class="fund-list" id="monthlyEtfList"></div>
+      <div class="fund-list" id="monthlyFundList" style="display:none"></div>
+    </div>
+
+    <!-- PAGE: 知识专区 -->
     <div class="page" id="pageKnowledge">
-      <div class="section-title">📖 食息指南</div>
+      <div class="section-title">📖 知识专区</div>
       <div class="section-sub">从入门到精通，一步步构建你的食息收入</div>
       <div id="knowledgeList"></div>
     </div>
 
-    <!-- PAGE 3: 我的 -->
+    <!-- PAGE: 我的 -->
     <div class="page" id="pageProfile">
       <div class="profile-header">
         <div class="avatar">食</div>
@@ -654,14 +670,10 @@ localStorage.setItem('shixi_favs',JSON.stringify(favorites));renderAssetTable();
 function showToast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._timer);el._timer=setTimeout(function(){el.classList.remove('show');},1500);}
 
 // ===== TAB SWITCHING =====
-// Main tabs: 数据/知识/我的
+// Main tabs
 document.querySelectorAll('.main-nav-item[data-tab]').forEach(function(tab){
   tab.addEventListener('click',function(e){
-    // If this is 数据 tab and click is on the main item (not dropdown), don't switch page
-    // Also check if we clicked a dropdown item
-    if(e.target.closest('.dropdown-item')) return; // handled separately
-    if(this.dataset.tab==='pageData' && e.target.closest('.dropdown')) return;
-    
+    if(e.target.closest('.dropdown-item')) return;
     switchPage(this.dataset.tab);
   });
 });
@@ -672,39 +684,27 @@ function switchPage(pageId) {
   var targetTab = document.querySelector('.main-nav-item[data-tab="'+pageId+'"]');
   if(targetTab) targetTab.classList.add('active');
   document.getElementById(pageId).classList.add('active');
-  // If switching away from data, close dropdown
-  if(pageId !== 'pageData') { /* no-op */ }
 }
 
-// Dropdown items
-document.querySelectorAll('.dropdown-item').forEach(function(item){
+// Dropdown items under 红利指数
+document.querySelectorAll('#navIndex .dropdown-item').forEach(function(item){
   item.addEventListener('click',function(e){
     e.stopPropagation();
-    // Switch sub page
-    document.querySelectorAll('.dropdown-item').forEach(function(d){d.classList.remove('active');});
-    this.classList.add('active');
-    // Ensure 数据 tab is active
-    if(!document.getElementById('navData').classList.contains('active')){
-      switchPage('pageData');
+    if(!document.getElementById('navIndex').classList.contains('active')){
+      switchPage('pageIndex');
     } else {
       document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-      document.getElementById('pageData').classList.add('active');
+      document.getElementById('pageIndex').classList.add('active');
     }
-    var m={yield:'subYield',index:'subIndex',monthly:'subMonthly'};
-    document.querySelectorAll('.sub-page').forEach(function(p){p.classList.remove('active');});
-    document.getElementById(m[this.dataset.sub]).classList.add('active');
+    document.querySelectorAll('#navIndex .dropdown-item').forEach(function(d){d.classList.remove('active');});
+    this.classList.add('active');
+    document.querySelectorAll('#pageIndex .sub-page').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('sub'+this.dataset.sub.charAt(0).toUpperCase()+this.dataset.sub.slice(1)).classList.add('active');
   });
 });
 
-// Close dropdowns when clicking outside
-document.addEventListener('click',function(e){
-  if(!e.target.closest('#navData')) {
-    // dropdown closes automatically via CSS hover, nothing needed
-  }
-});
-
-// Refresh
-document.getElementById('refreshBtn').addEventListener('click',function(){showToast('数据已刷新 ✓');renderIndices();});
+// Profile button in top-right
+document.getElementById('profileBtn').addEventListener('click',function(){switchPage('pageProfile');});
 
 // Detail page
 document.getElementById('detailBack').addEventListener('click',function(){document.getElementById('indexDetail').classList.remove('open');});
