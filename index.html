@@ -203,8 +203,7 @@
   .detail-back { font-size: 24px; color: #8e8e93; cursor: pointer; padding-right: 4px; line-height: 1; }
   .detail-gradient-icon { width: 24px; height: 24px; border-radius: 0; background: linear-gradient(135deg, #6C5CE7, #a29bfe); flex-shrink: 0; }
   .detail-page-header .title { font-size: 17px; font-weight: 700; color: #1c1c1e; }
-  .detail-body { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
-  .detail-body-inner { max-width: 640px; margin: 0 auto; }
+  .detail-body { flex: 1; overflow-y: auto; padding: 0 28px 28px; }
   .detail-main-card { background: #fff; border-radius: 0; padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-top: 12px; }
   .detail-card-section + .detail-card-section { margin-top: 22px; padding-top: 22px; border-top: 1px solid #f0edf5; }
   .detail-index-title { font-size: 22px; font-weight: 700; color: #1c1c1e; margin-bottom: 4px; letter-spacing: -0.02em; }
@@ -383,7 +382,6 @@
       <div class="detail-fav-btn" id="detailFavBtn">☆</div>
     </div>
     <div class="detail-body">
-      <div class="detail-body-inner">
       <div class="detail-main-card">
         <div class="detail-card-section">
           <div class="detail-index-title" id="detailName"></div>
@@ -420,6 +418,32 @@
         <div class="title">数据说明:</div>
         <div class="item">本表中"股息率"指标选取主要红利指数近12个月动态股息率。</div>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== HK ETF Detail Overlay ===== -->
+  <div class="index-detail-page" id="hkEtfDetail">
+    <div class="detail-page-header">
+      <span class="detail-back" id="hkEtfDetailBack">‹</span>
+      <div class="detail-gradient-icon"></div>
+      <div class="title">ETF详情</div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-main-card">
+        <div class="detail-card-section">
+          <div class="detail-index-title" id="hkEtfDetailName"></div>
+          <div class="detail-index-code" id="hkEtfDetailCode"></div>
+        </div>
+        <div class="detail-card-section">
+          <div class="detail-info-row"><span class="label">ETF简称</span><span class="value" id="hkEtfDetailShortName"></span></div>
+          <div class="detail-info-row"><span class="label">ETF全称</span><span class="value" id="hkEtfDetailFullName"></span></div>
+          <div class="detail-info-row"><span class="label">互联互通</span><span class="value" id="hkEtfDetailConnect"></span></div>
+          <div class="detail-info-row"><span class="label">跟踪指数代码</span><span class="value" id="hkEtfDetailTrackCode"></span></div>
+          <div class="detail-info-row"><span class="label">跟踪指数名称</span><span class="value" id="hkEtfDetailTrackName"></span></div>
+          <div class="detail-info-row"><span class="label">基金管理人</span><span class="value" id="hkEtfDetailManager"></span></div>
+          <div class="detail-info-row"><span class="label">成立日期</span><span class="value" id="hkEtfDetailListedDate"></span></div>
+          <div class="detail-info-row"><span class="label">管理费率</span><span class="value yield" id="hkEtfDetailFee"></span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -697,31 +721,40 @@ function renderHkEtf() {
   h+='<thead><tr>'+
     '<th onclick="hkToggleSort(\'code\')">ETF代码<span'+s('code')+'">▼</span></th>'+
     '<th onclick="hkToggleSort(\'name\')">ETF简称<span'+s('name')+'">▼</span></th>'+
-    '<th>ETF全称</th>'+
     '<th>互联互通</th>'+
-    '<th onclick="hkToggleSort(\'trackCode\')">跟踪指数代码<span'+s('trackCode')+'">▼</span></th>'+
     '<th onclick="hkToggleSort(\'trackName\')">跟踪指数名称<span'+s('trackName')+'">▼</span></th>'+
-    '<th>基金管理人</th>'+
     '<th onclick="hkToggleSort(\'listedDate\')">成立日期<span'+s('listedDate')+'">▼</span></th>'+
     '<th onclick="hkToggleSort(\'feeNum\')">管理费率<span'+s('feeNum')+'">▼</span></th>'+
   '</tr></thead><tbody>';
 
   items.forEach(function(etf){
-    h+='<tr>'+
+    h+='<tr onclick="showHkEtfDetail(\''+etf.code+'\')">'+
       '<td class="col-code">'+etf.code+'</td>'+
       '<td class="col-name">'+etf.name+'</td>'+
-      '<td style="font-size:11px;color:#8e8e93;max-width:180px;overflow:hidden;text-overflow:ellipsis">'+etf.fullname+'</td>'+
       '<td>'+(etf.connect?'<span class="market-tag a" style="font-size:10px">互联互通</span>':'<span style="color:#b0b0b8;font-size:11px">—</span>')+'</td>'+
-      '<td class="col-code" style="font-size:11px">'+etf.trackCode+'</td>'+
-      '<td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+etf.trackName+'</td>'+
-      '<td style="font-size:11px;color:#8e8e93;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+etf.manager+'</td>'+
+      '<td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+etf.trackName+'</td>'+
       '<td>'+etf.listedDate+'</td>'+
       '<td class="col-yield">'+etf.fee+'</td>'+
     '</tr>';
   });
   h+='</tbody></table></div>';
   c.innerHTML=h;
-  document.getElementById('hketfUpdateTime').textContent='共 '+hkEtfData.length+' 只 ETF · 点击表头排序 · 更新于 '+new Date().toLocaleString('zh-CN');
+  document.getElementById('hketfUpdateTime').textContent='共 '+hkEtfData.length+' 只 ETF · 点击表头排序 · 点击行查看详情 · 更新于 '+new Date().toLocaleString('zh-CN');
+}
+
+function showHkEtfDetail(code) {
+  var etf = hkEtfData.find(function(e){return e.code===code;}); if(!etf) return;
+  document.getElementById('hkEtfDetailName').textContent = etf.name;
+  document.getElementById('hkEtfDetailCode').textContent = etf.code;
+  document.getElementById('hkEtfDetailShortName').textContent = etf.name;
+  document.getElementById('hkEtfDetailFullName').textContent = etf.fullname;
+  document.getElementById('hkEtfDetailConnect').textContent = etf.connect ? '是（互联互通）' : '否';
+  document.getElementById('hkEtfDetailTrackCode').textContent = etf.trackCode;
+  document.getElementById('hkEtfDetailTrackName').textContent = etf.trackName;
+  document.getElementById('hkEtfDetailManager').textContent = etf.manager;
+  document.getElementById('hkEtfDetailListedDate').textContent = etf.listedDate;
+  document.getElementById('hkEtfDetailFee').textContent = etf.fee;
+  document.getElementById('hkEtfDetail').classList.add('open');
 }
 
 function showIndexDetail(code) {
@@ -807,6 +840,7 @@ document.getElementById('profileBtn').addEventListener('click',function(){switch
 
 // Detail page
 document.getElementById('detailBack').addEventListener('click',function(){document.getElementById('indexDetail').classList.remove('open');});
+document.getElementById('hkEtfDetailBack').addEventListener('click',function(){document.getElementById('hkEtfDetail').classList.remove('open');});
 document.getElementById('detailFavBtn').addEventListener('click',function(){
   var code=document.getElementById('detailCode').textContent;if(!code)return;toggleFav(code);
   var isFav=favorites.includes(code);this.textContent=isFav?'⭐':'☆';this.className='detail-fav-btn'+(isFav?' active':'');renderIndices();
