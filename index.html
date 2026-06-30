@@ -125,7 +125,7 @@
   .asset-detail .source { color: #6C5CE7; font-size: 11px; }
 
   /* ===== Index Table ===== */
-  .index-table-wrap { overflow-x: auto; margin-bottom: 12px; border-radius: 14px; }
+  .index-table-wrap { overflow-x: auto; margin-bottom: 4px; border-radius: 14px; }
   .index-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border-radius: 14px; overflow: hidden; }
   .index-table th {
     padding: 10px 8px; font-size: 11px; font-weight: 600; color: #8e8e93;
@@ -143,22 +143,15 @@
   .index-table tr { cursor: pointer; }
   .index-table .col-code { font-weight: 600; color: #1c1c1e; font-size: 11px; }
   .index-table .col-name { font-weight: 600; color: #1c1c1e; min-width: 100px; }
-  .index-table .col-market { font-size: 11px; }
   .index-table .col-currency { font-size: 11px; color: #8e8e93; }
   .index-table .col-yield { font-weight: 700; color: #6C5CE7; }
   .index-table .col-pct { font-weight: 600; }
   .index-table .col-pct.up { color: #d0312d; }
   .index-table .col-pct.down { color: #2d6a4f; }
-
-  .index-category { margin-bottom: 0; }
-  .index-category-header {
-    display: flex; align-items: center; gap: 8px;
-    padding: 12px 0 6px; font-size: 14px; font-weight: 700;
-    color: #1c1c1e;
-  }
-  .index-category-header .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .index-category-header .count { font-size: 11px; color: #8e8e93; font-weight: 400; margin-left: auto; }
-  .index-category-divider { height: 1px; background: #e0dde5; margin: 2px 0 10px 0; }
+  .market-tag { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 600; }
+  .market-tag.a { background: rgba(108,92,231,0.12); color: #6C5CE7; }
+  .market-tag.hk { background: rgba(217,119,6,0.12); color: #d97706; }
+  .market-tag.shs { background: rgba(51,102,204,0.12); color: #3366cc; }
 
   /* ===== Fund Cards ===== */
   .fund-list { margin-bottom: 8px; }
@@ -315,7 +308,7 @@
 
       <div class="sub-page" id="subIndex">
         <div class="section-title">🔍 红利指数</div>
-        <div class="section-sub">全部 48 个指数 · 点击表头排序（发布日期/成分个数/股息率/当日涨跌幅/本年涨跌幅）</div>
+        <div class="section-sub">全部 48 个指数 · 点击表头排序 · 市场列带颜色标签</div>
         <div class="index-list-container" id="indexListContainer"></div>
         <div class="index-footer"><span id="indexUpdateTime"></span></div>
       </div>
@@ -539,19 +532,7 @@ function renderAssetTable() {
   c.querySelectorAll('.fav-btn').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();toggleFav(this.dataset.fav);});});
 }
 
-// ===== INDEX CATEGORY HELPER =====
-function classifyMarket(market) {
-  if (market === '沪港深') return '沪港深红利';
-  if (market === '港股') return '港股红利';
-  return 'A股红利'; // 沪深 / 沪市 / 深市
-}
-var categories = [
-  { key: 'A股红利', label: 'A股红利', color: '#6C5CE7', icon: '🇨🇳', markets: ['沪深','沪市','深市'] },
-  { key: '港股红利', label: '港股红利', color: '#d97706', icon: '🇭🇰', markets: ['港股'] },
-  { key: '沪港深红利', label: '沪港深红利', color: '#3366cc', icon: '🌐', markets: ['沪港深'] }
-];
-
-// ===== SORTABLE TABLE RENDER =====
+// ===== INDEX TABLE RENDER =====
 function sortData(items, key, desc) {
   var copy = items.slice();
   copy.sort(function(a,b){
@@ -568,54 +549,49 @@ function sortData(items, key, desc) {
   return copy;
 }
 
+function marketTag(market) {
+  if (market==='沪深'||market==='沪市'||market==='深市') return '<span class="market-tag a">A 股</span>';
+  if (market==='港股') return '<span class="market-tag hk">港股</span>';
+  if (market==='沪港深') return '<span class="market-tag shs">沪港深</span>';
+  return market;
+}
+
 function renderIndices() {
   var c=document.getElementById('indexListContainer'),total=indexData.length;
-  var h='';
+  var items = indexData.slice();
+  if (sortKey) items = sortData(items, sortKey, sortDesc);
+  else items.sort(function(a,b){return b.fundCount-a.fundCount;});
 
-  categories.forEach(function(cat){
-    var items=indexData.filter(function(idx){return cat.markets.indexOf(idx.market)>-1;});
-    if(!items.length)return;
-    // Apply sort within category
-    if (sortKey) items = sortData(items, sortKey, sortDesc);
-    else items.sort(function(a,b){return b.fundCount-a.fundCount;});
+  var h='<div class="index-table-wrap"><table class="index-table">';
+  h+='<thead><tr>'+
+    '<th onclick="toggleSort(\'code\')">指数代码<span class="sort-icon'+(sortKey==='code'?' active':'')+(sortKey==='code'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '<th onclick="toggleSort(\'name\')">指数名称<span class="sort-icon'+(sortKey==='name'?' active':'')+(sortKey==='name'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '<th onclick="toggleSort(\'listedDate\')">发布日期<span class="sort-icon'+(sortKey==='listedDate'?' active':'')+(sortKey==='listedDate'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '<th onclick="toggleSort(\'market\')">目标市场<span class="sort-icon'+(sortKey==='market'?' active':'')+(sortKey==='market'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '<th onclick="toggleSort(\'components\')">成分个数<span class="sort-icon'+(sortKey==='components'?' active':'')+(sortKey==='components'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '<th onclick="toggleSort(\'currency\')">币种<span class="sort-icon'+(sortKey==='currency'?' active':'')+(sortKey==='currency'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '<th onclick="toggleSort(\'yieldNum\')">股息率<span class="sort-icon'+(sortKey==='yieldNum'?' active':'')+(sortKey==='yieldNum'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '<th onclick="toggleSort(\'dailyChange\')">当日涨跌幅<span class="sort-icon'+(sortKey==='dailyChange'?' active':'')+(sortKey==='dailyChange'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '<th onclick="toggleSort(\'yrChange\')">本年涨跌幅<span class="sort-icon'+(sortKey==='yrChange'?' active':'')+(sortKey==='yrChange'&&sortDesc?' desc':'')+'">▼</span></th>'+
+  '</tr></thead><tbody>';
 
-    h+='<div class="index-category">';
-    h+='<div class="index-category-header"><span class="dot" style="background:'+cat.color+'"></span>'+cat.icon+' '+cat.label+'<span class="count">'+items.length+' 个</span></div>';
-    h+='<div class="index-table-wrap"><table class="index-table">';
-    // Header row
-    h+='<thead><tr>'+
-      '<th onclick="toggleSort(\'code\')">指数代码<span class="sort-icon'+(sortKey==='code'?' active':'')+''+(sortKey==='code'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'name\')">指数名称<span class="sort-icon'+(sortKey==='name'?' active':'')+''+(sortKey==='name'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'listedDate\')">发布日期<span class="sort-icon'+(sortKey==='listedDate'?' active':'')+''+(sortKey==='listedDate'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'market\')">目标市场<span class="sort-icon'+(sortKey==='market'?' active':'')+''+(sortKey==='market'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'components\')">成分个数<span class="sort-icon'+(sortKey==='components'?' active':'')+''+(sortKey==='components'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'currency\')">币种<span class="sort-icon'+(sortKey==='currency'?' active':'')+''+(sortKey==='currency'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'yieldNum\')">股息率<span class="sort-icon'+(sortKey==='yieldNum'?' active':'')+''+(sortKey==='yieldNum'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'dailyChange\')">当日涨跌幅<span class="sort-icon'+(sortKey==='dailyChange'?' active':'')+''+(sortKey==='dailyChange'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'yrChange\')">本年涨跌幅<span class="sort-icon'+(sortKey==='yrChange'?' active':'')+''+(sortKey==='yrChange'&&sortDesc?' desc':'')+'">▼</span></th>'+
-    '</tr></thead><tbody>';
-
-    items.forEach(function(idx,i){
-      var dcStr = (idx.dailyChange*100).toFixed(2)+'%';
-      var ycStr = (idx.yrChange*100).toFixed(2)+'%';
-      h+='<tr onclick="showIndexDetail(\''+idx.code+'\')">'+
-        '<td class="col-code">'+idx.code+'</td>'+
-        '<td class="col-name">'+idx.name+'</td>'+
-        '<td>'+idx.listedDate+'</td>'+
-        '<td class="col-market">'+idx.market+'</td>'+
-        '<td>'+(idx.components||'-')+'</td>'+
-        '<td class="col-currency">'+idx.currency+'</td>'+
-        '<td class="col-yield">'+idx.yield+'</td>'+
-        '<td class="col-pct '+(idx.dailyChange>=0?'up':'down')+'">'+dcStr+'</td>'+
-        '<td class="col-pct '+(idx.yrChange>=0?'up':'down')+'">'+ycStr+'</td>'+
-      '</tr>';
-    });
-
-    h+='</tbody></table></div>';
-    h+='</div>';
-    h+='<div class="index-category-divider"></div>';
+  items.forEach(function(idx,i){
+    var dcStr = (idx.dailyChange*100).toFixed(2)+'%';
+    var ycStr = (idx.yrChange*100).toFixed(2)+'%';
+    h+='<tr onclick="showIndexDetail(\''+idx.code+'\')">'+
+      '<td class="col-code">'+idx.code+'</td>'+
+      '<td class="col-name">'+idx.name+'</td>'+
+      '<td>'+idx.listedDate+'</td>'+
+      '<td>'+marketTag(idx.market)+'</td>'+
+      '<td>'+(idx.components||'-')+'</td>'+
+      '<td class="col-currency">'+idx.currency+'</td>'+
+      '<td class="col-yield">'+idx.yield+'</td>'+
+      '<td class="col-pct '+(idx.dailyChange>=0?'up':'down')+'">'+dcStr+'</td>'+
+      '<td class="col-pct '+(idx.yrChange>=0?'up':'down')+'">'+ycStr+'</td>'+
+    '</tr>';
   });
 
+  h+='</tbody></table></div>';
   c.innerHTML=h;
   document.getElementById('indexUpdateTime').textContent='共 '+total+' 个指数 · 点击表头排序 · 点击行查看详情 · 更新于 '+new Date().toLocaleString('zh-CN');
 }
