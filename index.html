@@ -124,33 +124,36 @@
   .asset-detail .value { color: #1c1c1e; text-align: right; font-weight: 500; }
   .asset-detail .source { color: #6C5CE7; font-size: 11px; }
 
-  /* ===== Index List ===== */
-  .index-list-container { margin-bottom: 8px; }
-  .index-list-header {
-    display: flex; padding: 12px 16px; font-size: 11px; color: #8e8e93;
-    background: #fff; border-radius: 14px 14px 0 0; font-weight: 600;
-    border-bottom: 1px solid #f0edf5; letter-spacing: 0.03em;
+  /* ===== Index List (Category Mode) ===== */
+  .index-category { margin-bottom: 12px; }
+  .index-category-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 0 8px; font-size: 15px; font-weight: 700;
+    color: #1c1c1e; letter-spacing: -0.01em;
   }
-  .index-list-header .col-rank { width: 30px; }
-  .index-list-header .col-name { flex: 1; }
-  .index-list-header .col-yield { width: 60px; text-align: right; }
-  .index-list-header .col-funds { width: 54px; text-align: right; }
-  .index-list-body { background: #fff; border-radius: 0 0 14px 14px; overflow: hidden; margin-bottom: 8px; }
+  .index-category-header .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .index-category-header .count { font-size: 12px; color: #8e8e93; font-weight: 400; margin-left: auto; }
+  .index-category-divider { height: 1px; background: #e0dde5; margin: 0 0 10px 0; }
+
   .index-list-row {
-    display: flex; align-items: center; padding: 12px 16px;
-    border-bottom: 1px solid #f0edf5; cursor: pointer; transition: background 0.15s;
+    display: flex; align-items: center;
+    padding: 12px 16px; background: #fff; cursor: pointer;
+    transition: all 0.15s; margin-bottom: 6px;
+    border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  .index-list-row:last-child { border-bottom: none; }
-  .index-list-row:hover { background: #faf9fc; }
-  .index-list-row .col-rank { width: 30px; font-size: 12px; color: #8e8e93; font-weight: 600; }
-  .index-list-row .col-rank.top1 { color: #6C5CE7; font-size: 15px; font-weight: 700; }
-  .index-list-row .col-rank.top2 { color: #d97706; font-size: 15px; }
-  .index-list-row .col-rank.top3 { color: #3366cc; font-size: 15px; }
-  .index-list-row .col-name { flex: 1; }
+  .index-list-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+  .index-list-row:active { transform: scale(0.98); }
+  .index-list-row .col-rank { width: 28px; font-size: 11px; color: #8e8e93; font-weight: 600; flex-shrink: 0; }
+  .index-list-row .col-rank.top1 { color: #6C5CE7; font-size: 14px; font-weight: 700; }
+  .index-list-row .col-rank.top2 { color: #d97706; font-size: 14px; }
+  .index-list-row .col-rank.top3 { color: #3366cc; font-size: 14px; }
+  .index-list-row .col-name { flex: 1; min-width: 0; }
   .index-list-row .col-name .iname { font-size: 14px; font-weight: 600; }
   .index-list-row .col-name .icode { font-size: 10px; color: #8e8e93; margin-top: 2px; }
-  .index-list-row .col-yield { width: 60px; text-align: right; font-size: 16px; font-weight: 700; color: #6C5CE7; }
-  .index-list-row .col-funds { width: 54px; text-align: right; font-size: 12px; color: #1c1c1e; }
+  .index-list-row .col-yield { width: 56px; text-align: right; font-size: 16px; font-weight: 700; color: #6C5CE7; flex-shrink: 0; }
+  .index-list-row .col-funds { width: 48px; text-align: right; font-size: 12px; color: #1c1c1e; flex-shrink: 0; }
   .index-list-row .col-funds .lbl { font-size: 9px; color: #8e8e93; display: block; }
   .show-more-btn { display: block; width: 100%; padding: 12px; background: #fff; border: 1px dashed #d1d1d6; border-radius: 14px; color: #6C5CE7; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s; margin-bottom: 8px; }
   .show-more-btn:hover { background: rgba(108,92,231,0.04); border-color: #6C5CE7; }
@@ -525,14 +528,39 @@ function renderAssetTable() {
   c.querySelectorAll('.fav-btn').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();toggleFav(this.dataset.fav);});});
 }
 
+// ===== INDEX CATEGORY HELPER =====
+function classifyMarket(market) {
+  if (market === '沪港深') return '沪港深红利';
+  if (market === '港股') return '港股红利';
+  return 'A股红利'; // 沪深 / 沪市 / 深市
+}
+var categories = [
+  { key: 'A股红利', label: 'A股红利', color: '#6C5CE7', icon: '🇨🇳', markets: ['沪深','沪市','深市'] },
+  { key: '港股红利', label: '港股红利', color: '#d97706', icon: '🇭🇰', markets: ['港股'] },
+  { key: '沪港深红利', label: '沪港深红利', color: '#3366cc', icon: '🌐', markets: ['沪港深'] }
+];
+
 function renderIndices() {
-  var c=document.getElementById('indexListContainer'),total=indexData.length,dd=showAllIndices?indexData:indexData.filter(function(x){return x.fundCount>=2;});
-  var h='<div class="index-list-header"><span class="col-rank">#</span><span class="col-name">指数简称</span><span class="col-yield">股息率</span><span class="col-funds">产品数</span></div><div class="index-list-body">';
-  dd.forEach(function(idx,i){
-    var r=i+1,rc='col-rank';if(r===1)rc+=' top1';else if(r===2)rc+=' top2';else if(r===3)rc+=' top3';
-    h+='<div class="index-list-row" data-code="'+idx.code+'"><span class="'+rc+'">'+r+'</span><div class="col-name"><div class="iname">'+idx.name+'</div><div class="icode">'+idx.code+'</div></div><div class="col-yield">'+idx.yield+'</div><div class="col-funds">'+idx.fundCount+'<span class="lbl">ETF</span></div></div>';
+  var c=document.getElementById('indexListContainer'),total=indexData.length;
+  var dd=showAllIndices?indexData:indexData.filter(function(x){return x.fundCount>=2;});
+  var h='';
+
+  categories.forEach(function(cat){
+    var items=dd.filter(function(idx){return cat.markets.indexOf(idx.market)>-1;});
+    if(!items.length)return;
+    // Sort by fundCount desc within category
+    items.sort(function(a,b){return b.fundCount-a.fundCount;});
+    h+='<div class="index-category">';
+    h+='<div class="index-category-header"><span class="dot" style="background:'+cat.color+'"></span>'+cat.icon+' '+cat.label+'<span class="count">'+items.length+' 个</span></div>';
+    items.forEach(function(idx,i){
+      var r=i+1,rc='col-rank';if(r===1)rc+=' top1';else if(r===2)rc+=' top2';else if(r===3)rc+=' top3';
+      h+='<div class="index-list-row" data-code="'+idx.code+'"><span class="'+rc+'">'+r+'</span><div class="col-name"><div class="iname">'+idx.name+'</div><div class="icode">'+idx.code+'</div></div><div class="col-yield">'+idx.yield+'</div><div class="col-funds">'+idx.fundCount+'<span class="lbl">ETF</span></div></div>';
+    });
+    h+='</div>';
+    h+='<div class="index-category-divider"></div>';
   });
-  h+='</div>';c.innerHTML=h;
+
+  c.innerHTML=h;
   var btn=document.createElement('button');btn.className='show-more-btn';btn.textContent=showAllIndices?'▲ 收起':'▼ 查看更多（共 '+total+' 个指数）';c.appendChild(btn);
   document.getElementById('indexUpdateTime').textContent='显示 '+dd.length+'/'+total+' 个指数 · 更新于 '+new Date().toLocaleString('zh-CN');
   c.querySelectorAll('.index-list-row').forEach(function(r){r.addEventListener('click',function(){showIndexDetail(this.dataset.code);});});
