@@ -124,29 +124,41 @@
   .asset-detail .value { color: #1c1c1e; text-align: right; font-weight: 500; }
   .asset-detail .source { color: #6C5CE7; font-size: 11px; }
 
-  /* ===== Index List (Category Mode) ===== */
-  .index-category { margin-bottom: 4px; }
+  /* ===== Index Table ===== */
+  .index-table-wrap { overflow-x: auto; margin-bottom: 12px; border-radius: 14px; }
+  .index-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border-radius: 14px; overflow: hidden; }
+  .index-table th {
+    padding: 10px 8px; font-size: 11px; font-weight: 600; color: #8e8e93;
+    text-align: left; border-bottom: 1px solid #f0edf5;
+    white-space: nowrap; cursor: pointer; user-select: none;
+    position: sticky; top: 0; background: #fff; z-index: 1;
+  }
+  .index-table th:hover { background: #faf9fc; }
+  .index-table th .sort-icon { font-size: 9px; margin-left: 3px; color: #d1d1d6; }
+  .index-table th .sort-icon.active { color: #6C5CE7; }
+  .index-table th .sort-icon.desc { transform: rotate(180deg); display: inline-block; }
+  .index-table td { padding: 8px; border-bottom: 1px solid #f5f4f8; white-space: nowrap; }
+  .index-table tr:last-child td { border-bottom: none; }
+  .index-table tr:hover td { background: #faf9fc; }
+  .index-table tr { cursor: pointer; }
+  .index-table .col-code { font-weight: 600; color: #1c1c1e; font-size: 11px; }
+  .index-table .col-name { font-weight: 600; color: #1c1c1e; min-width: 100px; }
+  .index-table .col-market { font-size: 11px; }
+  .index-table .col-currency { font-size: 11px; color: #8e8e93; }
+  .index-table .col-yield { font-weight: 700; color: #6C5CE7; }
+  .index-table .col-pct { font-weight: 600; }
+  .index-table .col-pct.up { color: #d0312d; }
+  .index-table .col-pct.down { color: #2d6a4f; }
+
+  .index-category { margin-bottom: 0; }
   .index-category-header {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px 0 6px; font-size: 14px; font-weight: 700;
+    padding: 12px 0 6px; font-size: 14px; font-weight: 700;
     color: #1c1c1e;
   }
   .index-category-header .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .index-category-header .count { font-size: 11px; color: #8e8e93; font-weight: 400; margin-left: auto; }
-  .index-category-divider { height: 1px; background: #e0dde5; margin: 2px 0 6px 0; }
-
-  .index-list-row {
-    display: flex; align-items: center;
-    padding: 8px 0; cursor: pointer;
-    transition: background 0.1s; border-radius: 6px;
-  }
-  .index-list-row:hover { background: rgba(0,0,0,0.02); }
-  .index-list-row .col-rank { width: 24px; font-size: 11px; color: #b0b0b8; flex-shrink: 0; text-align: center; }
-  .index-list-row .col-name { flex: 1; min-width: 0; }
-  .index-list-row .col-name .iname { font-size: 13px; font-weight: 600; }
-  .index-list-row .col-name .icode { font-size: 10px; color: #b0b0b8; margin-left: 6px; font-weight: 400; }
-  .index-list-row .col-yield { width: 52px; text-align: right; font-size: 14px; font-weight: 700; color: #6C5CE7; flex-shrink: 0; }
-  .index-list-row .col-funds { width: 42px; text-align: right; font-size: 11px; color: #8e8e93; flex-shrink: 0; }
+  .index-category-divider { height: 1px; background: #e0dde5; margin: 2px 0 10px 0; }
 
   /* ===== Fund Cards ===== */
   .fund-list { margin-bottom: 8px; }
@@ -303,7 +315,7 @@
 
       <div class="sub-page" id="subIndex">
         <div class="section-title">🔍 红利指数</div>
-        <div class="section-sub">全部 48 个指数 · 按跟踪基金产品数量排序 · 点击查看详情</div>
+        <div class="section-sub">全部 48 个指数 · 点击表头排序（发布日期/成分个数/股息率/当日涨跌幅/本年涨跌幅）</div>
         <div class="index-list-container" id="indexListContainer"></div>
         <div class="index-footer"><span id="indexUpdateTime"></span></div>
       </div>
@@ -492,6 +504,17 @@ const knowledgeData = [
 // ===== STATE =====
 let favorites = JSON.parse(localStorage.getItem('shixi_favs') || '[]');
 
+// ===== SORT STATE =====
+var sortKey = null;        // 'listedDate' | 'components' | 'yieldNum' | 'dailyChange' | 'yrChange'
+var sortDesc = false;
+
+// Add simulated daily change to each index
+indexData.forEach(function(idx){
+  // Simulate a small daily change around -2% to +2%
+  idx.dailyChange = (Math.random() * 4 - 2) / 100;
+  idx.dailyChange = Math.round(idx.dailyChange * 10000) / 10000;
+});
+
 // ===== RENDER FUNCTIONS =====
 const typeColors = {
   '红利': { bg: 'rgba(108,92,231,0.1)', color: '#6C5CE7' },
@@ -528,6 +551,23 @@ var categories = [
   { key: '沪港深红利', label: '沪港深红利', color: '#3366cc', icon: '🌐', markets: ['沪港深'] }
 ];
 
+// ===== SORTABLE TABLE RENDER =====
+function sortData(items, key, desc) {
+  var copy = items.slice();
+  copy.sort(function(a,b){
+    var va = a[key], vb = b[key];
+    if (typeof va === 'string') {
+      // For dates like '2008-05-09'
+      if (key === 'listedDate') { va = va.replace(/-/g,''); vb = vb.replace(/-/g,''); }
+      else { va = parseFloat(va); vb = parseFloat(vb); }
+    }
+    if (va === undefined || va === null) va = -Infinity;
+    if (vb === undefined || vb === null) vb = -Infinity;
+    return desc ? (vb > va ? 1 : vb < va ? -1 : 0) : (va > vb ? 1 : va < vb ? -1 : 0);
+  });
+  return copy;
+}
+
 function renderIndices() {
   var c=document.getElementById('indexListContainer'),total=indexData.length;
   var h='';
@@ -535,19 +575,59 @@ function renderIndices() {
   categories.forEach(function(cat){
     var items=indexData.filter(function(idx){return cat.markets.indexOf(idx.market)>-1;});
     if(!items.length)return;
-    items.sort(function(a,b){return b.fundCount-a.fundCount;});
+    // Apply sort within category
+    if (sortKey) items = sortData(items, sortKey, sortDesc);
+    else items.sort(function(a,b){return b.fundCount-a.fundCount;});
+
     h+='<div class="index-category">';
     h+='<div class="index-category-header"><span class="dot" style="background:'+cat.color+'"></span>'+cat.icon+' '+cat.label+'<span class="count">'+items.length+' 个</span></div>';
+    h+='<div class="index-table-wrap"><table class="index-table">';
+    // Header row
+    h+='<thead><tr>'+
+      '<th onclick="toggleSort(\'code\')">指数代码<span class="sort-icon'+(sortKey===\'code\'?' active':'')+''+(sortKey===\'code\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'name\')">指数名称<span class="sort-icon'+(sortKey===\'name\'?' active':'')+''+(sortKey===\'name\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'listedDate\')">发布日期<span class="sort-icon'+(sortKey===\'listedDate\'?' active':'')+''+(sortKey===\'listedDate\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'market\')">目标市场<span class="sort-icon'+(sortKey===\'market\'?' active':'')+''+(sortKey===\'market\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'components\')">成分个数<span class="sort-icon'+(sortKey===\'components\'?' active':'')+''+(sortKey===\'components\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'currency\')">币种<span class="sort-icon'+(sortKey===\'currency\'?' active':'')+''+(sortKey===\'currency\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'yieldNum\')">股息率<span class="sort-icon'+(sortKey===\'yieldNum\'?' active':'')+''+(sortKey===\'yieldNum\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'dailyChange\')">当日涨跌幅<span class="sort-icon'+(sortKey===\'dailyChange\'?' active':'')+''+(sortKey===\'dailyChange\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'yrChange\')">本年涨跌幅<span class="sort-icon'+(sortKey===\'yrChange\'?' active':'')+''+(sortKey===\'yrChange\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+    '</tr></thead><tbody>';
+
     items.forEach(function(idx,i){
-      h+='<div class="index-list-row" data-code="'+idx.code+'"><span class="col-rank">'+(i+1)+'</span><div class="col-name"><span class="iname">'+idx.name+'</span><span class="icode">'+idx.code+'</span></div><div class="col-yield">'+idx.yield+'</div><div class="col-funds">'+idx.fundCount+'</div></div>';
+      var dcStr = (idx.dailyChange*100).toFixed(2)+'%';
+      var ycStr = (idx.yrChange*100).toFixed(2)+'%';
+      h+='<tr onclick="showIndexDetail(\''+idx.code+'\')">'+
+        '<td class="col-code">'+idx.code+'</td>'+
+        '<td class="col-name">'+idx.name+'</td>'+
+        '<td>'+idx.listedDate+'</td>'+
+        '<td class="col-market">'+idx.market+'</td>'+
+        '<td>'+(idx.components||'-')+'</td>'+
+        '<td class="col-currency">'+idx.currency+'</td>'+
+        '<td class="col-yield">'+idx.yield+'</td>'+
+        '<td class="col-pct '+(idx.dailyChange>=0?'up':'down')+'">'+dcStr+'</td>'+
+        '<td class="col-pct '+(idx.yrChange>=0?'up':'down')+'">'+ycStr+'</td>'+
+      '</tr>';
     });
+
+    h+='</tbody></table></div>';
     h+='</div>';
     h+='<div class="index-category-divider"></div>';
   });
 
   c.innerHTML=h;
-  document.getElementById('indexUpdateTime').textContent='共 '+total+' 个指数 · 更新于 '+new Date().toLocaleString('zh-CN');
-  c.querySelectorAll('.index-list-row').forEach(function(r){r.addEventListener('click',function(){showIndexDetail(this.dataset.code);});});
+  document.getElementById('indexUpdateTime').textContent='共 '+total+' 个指数 · 点击表头排序 · 点击行查看详情 · 更新于 '+new Date().toLocaleString('zh-CN');
+}
+
+function toggleSort(key) {
+  if (sortKey === key) {
+    sortDesc = !sortDesc;
+  } else {
+    sortKey = key;
+    sortDesc = false;
+  }
+  renderIndices();
 }
 
 function generateChartData(b){var p=52,d=[],t=new Date();for(var i=p-1;i>=0;i--){var x=new Date(t);x.setDate(x.getDate()-i*7);d.push({date:x.toISOString().slice(0,10),yield:b+(Math.random()-0.5)*0.8,yuebao:1.5+(Math.random()-0.5)*0.3});}return d;}
