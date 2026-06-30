@@ -279,7 +279,7 @@
         <div class="dropdown">
           <button class="dropdown-item active" data-sub="browser">🔍 红利指数浏览器</button>
           <button class="dropdown-item" data-sub="etf">🏛️ 境内红利ETF</button>
-          <button class="dropdown-item" data-sub="hketf">🇭🇰 港交所红利ETF</button>
+          <button class="dropdown-item" data-sub="hkEtf">🇭🇰 港交所红利ETF</button>
         </div>
       </div>
 
@@ -324,8 +324,9 @@
       </div>
       <div class="sub-page" id="subHkEtf">
         <div class="section-title">🇭🇰 港交所红利ETF</div>
-        <div class="section-sub">开发中 · 敬请期待</div>
-        <div class="fav-empty"><span class="icon">🚧</span>功能开发中<br>后续将展示港交所红利ETF详情</div>
+        <div class="section-sub">共 12 只港交所上市红利ETF · 点击表头排序 · 互联互通标的带标识</div>
+        <div class="hketf-list-container" id="hketfListContainer"></div>
+        <div class="index-footer"><span id="hketfUpdateTime"></span></div>
       </div>
     </div>
 
@@ -510,6 +511,22 @@ const knowledgeData = [
   { title: '食息策略的税收须知', desc: 'A股持股超过1年免征红利税（仅收5%），1个月至1年收10%，1个月以内收20%。港股通红利税20%。REITs分红免税。合理规划持股时间可显著提升实际收益。', tags: ['进阶', '税务'], level: 'beginner' }
 ];
 
+// ===== 港交所红利ETF数据 =====
+const hkEtfData = [
+  { code: '3070.HK', name: '平安香港高息股', fullname: '中国平安CSI香港高息股ETF', connect: true, trackCode: 'h11140.CSI', trackName: '香港红利', manager: '中国平安资产管理(香港)有限公司', listedDate: '2012-02-10', fee: '0.55%', feeNum: 0.55 },
+  { code: '3110.HK', name: 'GX恒生高股息率', fullname: 'Global X恒生高股息率ETF', connect: true, trackCode: 'HSHDYI.HI', trackName: '恒生高股息率', manager: '未来资产环球投资(香港)有限公司', listedDate: '2013-06-11', fee: '0.68%', feeNum: 0.68 },
+  { code: '3145.HK', name: '华夏亚洲高息股', fullname: '华夏亚洲高息股票ETF', connect: false, trackCode: 'DAAXJP.GI', trackName: '纳斯达克亚洲(日本除外)高息股票TM指数', manager: '华夏基金(香港)有限公司', listedDate: '2014-11-07', fee: '0.45%', feeNum: 0.45 },
+  { code: '3190.HK', name: '富邦沪深港高股息', fullname: '富邦恒生沪深港(特选企业)高股息率指数ETF', connect: false, trackCode: 'HSSSCHD.HI', trackName: '恒生沪深港(特选企业)高股息率', manager: '富邦基金管理(香港)有限公司', listedDate: '2022-06-07', fee: '0.60%', feeNum: 0.60 },
+  { code: '3116.HK', name: 'GX亚太高股息率', fullname: 'Global X亚太高股息率ETF', connect: false, trackCode: 'SOLAHDYN.GI', trackName: 'Solactive亚太高股息率指数(净总回报)', manager: '未来资产环球投资(香港)有限公司', listedDate: '2022-07-26', fee: '0.68%', feeNum: 0.68 },
+  { code: '3437.HK', name: '博时央企红利', fullname: '博时国新港股通央企红利指数ETF(上市类别)', connect: true, trackCode: '931722.CSI', trackName: '国新港股通央企红利', manager: '博时基金(国际)有限公司', listedDate: '2024-07-04', fee: '0.50%', feeNum: 0.50 },
+  { code: '3441.HK', name: '南方东西精选', fullname: '南方东英富时东西股票精选ETF', connect: true, trackCode: '0', trackName: '—', manager: '南方东英资产管理有限公司', listedDate: '2025-03-25', fee: '0.99%', feeNum: 0.99 },
+  { code: '3466.HK', name: '恒生高息股', fullname: '恒生高股息30指数ETF', connect: false, trackCode: 'HSHD30.HI', trackName: '恒生高息股30', manager: '恒生投资管理有限公司', listedDate: '2025-04-01', fee: '0.55%', feeNum: 0.55 },
+  { code: '3483.HK', name: '易方达高股息', fullname: '易方达(香港)MSCI亚太精选高股息指数ETF', connect: true, trackCode: '758918HKDN.MI', trackName: 'MSCI亚太地区精选高股息净收益(港币)', manager: '易方达资产管理(香港)有限公司', listedDate: '2025-09-22', fee: '0.00%', feeNum: 0.00 },
+  { code: '3469.HK', name: '南方港股通红利', fullname: '南方东英恒生港股通红利ETF', connect: true, trackCode: 'HSHYLV.HI', trackName: '恒生港股通高股息低波动', manager: '南方东英资产管理有限公司', listedDate: '2025-09-25', fee: '0.99%', feeNum: 0.99 },
+  { code: '3031.HK', name: 'FG恒生紅利', fullname: 'Fullgoal恒生港股红利ETF', connect: false, trackCode: '0', trackName: '—', manager: '富国资产管理(香港)有限公司', listedDate: '2026-03-23', fee: '0.50%', feeNum: 0.50 },
+  { code: '3488.HK', name: '惠理港美紅利低波', fullname: '惠理港美红利低波ETF', connect: false, trackCode: 'CCX50596.WI', trackName: '中诚信港美红利低波(港币净收益)', manager: '惠理基金管理香港有限公司', listedDate: '2026-03-25', fee: '0.90%', feeNum: 0.90 }
+];
+
 // ===== STATE =====
 let favorites = JSON.parse(localStorage.getItem('shixi_favs') || '[]');
 
@@ -642,6 +659,61 @@ function drawDetailChart(data) {
 }
 var currentDetailChartData=[];
 
+// ===== HK ETF SORT =====
+var hkSortKey = null;
+var hkSortDesc = false;
+
+function hkToggleSort(key) {
+  if (hkSortKey === key) { hkSortDesc = !hkSortDesc; }
+  else { hkSortKey = key; hkSortDesc = false; }
+  renderHkEtf();
+}
+
+function renderHkEtf() {
+  var c=document.getElementById('hketfListContainer');
+  var items = hkEtfData.slice();
+  if (hkSortKey) {
+    items.sort(function(a,b){
+      var va = a[hkSortKey], vb = b[hkSortKey];
+      if (typeof va === 'string') {
+        if (hkSortKey === 'listedDate') { va = va.replace(/-/g,''); vb = vb.replace(/-/g,''); }
+        else { va = parseFloat(va); vb = parseFloat(vb); if (isNaN(va)) va = -Infinity; if (isNaN(vb)) vb = -Infinity; }
+      }
+      return hkSortDesc ? (vb > va ? 1 : vb < va ? -1 : 0) : (va > vb ? 1 : va < vb ? -1 : 0);
+    });
+  }
+  function s(key) { return ' class="sort-icon'+(hkSortKey===key?' active':'')+(hkSortKey===key&&hkSortDesc?' desc':'')+'"'; }
+  var h='<div class="index-table-wrap"><table class="index-table">';
+  h+='<thead><tr>'+
+    '<th onclick="hkToggleSort(\'code\')">ETF代码<span'+s('code')+'">▼</span></th>'+
+    '<th onclick="hkToggleSort(\'name\')">ETF简称<span'+s('name')+'">▼</span></th>'+
+    '<th>ETF全称</th>'+
+    '<th>互联互通</th>'+
+    '<th onclick="hkToggleSort(\'trackCode\')">跟踪指数代码<span'+s('trackCode')+'">▼</span></th>'+
+    '<th onclick="hkToggleSort(\'trackName\')">跟踪指数名称<span'+s('trackName')+'">▼</span></th>'+
+    '<th>基金管理人</th>'+
+    '<th onclick="hkToggleSort(\'listedDate\')">成立日期<span'+s('listedDate')+'">▼</span></th>'+
+    '<th onclick="hkToggleSort(\'feeNum\')">管理费率<span'+s('feeNum')+'">▼</span></th>'+
+  '</tr></thead><tbody>';
+
+  items.forEach(function(etf){
+    h+='<tr>'+
+      '<td class="col-code">'+etf.code+'</td>'+
+      '<td class="col-name">'+etf.name+'</td>'+
+      '<td style="font-size:11px;color:#8e8e93;max-width:180px;overflow:hidden;text-overflow:ellipsis">'+etf.fullname+'</td>'+
+      '<td>'+(etf.connect?'<span class="market-tag a" style="font-size:10px">互联互通</span>':'<span style="color:#b0b0b8;font-size:11px">—</span>')+'</td>'+
+      '<td class="col-code" style="font-size:11px">'+etf.trackCode+'</td>'+
+      '<td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+etf.trackName+'</td>'+
+      '<td style="font-size:11px;color:#8e8e93;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+etf.manager+'</td>'+
+      '<td>'+etf.listedDate+'</td>'+
+      '<td class="col-yield">'+etf.fee+'</td>'+
+    '</tr>';
+  });
+  h+='</tbody></table></div>';
+  c.innerHTML=h;
+  document.getElementById('hketfUpdateTime').textContent='共 '+hkEtfData.length+' 只 ETF · 点击表头排序 · 更新于 '+new Date().toLocaleString('zh-CN');
+}
+
 function showIndexDetail(code) {
   var idx=indexData.find(function(i){return i.code===code;});if(!idx)return;
   document.getElementById('detailName').textContent=idx.fullname;document.getElementById('detailCode').textContent=idx.code;
@@ -722,7 +794,7 @@ document.getElementById('detailChartRange').addEventListener('change',function()
 window.addEventListener('resize',function(){if(document.getElementById('indexDetail').classList.contains('open')&&currentDetailChartData.length){drawDetailChart(currentDetailChartData);}});
 
 // ===== INIT =====
-renderAssetTable();renderIndices();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderKnowledge();renderFavorites();
+renderAssetTable();renderIndices();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderKnowledge();renderFavorites();renderHkEtf();
 document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(item){
   item.addEventListener('click',function(){
     document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(i){i.classList.remove('active');});
