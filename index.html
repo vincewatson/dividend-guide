@@ -85,8 +85,12 @@
   .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 
   /* ===== Pages ===== */
-  .page { display: none; padding: 28px; max-width: 880px; margin: 0 auto; }
+  .page { display: none; padding: 28px 0; }
   .page.active { display: block; }
+  .page .section-title { padding: 0 28px; }
+  .page .section-sub { padding: 0 28px; }
+  .page .index-footer { padding: 0 28px; }
+  .page .fav-empty { margin: 0 28px; }
 
   /* ===== Sub Pages ===== */
   .sub-page { display: none; }
@@ -97,7 +101,7 @@
   .section-sub { font-size: 12px; color: #8e8e93; margin-bottom: 20px; }
 
   /* ===== Asset Table ===== */
-  .asset-table { margin-bottom: 8px; }
+  .asset-table { margin-bottom: 8px; padding: 0 28px; }
   .asset-row {
     display: flex; align-items: center; padding: 14px 16px; background: #fff;
     border-radius: 0; margin-bottom: 8px; cursor: pointer;
@@ -154,7 +158,7 @@
   .market-tag.shs { background: rgba(51,102,204,0.12); color: #3366cc; }
 
   /* ===== Fund Cards ===== */
-  .fund-list { margin-bottom: 8px; }
+  .fund-list { margin-bottom: 8px; padding: 0 28px; }
   .fund-card { background: #fff; border-radius: 0; padding: 16px 18px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
   .fund-card .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
   .fund-card .name { font-size: 14px; font-weight: 600; }
@@ -169,7 +173,7 @@
   .tab-switch-wrap .sw-item.active { color: #fff; background: linear-gradient(135deg, #6C5CE7, #a29bfe); font-weight: 600; box-shadow: 0 2px 6px rgba(108,92,231,0.2); }
 
   /* ===== Knowledge ===== */
-  .knowledge-item { background: #fff; border-radius: 0; padding: 18px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .knowledge-item { background: #fff; border-radius: 0; padding: 18px; margin: 0 28px 10px 28px; cursor: pointer; transition: all 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
   .knowledge-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
   .knowledge-item .title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
   .knowledge-item .desc { font-size: 13px; color: #8e8e93; line-height: 1.7; }
@@ -178,12 +182,12 @@
   .knowledge-item .tag.beginner { background: rgba(108,92,231,0.1); color: #6C5CE7; }
 
   /* ===== Profile ===== */
-  .profile-header { background: linear-gradient(135deg, #6C5CE7, #a29bfe); border-radius: 0; padding: 32px 20px; text-align: center; margin-bottom: 16px; color: #fff; box-shadow: 0 4px 16px rgba(108,92,231,0.25); }
+  .profile-header { background: linear-gradient(135deg, #6C5CE7, #a29bfe); border-radius: 0; padding: 32px 20px; text-align: center; margin: 0 28px 16px 28px; color: #fff; box-shadow: 0 4px 16px rgba(108,92,231,0.25); }
   .profile-header .avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin: 0 auto 12px; }
   .profile-header .nick { font-size: 18px; font-weight: 700; }
   .profile-header .bio { font-size: 12px; opacity: 0.8; margin-top: 4px; }
   .profile-section .section-title { font-size: 15px; margin: 0 0 10px; }
-  .fav-item { background: #fff; border-radius: 0; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .fav-item { background: #fff; border-radius: 0; padding: 12px 16px; margin: 0 28px 8px 28px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
   .fav-item:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .fav-item .info { flex: 1; }
   .fav-item .name { font-size: 13px; font-weight: 600; }
@@ -247,7 +251,7 @@
     .brand-subtitle { display: none; }
     .main-nav { margin: 0 8px; gap: 0; }
     .main-nav-item { padding: 0 10px; font-size: 13px; }
-    .page { padding: 14px; max-width: none; }
+    .page { padding: 14px 0; max-width: none; }
     .detail-main-card { padding: 16px; }
   }
 </style>
@@ -283,9 +287,13 @@
         </div>
       </div>
 
-      <!-- 月月分红 Tab -->
-      <div class="main-nav-item" data-tab="pageMonthly">
-        💰 月月分红
+      <!-- 月月分红 Tab (with dropdown) -->
+      <div class="main-nav-item" data-tab="pageMonthly" id="navMonthly">
+        💰 月月分红<span class="arrow">▼</span>
+        <div class="dropdown">
+          <button class="dropdown-item active" data-sub="etfList">📊 ETF</button>
+          <button class="dropdown-item" data-sub="fundList">📈 指数基金</button>
+        </div>
       </div>
 
       <!-- 知识专区 Tab -->
@@ -332,14 +340,16 @@
 
     <!-- PAGE: 月月分红 -->
     <div class="page" id="pageMonthly">
-      <div class="section-title">💰 月月分红</div>
-      <div class="section-sub">每月派息基金，打造稳定现金流</div>
-      <div class="tab-switch-wrap" id="monthlyTabSwitch">
-        <span class="sw-item active" data-type="etf">ETF</span>
-        <span class="sw-item" data-type="fund">指数基金</span>
+      <div class="sub-page active" id="subEtfList">
+        <div class="section-title">💰 ETF月月分红</div>
+        <div class="section-sub">每月派息的ETF，打造稳定现金流</div>
+        <div class="fund-list" id="monthlyEtfList"></div>
       </div>
-      <div class="fund-list" id="monthlyEtfList"></div>
-      <div class="fund-list" id="monthlyFundList" style="display:none"></div>
+      <div class="sub-page" id="subFundList">
+        <div class="section-title">📈 指数基金月月分红</div>
+        <div class="section-sub">每月派息的指数基金</div>
+        <div class="fund-list" id="monthlyFundList"></div>
+      </div>
     </div>
 
     <!-- PAGE: 知识专区 -->
@@ -759,21 +769,38 @@ function switchPage(pageId) {
 }
 
 // Dropdown items under 红利指数
-document.querySelectorAll('#navIndex .dropdown-item').forEach(function(item){
-  item.addEventListener('click',function(e){
-    e.stopPropagation();
-    if(!document.getElementById('navIndex').classList.contains('active')){
-      switchPage('pageIndex');
-    } else {
-      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-      document.getElementById('pageIndex').classList.add('active');
-    }
-    document.querySelectorAll('#navIndex .dropdown-item').forEach(function(d){d.classList.remove('active');});
-    this.classList.add('active');
-    document.querySelectorAll('#pageIndex .sub-page').forEach(function(p){p.classList.remove('active');});
-    document.getElementById('sub'+this.dataset.sub.charAt(0).toUpperCase()+this.dataset.sub.slice(1)).classList.add('active');
-  });
-});
+ document.querySelectorAll('#navIndex .dropdown-item').forEach(function(item){
+   item.addEventListener('click',function(e){
+     e.stopPropagation();
+     if(!document.getElementById('navIndex').classList.contains('active')){
+       switchPage('pageIndex');
+     } else {
+       document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+       document.getElementById('pageIndex').classList.add('active');
+     }
+     document.querySelectorAll('#navIndex .dropdown-item').forEach(function(d){d.classList.remove('active');});
+     this.classList.add('active');
+     document.querySelectorAll('#pageIndex .sub-page').forEach(function(p){p.classList.remove('active');});
+     document.getElementById('sub'+this.dataset.sub.charAt(0).toUpperCase()+this.dataset.sub.slice(1)).classList.add('active');
+   });
+ });
+
+ // Dropdown items under 月月分红
+ document.querySelectorAll('#navMonthly .dropdown-item').forEach(function(item){
+   item.addEventListener('click',function(e){
+     e.stopPropagation();
+     if(!document.getElementById('navMonthly').classList.contains('active')){
+       switchPage('pageMonthly');
+     } else {
+       document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+       document.getElementById('pageMonthly').classList.add('active');
+     }
+     document.querySelectorAll('#navMonthly .dropdown-item').forEach(function(d){d.classList.remove('active');});
+     this.classList.add('active');
+     document.querySelectorAll('#pageMonthly .sub-page').forEach(function(p){p.classList.remove('active');});
+     document.getElementById('sub'+this.dataset.sub.charAt(0).toUpperCase()+this.dataset.sub.slice(1)).classList.add('active');
+   });
+ });
 
 // Profile button in top-right
 document.getElementById('profileBtn').addEventListener('click',function(){switchPage('pageProfile');});
@@ -794,15 +821,7 @@ document.getElementById('detailChartRange').addEventListener('change',function()
 window.addEventListener('resize',function(){if(document.getElementById('indexDetail').classList.contains('open')&&currentDetailChartData.length){drawDetailChart(currentDetailChartData);}});
 
 // ===== INIT =====
-renderAssetTable();renderIndices();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderKnowledge();renderFavorites();renderHkEtf();
-document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(item){
-  item.addEventListener('click',function(){
-    document.querySelectorAll('#monthlyTabSwitch .sw-item').forEach(function(i){i.classList.remove('active');});
-    this.classList.add('active');
-    if(this.dataset.type==='etf'){document.getElementById('monthlyEtfList').style.display='block';document.getElementById('monthlyFundList').style.display='none';}
-    else{document.getElementById('monthlyEtfList').style.display='none';document.getElementById('monthlyFundList').style.display='block';}
-  });
-});
+ renderAssetTable();renderIndices();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderKnowledge();renderFavorites();renderHkEtf();
 </script>
 </body>
 </html>
