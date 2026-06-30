@@ -584,15 +584,15 @@ function renderIndices() {
     h+='<div class="index-table-wrap"><table class="index-table">';
     // Header row
     h+='<thead><tr>'+
-      '<th onclick="toggleSort(\'code\')">指数代码<span class="sort-icon'+(sortKey===\'code\'?' active':'')+''+(sortKey===\'code\'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'name\')">指数名称<span class="sort-icon'+(sortKey===\'name\'?' active':'')+''+(sortKey===\'name\'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'listedDate\')">发布日期<span class="sort-icon'+(sortKey===\'listedDate\'?' active':'')+''+(sortKey===\'listedDate\'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'market\')">目标市场<span class="sort-icon'+(sortKey===\'market\'?' active':'')+''+(sortKey===\'market\'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'components\')">成分个数<span class="sort-icon'+(sortKey===\'components\'?' active':'')+''+(sortKey===\'components\'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'currency\')">币种<span class="sort-icon'+(sortKey===\'currency\'?' active':'')+''+(sortKey===\'currency\'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'yieldNum\')">股息率<span class="sort-icon'+(sortKey===\'yieldNum\'?' active':'')+''+(sortKey===\'yieldNum\'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'dailyChange\')">当日涨跌幅<span class="sort-icon'+(sortKey===\'dailyChange\'?' active':'')+''+(sortKey===\'dailyChange\'&&sortDesc?' desc':'')+'">▼</span></th>'+
-      '<th onclick="toggleSort(\'yrChange\')">本年涨跌幅<span class="sort-icon'+(sortKey===\'yrChange\'?' active':'')+''+(sortKey===\'yrChange\'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'code\')">指数代码<span class="sort-icon'+(sortKey==='code'?' active':'')+''+(sortKey==='code'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'name\')">指数名称<span class="sort-icon'+(sortKey==='name'?' active':'')+''+(sortKey==='name'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'listedDate\')">发布日期<span class="sort-icon'+(sortKey==='listedDate'?' active':'')+''+(sortKey==='listedDate'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'market\')">目标市场<span class="sort-icon'+(sortKey==='market'?' active':'')+''+(sortKey==='market'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'components\')">成分个数<span class="sort-icon'+(sortKey==='components'?' active':'')+''+(sortKey==='components'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'currency\')">币种<span class="sort-icon'+(sortKey==='currency'?' active':'')+''+(sortKey==='currency'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'yieldNum\')">股息率<span class="sort-icon'+(sortKey==='yieldNum'?' active':'')+''+(sortKey==='yieldNum'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'dailyChange\')">当日涨跌幅<span class="sort-icon'+(sortKey==='dailyChange'?' active':'')+''+(sortKey==='dailyChange'&&sortDesc?' desc':'')+'">▼</span></th>'+
+      '<th onclick="toggleSort(\'yrChange\')">本年涨跌幅<span class="sort-icon'+(sortKey==='yrChange'?' active':'')+''+(sortKey==='yrChange'&&sortDesc?' desc':'')+'">▼</span></th>'+
     '</tr></thead><tbody>';
 
     items.forEach(function(idx,i){
