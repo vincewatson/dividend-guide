@@ -125,6 +125,14 @@
   .asset-detail .value { color: #1c1c1e; text-align: right; font-weight: 500; }
   .asset-detail .source { color: #6C5CE7; font-size: 11px; }
 
+  /* ===== Intro Card ===== */
+  .intro-card { background: #fff; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .intro-title { font-size: 14px; font-weight: 700; color: #1c1c1e; margin-bottom: 12px; }
+  .intro-list { display: flex; flex-direction: column; gap: 8px; }
+  .intro-item { font-size: 13px; line-height: 1.6; color: #3a3a3c; display: flex; gap: 6px; }
+  .intro-icon { flex-shrink: 0; }
+  .intro-disclaimer { margin-top: 14px; padding-top: 12px; border-top: 1px solid #f0edf5; font-size: 11px; color: #b0b0b8; line-height: 1.6; }
+
   /* ===== Index Table ===== */
   .index-table-wrap { overflow-x: auto; margin-bottom: 4px; border-radius: 0; }
   .index-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border-radius: 0; overflow: hidden; }
@@ -310,6 +318,18 @@
     <div class="page active" id="pageData">
       <div class="section-title">📈 主流资产食息率</div>
       <div class="section-sub">更新于 2026-06-28 · 点击行查看详情</div>
+      <div class="intro-card">
+        <div class="intro-title">📌 适合普通人的几种常见生息资产</div>
+        <div class="intro-list">
+          <div class="intro-item"><span class="intro-icon">📄</span><b>股票 → 股息</b>：股票的分红，可通过【高息股】或【红利类ETF】获得，目前很多基金设有【月月可分红】条款</div>
+          <div class="intro-item"><span class="intro-icon">🏦</span><b>债券 → 债息</b>：债券的票息，可通过【债券型基金】和【国债】获得</div>
+          <div class="intro-item"><span class="intro-icon">🏗️</span><b>REITs → 分红</b>：不动产项目运作产生的现金流，REITs在场内交易（需开证券公司账户）</div>
+          <div class="intro-item"><span class="intro-icon">🛡️</span><b>保险 → 分红</b>：可通过【年金险】或【增额寿】等险种获得</div>
+          <div class="intro-item"><span class="intro-icon">💵</span><b>现金 → 现金收益</b>：可通过【货币基金】或者【存款】【大额存单】获得</div>
+          <div class="intro-item"><span class="intro-icon">📋</span><b>其他</b>：比如【房屋租金】、【美元货币基金】，以及【带有定期支付条款的金融产品】等等</div>
+        </div>
+        <div class="intro-disclaimer">⚠ 请注意，本在线表格内容仅为交流学习之用，不保证及时更新，也不作为面向任何人的投资建议。</div>
+      </div>
       <div class="asset-table" id="assetTable"></div>
     </div>
 
