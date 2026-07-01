@@ -561,6 +561,7 @@
           <div class="detail-info-row"><span class="label">上市日期</span><span class="value" id="cnEtfDetailMktDate"></span></div>
           <div class="detail-info-row"><span class="label">管理费率</span><span class="value yield" id="cnEtfDetailFee"></span></div>
           <div class="detail-info-row"><span class="label">2026年分红次数</span><span class="value" id="cnEtfDetailDivCount"></span></div>
+           <div class="detail-info-row"><span class="label">最新规模（亿元）</span><span class="value" id="cnEtfDetailSize"></span></div>
         </div>
       </div>
     </div>
@@ -925,7 +926,6 @@ function renderHkEtf() {
   h+='<thead><tr>'+
     '<th onclick="hkToggleSort(\'code\')">ETF代码<span'+s('code')+'">▼</span></th>'+
     '<th onclick="hkToggleSort(\'name\')">ETF简称<span'+s('name')+'">▼</span></th>'+
-    '<th>互联互通</th>'+
     '<th onclick="hkToggleSort(\'trackName\')">跟踪指数名称<span'+s('trackName')+'">▼</span></th>'+
     '<th onclick="hkToggleSort(\'listedDate\')">成立日期<span'+s('listedDate')+'">▼</span></th>'+
     '<th onclick="hkToggleSort(\'feeNum\')">管理费率<span'+s('feeNum')+'">▼</span></th>'+
@@ -935,7 +935,6 @@ function renderHkEtf() {
     h+='<tr onclick="showHkEtfDetail(\''+etf.code+'\')">'+
       '<td class="col-code">'+etf.code+'</td>'+
       '<td class="col-name">'+etf.name+'</td>'+
-      '<td>'+(etf.connect?'<span class="market-tag a" style="font-size:10px">互联互通</span>':'<span style="color:#b0b0b8;font-size:11px">—</span>')+'</td>'+
       '<td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+etf.trackName+'</td>'+
       '<td>'+etf.listedDate+'</td>'+
       '<td class="col-yield">'+etf.fee+'</td>'+
@@ -989,10 +988,9 @@ function renderCnEtf() {
   h+='<thead><tr>'+
     '<th onclick="cnToggleSort(\'code\')">ETF代码<span'+s('code')+'">▼</span></th>'+
     '<th onclick="cnToggleSort(\'name\')">ETF简称<span'+s('name')+'">▼</span></th>'+
-    '<th onclick="cnToggleSort(\'trackName\')">跟踪指数<span'+s('trackName')+'">▼</span></th>'+
-    '<th>管理费率</th>'+
-    '<th>分红次数</th>'+
+    '<th onclick="cnToggleSort(\'trackName\')">跟踪指数名称<span'+s('trackName')+'">▼</span></th>'+
     '<th onclick="cnToggleSort(\'listedDate\')">成立日期<span'+s('listedDate')+'">▼</span></th>'+
+    '<th>管理费率</th>'+
   '</tr></thead><tbody>';
 
   items.forEach(function(etf){
@@ -1000,9 +998,8 @@ function renderCnEtf() {
       '<td class="col-code">'+etf.code+'</td>'+
       '<td class="col-name">'+etf.name+'</td>'+
       '<td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">'+etf.trackName+'</td>'+
-      '<td class="col-yield">'+etf.fee+'</td>'+
-      '<td>'+(etf.divCount>0?etf.divCount:'<span style="color:#b0b0b8">—</span>')+'</td>'+
       '<td>'+etf.listedDate+'</td>'+
+      '<td class="col-yield">'+etf.fee+'</td>'+
     '</tr>';
   });
   h+='</tbody></table></div>';
@@ -1023,6 +1020,7 @@ function showCnEtfDetail(code) {
   document.getElementById('cnEtfDetailMktDate').textContent = etf.listedMarketDate;
   document.getElementById('cnEtfDetailFee').textContent = etf.fee;
   document.getElementById('cnEtfDetailDivCount').textContent = etf.divCount > 0 ? etf.divCount+' 次' : '暂未分红';
+  document.getElementById('cnEtfDetailSize').textContent = etf.size > 0 ? etf.size.toFixed(2)+' 亿元' : '数据待更新';
   document.getElementById('cnEtfDetail').classList.add('open');
 }
 
