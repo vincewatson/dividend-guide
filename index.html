@@ -934,7 +934,7 @@ function renderHkEtf() {
   items.forEach(function(etf){
     h+='<tr onclick="showHkEtfDetail(\''+etf.code+'\')">'+
       '<td class="col-code">'+etf.code+'</td>'+
-      '<td class="col-name">'+etf.name+'</td>'+
+      '<td class="col-name">'+etf.name+(etf.connect?' <span class="market-tag a" style="font-size:9px;padding:1px 6px">互联互通</span>':'')+'</td>'+
       '<td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+etf.trackName+'</td>'+
       '<td>'+etf.listedDate+'</td>'+
       '<td class="col-yield">'+etf.fee+'</td>'+
