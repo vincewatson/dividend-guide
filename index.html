@@ -159,6 +159,7 @@
   .market-tag.a { background: rgba(108,92,231,0.12); color: #6C5CE7; }
   .market-tag.hk { background: rgba(217,119,6,0.12); color: #d97706; }
   .market-tag.shs { background: rgba(51,102,204,0.12); color: #3366cc; }
+  .hk-connect-tag { display: inline-block; background: #6C5CE7; color: #fff; font-size: 9px; padding: 1px 6px; font-weight: 600; vertical-align: middle; margin-left: 4px; }
 
   /* ===== Fund Cards ===== */
   .fund-list { margin-bottom: 8px; }
@@ -934,7 +935,7 @@ function renderHkEtf() {
   items.forEach(function(etf){
     h+='<tr onclick="showHkEtfDetail(\''+etf.code+'\')">'+
       '<td class="col-code">'+etf.code+'</td>'+
-      '<td class="col-name">'+etf.name+(etf.connect?' <span class="market-tag a" style="font-size:9px;padding:1px 6px">互联互通</span>':'')+'</td>'+
+      '<td class="col-name">'+etf.name+(etf.connect?' <span class="hk-connect-tag">互联互通</span>':'')+'</td>'+
       '<td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis">'+etf.trackName+'</td>'+
       '<td>'+etf.listedDate+'</td>'+
       '<td class="col-yield">'+etf.fee+'</td>'+
