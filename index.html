@@ -343,8 +343,9 @@
       </div>
       <div class="sub-page" id="subEtf">
         <div class="section-title">🏛️ 境内红利ETF</div>
-        <div class="section-sub">开发中 · 敬请期待</div>
-        <div class="fav-empty"><span class="icon">🚧</span>功能开发中<br>后续将展示境内红利ETF详情</div>
+        <div class="section-sub">共 82 只境内上市红利ETF · 点击表头排序 · 点击行查看详情</div>
+        <div class="cn-list-container" id="cnEtfListContainer"></div>
+        <div class="index-footer"><span id="cnEtfUpdateTime"></span></div>
       </div>
       <div class="sub-page" id="subHkEtf">
         <div class="section-title">🇭🇰 港交所红利ETF</div>
@@ -526,6 +527,45 @@
     </div>
   </div>
 
+  <!-- ===== CN ETF Detail Overlay ===== -->
+  <div class="index-detail-page" id="cnEtfDetail">
+    <header class="top-bar">
+      <div class="brand" id="cnEtfDetailBack" style="cursor:pointer">
+        <div class="brand-icon">‹</div>
+        <div class="brand-text">
+          <span class="brand-name">境内ETF详情</span>
+          <span class="brand-subtitle">点击返回</span>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
+        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
+        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
+        <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
+      </nav>
+      <div class="nav-right"></div>
+    </header>
+    <div class="detail-body">
+      <div class="detail-main-card">
+        <div class="detail-card-section">
+          <div class="detail-index-title" id="cnEtfDetailName"></div>
+          <div class="detail-index-code" id="cnEtfDetailCode"></div>
+        </div>
+        <div class="detail-card-section">
+          <div class="detail-info-row"><span class="label">ETF简称</span><span class="value" id="cnEtfDetailShortName"></span></div>
+          <div class="detail-info-row"><span class="label">ETF代码</span><span class="value" id="cnEtfDetailFullCode"></span></div>
+          <div class="detail-info-row"><span class="label">跟踪指数代码</span><span class="value" id="cnEtfDetailTrackCode"></span></div>
+          <div class="detail-info-row"><span class="label">跟踪指数名称</span><span class="value" id="cnEtfDetailTrackName"></span></div>
+          <div class="detail-info-row"><span class="label">基金管理人</span><span class="value" id="cnEtfDetailManager"></span></div>
+          <div class="detail-info-row"><span class="label">成立日期</span><span class="value" id="cnEtfDetailListedDate"></span></div>
+          <div class="detail-info-row"><span class="label">上市日期</span><span class="value" id="cnEtfDetailMktDate"></span></div>
+          <div class="detail-info-row"><span class="label">管理费率</span><span class="value yield" id="cnEtfDetailFee"></span></div>
+          <div class="detail-info-row"><span class="label">2026年分红次数</span><span class="value" id="cnEtfDetailDivCount"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -639,7 +679,91 @@ const hkEtfData = [
   { code: '3488.HK', name: '惠理港美紅利低波', fullname: '惠理港美红利低波ETF', connect: false, trackCode: 'CCX50596.WI', trackName: '中诚信港美红利低波(港币净收益)', manager: '惠理基金管理香港有限公司', listedDate: '2026-03-25', fee: '0.90%', feeNum: 0.90 }
 ];
 
-// ===== STATE =====
+// ===== 境内红利ETF数据 =====
+const cnEtfData = [
+  { code: '560720.OF', name: '红利低波100ETF工银', trackCode: '930955.CSI', trackName: '红利低波100', manager: '工银瑞信基金管理有限公司', listedDate: '2026-05-21', listedMarketDate: '2026-06-05', fee: '0.30%', feeNum: 0.3, divCount: 0, size: 0 },
+  { code: '560250.OF', name: '红利质量ETF富国', trackCode: '932315.CSI', trackName: '中证红利质量', manager: '富国基金管理有限公司', listedDate: '2026-05-13', listedMarketDate: '2026-05-22', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159188.OF', name: '红利100ETF景顺', trackCode: 'SPCADMCP.SPI', trackName: '标普中国A股红利100', manager: '景顺长城基金管理有限公司', listedDate: '2026-04-01', listedMarketDate: '2026-04-10', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '515460.OF', name: '红利质量ETF南方', trackCode: '932315.CSI', trackName: '中证红利质量', manager: '南方基金管理股份有限公司', listedDate: '2026-03-04', listedMarketDate: '2026-03-16', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '560370.OF', name: '红利质量ETF易方达', trackCode: '932315.CSI', trackName: '中证红利质量', manager: '易方达基金管理有限公司', listedDate: '2026-02-10', listedMarketDate: '2026-02-26', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '520610.OF', name: '港股红利低波ETF银华', trackCode: 'SPAHLVHP.SPI', trackName: '标普港股通低波红利指数(港币)', manager: '银华基金管理股份有限公司', listedDate: '2026-01-28', listedMarketDate: '2026-02-09', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159143.OF', name: '港股通央企红利ETF平安', trackCode: 'HSSCSOY.HI', trackName: '恒生港股通中国央企红利', manager: '平安基金管理有限公司', listedDate: '2025-12-29', listedMarketDate: '2026-01-12', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '520810.OF', name: '港股通红利ETF易方达', trackCode: '930914.CSI', trackName: '港股通高股息(HKD)', manager: '易方达基金管理有限公司', listedDate: '2025-12-22', listedMarketDate: '2026-01-12', fee: '0.15%', feeNum: 0.15, divCount: 5, size: 0 },
+  { code: '159118.OF', name: '港股通红利低波ETF华夏', trackCode: 'SPAHLVHP.SPI', trackName: '标普港股通低波红利指数(港币)', manager: '华夏基金管理有限公司', listedDate: '2025-11-17', listedMarketDate: '2025-11-27', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '563510.OF', name: 'A500红利低波ETF易方达', trackCode: '932422.CSI', trackName: 'A500红利低波', manager: '易方达基金管理有限公司', listedDate: '2025-11-17', listedMarketDate: '2025-12-01', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '159127.OF', name: '港股通红利ETF南方', trackCode: '930914.CSI', trackName: '港股通高股息(HKD)', manager: '南方基金管理股份有限公司', listedDate: '2025-11-12', listedMarketDate: '2025-11-20', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '563590.OF', name: 'A500红利低波动ETF国寿', trackCode: '932422.CSI', trackName: 'A500红利低波', manager: '国寿安保基金管理有限公司', listedDate: '2025-10-27', listedMarketDate: '2025-11-05', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '563980.OF', name: '800红利低波ETF鑫元', trackCode: '931848.CSI', trackName: '800红利低波', manager: '鑫元基金管理有限公司', listedDate: '2025-10-24', listedMarketDate: '2025-11-07', fee: '0.50%', feeNum: 0.5, divCount: 1, size: 0 },
+  { code: '159117.OF', name: '港股通红利低波ETF鹏华', trackCode: 'SPAHLVHP.SPI', trackName: '标普港股通低波红利指数(港币)', manager: '鹏华基金管理有限公司', listedDate: '2025-09-30', listedMarketDate: '2025-10-17', fee: '0.30%', feeNum: 0.3, divCount: 0, size: 0 },
+  { code: '563890.OF', name: '国企红利ETF创金合信', trackCode: '000824.CSI', trackName: '中证国企红利', manager: '创金合信基金管理有限公司', listedDate: '2025-09-24', listedMarketDate: '2025-10-17', fee: '0.45%', feeNum: 0.45, divCount: 0, size: 0 },
+  { code: '563690.OF', name: '红利低波ETF永赢', trackCode: 'h30269.CSI', trackName: '红利低波', manager: '永赢基金管理有限公司', listedDate: '2025-09-23', listedMarketDate: '2025-10-10', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '560570.OF', name: 'A500红利ETF国联安', trackCode: '932422.CSI', trackName: 'A500红利低波', manager: '国联安基金管理有限公司', listedDate: '2025-09-10', listedMarketDate: '2025-09-18', fee: '0.35%', feeNum: 0.35, divCount: 1, size: 0 },
+  { code: '159296.OF', name: 'A500红利低波ETF华宝', trackCode: '932422.CSI', trackName: 'A500红利低波', manager: '华宝基金管理有限公司', listedDate: '2025-08-27', listedMarketDate: '2025-09-04', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '561680.OF', name: 'A500红利低波ETF平安', trackCode: '932422.CSI', trackName: 'A500红利低波', manager: '平安基金管理有限公司', listedDate: '2025-08-27', listedMarketDate: '2025-09-05', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159281.OF', name: '港股央企红利ETF天弘', trackCode: '931233.CSI', trackName: '港股通央企红利', manager: '天弘基金管理有限公司', listedDate: '2025-08-20', listedMarketDate: '2025-09-02', fee: '0.50%', feeNum: 0.5, divCount: 5, size: 0 },
+  { code: '159277.OF', name: '港股通红利ETF富国', trackCode: '930914.CSI', trackName: '港股通高股息(HKD)', manager: '富国基金管理有限公司', listedDate: '2025-08-05', listedMarketDate: '2025-08-14', fee: '0.30%', feeNum: 0.3, divCount: 0, size: 0 },
+  { code: '159266.OF', name: '港股央企红利ETF永赢', trackCode: '931233.CSI', trackName: '港股通央企红利', manager: '永赢基金管理有限公司', listedDate: '2025-07-23', listedMarketDate: '2025-08-01', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159228.OF', name: '红利低波ETF长城', trackCode: '930955.CSI', trackName: '红利低波100', manager: '长城基金管理有限公司', listedDate: '2025-06-05', listedMarketDate: '2025-06-18', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159220.OF', name: '港股通红利低波ETF华宝', trackCode: 'SPAHLVCP.SPI', trackName: '标普港股通低波红利指数', manager: '华宝基金管理有限公司', listedDate: '2025-04-29', listedMarketDate: '2025-05-12', fee: '0.50%', feeNum: 0.5, divCount: 2, size: 0 },
+  { code: '563700.OF', name: '红利价值ETF易方达', trackCode: 'h30270.CSI', trackName: '红利价值', manager: '易方达基金管理有限公司', listedDate: '2025-04-16', listedMarketDate: '2025-04-28', fee: '0.15%', feeNum: 0.15, divCount: 2, size: 0 },
+  { code: '159207.OF', name: '高股息ETF广发', trackCode: '932305.CSI', trackName: '智选高股息', manager: '广发基金管理有限公司', listedDate: '2025-03-27', listedMarketDate: '2025-04-09', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '159209.OF', name: '红利质量ETF招商', trackCode: '932315.CSI', trackName: '中证红利质量', manager: '招商基金管理有限公司', listedDate: '2025-03-12', listedMarketDate: '2025-03-25', fee: '0.15%', feeNum: 0.15, divCount: 6, size: 0 },
+  { code: '513830.OF', name: '港股通高股息ETF嘉实', trackCode: '930914.CSI', trackName: '港股通高股息(HKD)', manager: '嘉实基金管理有限公司', listedDate: '2025-02-26', listedMarketDate: '2025-03-07', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159336.OF', name: '央企红利ETF融通', trackCode: '931132.CSI', trackName: '诚通央企红利', manager: '融通基金管理有限公司', listedDate: '2025-01-22', listedMarketDate: '2025-02-12', fee: '0.30%', feeNum: 0.3, divCount: 0, size: 0 },
+  { code: '520550.OF', name: '港股红利低波ETF招商', trackCode: 'HSHYLV.HI', trackName: '恒生港股通高股息低波动', manager: '招商基金管理有限公司', listedDate: '2025-01-15', listedMarketDate: '2025-01-24', fee: '0.15%', feeNum: 0.15, divCount: 6, size: 0 },
+  { code: '159355.OF', name: '800红利低波ETF华宝', trackCode: '931848.CSI', trackName: '800红利低波', manager: '华宝基金管理有限公司', listedDate: '2024-11-25', listedMarketDate: '2024-12-03', fee: '0.50%', feeNum: 0.5, divCount: 1, size: 0 },
+  { code: '530880.OF', name: '红利国企ETF银河', trackCode: '000151.SH', trackName: '上国红利', manager: '银河基金管理有限公司', listedDate: '2024-10-30', listedMarketDate: '2024-11-12', fee: '0.45%', feeNum: 0.45, divCount: 5, size: 0 },
+  { code: '520890.OF', name: '港股通红利低波ETF华泰柏瑞', trackCode: 'HSHYLV.HI', trackName: '恒生港股通高股息低波动', manager: '华泰柏瑞基金管理有限公司', listedDate: '2024-09-04', listedMarketDate: '2024-09-20', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159302.OF', name: '港股高股息ETF银华', trackCode: '930914.CSI', trackName: '港股通高股息(HKD)', manager: '银华基金管理股份有限公司', listedDate: '2024-08-23', listedMarketDate: '2024-09-02', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159333.OF', name: '港股央企红利ETF万家', trackCode: '931233.CSI', trackName: '港股通央企红利', manager: '万家基金管理有限公司', listedDate: '2024-08-21', listedMarketDate: '2024-09-03', fee: '0.50%', feeNum: 0.5, divCount: 6, size: 0 },
+  { code: '159569.OF', name: '港股红利低波ETF景顺', trackCode: '987016.CNI', trackName: '港股通红利低波', manager: '景顺长城基金管理有限公司', listedDate: '2024-08-14', listedMarketDate: '2024-08-22', fee: '0.50%', feeNum: 0.5, divCount: 1, size: 0 },
+  { code: '159331.OF', name: '红利港股ETF国泰', trackCode: '930914.CSI', trackName: '港股通高股息(HKD)', manager: '国泰基金管理有限公司', listedDate: '2024-07-23', listedMarketDate: '2024-08-01', fee: '0.50%', feeNum: 0.5, divCount: 6, size: 0 },
+  { code: '159332.OF', name: '央企红利ETF富国', trackCode: '000825.CSI', trackName: '中证央企红利', manager: '富国基金管理有限公司', listedDate: '2024-07-16', listedMarketDate: '2024-08-01', fee: '0.15%', feeNum: 0.15, divCount: 2, size: 0 },
+  { code: '520990.OF', name: '港股央企红利ETF景顺', trackCode: '931722.CSI', trackName: '国新港股通央企红利', manager: '景顺长城基金管理有限公司', listedDate: '2024-06-26', listedMarketDate: '2024-07-10', fee: '0.50%', feeNum: 0.5, divCount: 1, size: 0 },
+  { code: '520900.OF', name: '港股通红利ETF广发', trackCode: '931722.CSI', trackName: '国新港股通央企红利', manager: '广发基金管理有限公司', listedDate: '2024-06-26', listedMarketDate: '2024-07-10', fee: '0.15%', feeNum: 0.15, divCount: 2, size: 0 },
+  { code: '520660.OF', name: '港股通央企红利ETF南方', trackCode: '931722.CSI', trackName: '国新港股通央企红利', manager: '南方基金管理股份有限公司', listedDate: '2024-06-26', listedMarketDate: '2024-07-10', fee: '0.50%', feeNum: 0.5, divCount: 2, size: 0 },
+  { code: '159525.OF', name: '红利低波ETF富国', trackCode: 'h30269.CSI', trackName: '红利低波', manager: '富国基金管理有限公司', listedDate: '2024-05-07', listedMarketDate: '2024-05-20', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '563180.OF', name: '高股息ETF银华', trackCode: 'h30366.CSI', trackName: '高息策略', manager: '银华基金管理股份有限公司', listedDate: '2024-05-06', listedMarketDate: '2024-05-14', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '510720.OF', name: '红利国企ETF国泰', trackCode: '000151.SH', trackName: '上国红利', manager: '国泰基金管理有限公司', listedDate: '2024-04-30', listedMarketDate: '2024-05-15', fee: '0.50%', feeNum: 0.5, divCount: 6, size: 0 },
+  { code: '513820.OF', name: '港股通红利ETF汇添富', trackCode: '930914.CSI', trackName: '港股通高股息(HKD)', manager: '汇添富基金管理股份有限公司', listedDate: '2024-04-24', listedMarketDate: '2024-05-16', fee: '0.50%', feeNum: 0.5, divCount: 6, size: 0 },
+  { code: '159307.OF', name: '红利低波100ETF博时', trackCode: '930955.CSI', trackName: '红利低波100', manager: '博时基金管理有限公司', listedDate: '2024-04-16', listedMarketDate: '2024-04-25', fee: '0.15%', feeNum: 0.15, divCount: 2, size: 0 },
+  { code: '560520.OF', name: '红利低波100ETF大成', trackCode: '930955.CSI', trackName: '红利低波100', manager: '大成基金管理有限公司', listedDate: '2024-04-08', listedMarketDate: '2024-04-18', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '159545.OF', name: '恒生红利低波ETF易方达', trackCode: 'HSHYLV.HI', trackName: '恒生港股通高股息低波动', manager: '易方达基金管理有限公司', listedDate: '2024-03-27', listedMarketDate: '2024-04-15', fee: '0.15%', feeNum: 0.15, divCount: 2, size: 0 },
+  { code: '560150.OF', name: '红利低波ETF泰康', trackCode: 'h30269.CSI', trackName: '红利低波', manager: '泰康基金管理有限公司', listedDate: '2024-03-15', listedMarketDate: '2024-04-08', fee: '0.40%', feeNum: 0.4, divCount: 2, size: 0 },
+  { code: '159589.OF', name: '红利ETF广发', trackCode: '000922.CSI', trackName: '中证红利', manager: '广发基金管理有限公司', listedDate: '2024-03-14', listedMarketDate: '2024-03-26', fee: '0.15%', feeNum: 0.15, divCount: 6, size: 0 },
+  { code: '159581.OF', name: '红利ETF万家', trackCode: '000922.CSI', trackName: '中证红利', manager: '万家基金管理有限公司', listedDate: '2024-03-06', listedMarketDate: '2024-03-15', fee: '0.50%', feeNum: 0.5, divCount: 6, size: 0 },
+  { code: '513910.OF', name: '港股通央企红利ETF华夏', trackCode: '931233.CSI', trackName: '港股通央企红利', manager: '华夏基金管理有限公司', listedDate: '2024-02-07', listedMarketDate: '2024-03-04', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159547.OF', name: '红利低波ETF华夏', trackCode: 'h30269.CSI', trackName: '红利低波', manager: '华夏基金管理有限公司', listedDate: '2024-01-25', listedMarketDate: '2024-02-06', fee: '0.15%', feeNum: 0.15, divCount: 1, size: 0 },
+  { code: '513920.OF', name: '港股通央企红利ETF华安', trackCode: 'HSSCSOY.HI', trackName: '恒生港股通中国央企红利', manager: '华安基金管理有限公司', listedDate: '2023-12-20', listedMarketDate: '2024-01-05', fee: '0.50%', feeNum: 0.5, divCount: 1, size: 0 },
+  { code: '562060.OF', name: '标普A股红利ETF华宝', trackCode: 'CSPSADRP.CI', trackName: '标普A股红利', manager: '华宝基金管理有限公司', listedDate: '2023-12-08', listedMarketDate: '2023-12-28', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '563020.OF', name: '红利低波ETF易方达', trackCode: 'h30269.CSI', trackName: '红利低波', manager: '易方达基金管理有限公司', listedDate: '2023-12-06', listedMarketDate: '2023-12-14', fee: '0.15%', feeNum: 0.15, divCount: 2, size: 0 },
+  { code: '513630.OF', name: '港股低波红利ETF摩根', trackCode: 'SPAHLVCP.SPI', trackName: '标普港股通低波红利指数', manager: '摩根基金管理(中国)有限公司', listedDate: '2023-11-23', listedMarketDate: '2023-12-08', fee: '0.50%', feeNum: 0.5, divCount: 6, size: 0 },
+  { code: '159549.OF', name: '红利低波ETF天弘', trackCode: '930955.CSI', trackName: '红利低波100', manager: '天弘基金管理有限公司', listedDate: '2023-11-23', listedMarketDate: '2023-12-11', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '560020.OF', name: '红利ETF汇添富', trackCode: '000922.CSI', trackName: '中证红利', manager: '汇添富基金管理股份有限公司', listedDate: '2023-09-26', listedMarketDate: '2023-10-16', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '561060.OF', name: '国企红利ETF华安', trackCode: '000824.CSI', trackName: '中证国企红利', manager: '华安基金管理有限公司', listedDate: '2023-09-06', listedMarketDate: '2023-09-21', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159515.OF', name: '国企红利ETF鹏扬', trackCode: '000824.CSI', trackName: '中证国企红利', manager: '鹏扬基金管理有限公司', listedDate: '2023-08-25', listedMarketDate: '2023-09-06', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '560700.OF', name: '央企红利ETF广发', trackCode: '932039.CSI', trackName: '央企股东回报', manager: '广发基金管理有限公司', listedDate: '2023-05-24', listedMarketDate: '2023-06-06', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '560070.OF', name: '央企红利ETF汇添富', trackCode: '932039.CSI', trackName: '央企股东回报', manager: '汇添富基金管理股份有限公司', listedDate: '2023-05-24', listedMarketDate: '2023-06-06', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '561960.OF', name: '央企回报ETF招商', trackCode: '932039.CSI', trackName: '央企股东回报', manager: '招商基金管理有限公司', listedDate: '2023-05-24', listedMarketDate: '2023-06-06', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '561580.OF', name: '央企红利ETF华泰柏瑞', trackCode: '000825.CSI', trackName: '中证央企红利', manager: '华泰柏瑞基金管理有限公司', listedDate: '2023-05-18', listedMarketDate: '2023-05-30', fee: '0.50%', feeNum: 0.5, divCount: 6, size: 0 },
+  { code: '513950.OF', name: '恒生红利ETF富国', trackCode: 'HSHYLV.HI', trackName: '恒生港股通高股息低波动', manager: '富国基金管理有限公司', listedDate: '2023-04-19', listedMarketDate: '2023-04-28', fee: '0.50%', feeNum: 0.5, divCount: 2, size: 0 },
+  { code: '159691.OF', name: '港股红利ETF工银', trackCode: '930839.CSI', trackName: '港股通高息精选', manager: '工银瑞信基金管理有限公司', listedDate: '2023-03-30', listedMarketDate: '2023-04-21', fee: '0.45%', feeNum: 0.45, divCount: 1, size: 0 },
+  { code: '513530.OF', name: '港股通红利ETF华泰柏瑞', trackCode: '930915.CSI', trackName: '港股通高股息CNY', manager: '华泰柏瑞基金管理有限公司', listedDate: '2022-04-08', listedMarketDate: '2022-04-25', fee: '0.50%', feeNum: 0.5, divCount: 6, size: 0 },
+  { code: '159758.OF', name: '红利质量ETF华夏', trackCode: '931468.CSI', trackName: '红利质量', manager: '华夏基金管理有限公司', listedDate: '2021-12-20', listedMarketDate: '2021-12-28', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '159726.OF', name: '港股通高股息ETF华夏', trackCode: 'HSMCHYI.HI', trackName: '恒生港股通中国内地企业高股息率', manager: '华夏基金管理有限公司', listedDate: '2021-11-11', listedMarketDate: '2021-11-23', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159708.OF', name: '红利ETF西部利得', trackCode: '399324.SZ', trackName: '深证红利', manager: '西部利得基金管理有限公司', listedDate: '2021-06-18', listedMarketDate: '2021-07-02', fee: '0.40%', feeNum: 0.4, divCount: 0, size: 0 },
+  { code: '513690.OF', name: '港股红利ETF博时', trackCode: 'HSSCHKY.HI', trackName: '恒生港股通高股息率', manager: '博时基金管理有限公司', listedDate: '2021-05-11', listedMarketDate: '2021-05-20', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '515100.OF', name: '红利低波100ETF景顺', trackCode: '930955.CSI', trackName: '红利低波100', manager: '景顺长城基金管理有限公司', listedDate: '2020-05-22', listedMarketDate: '2020-07-03', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '515890.OF', name: '红利ETF博时', trackCode: '000922.CSI', trackName: '中证红利', manager: '博时基金管理有限公司', listedDate: '2020-03-20', listedMarketDate: '2020-04-20', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '515450.OF', name: '红利低波50ETF南方', trackCode: 'SPCLLHCP.SPI', trackName: '标普中国A股大盘红利低波50', manager: '南方基金管理股份有限公司', listedDate: '2020-01-17', listedMarketDate: '2020-02-26', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '515080.OF', name: '中证红利ETF招商', trackCode: '000922.CSI', trackName: '中证红利', manager: '招商基金管理有限公司', listedDate: '2019-11-28', listedMarketDate: '2019-12-27', fee: '0.20%', feeNum: 0.2, divCount: 2, size: 0 },
+  { code: '515180.OF', name: '红利ETF易方达', trackCode: '000922.CSI', trackName: '中证红利', manager: '易方达基金管理有限公司', listedDate: '2019-11-26', listedMarketDate: '2019-12-20', fee: '0.15%', feeNum: 0.15, divCount: 0, size: 0 },
+  { code: '512530.OF', name: '沪深300红利ETF建信', trackCode: '000821.CSI', trackName: '沪深300红利', manager: '建信基金管理有限责任公司', listedDate: '2019-08-23', listedMarketDate: '2019-09-23', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '515300.OF', name: '300红利低波ETF嘉实', trackCode: '930740.CSI', trackName: '300红利低波', manager: '嘉实基金管理有限公司', listedDate: '2019-08-08', listedMarketDate: '2019-09-19', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '512890.OF', name: '红利低波ETF华泰柏瑞', trackCode: 'h30269.CSI', trackName: '红利低波', manager: '华泰柏瑞基金管理有限公司', listedDate: '2018-12-19', listedMarketDate: '2019-01-18', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '159905.OF', name: '红利ETF工银', trackCode: '399324.SZ', trackName: '深证红利', manager: '工银瑞信基金管理有限公司', listedDate: '2010-11-05', listedMarketDate: '2011-01-11', fee: '0.50%', feeNum: 0.5, divCount: 0, size: 0 },
+  { code: '510880.OF', name: '红利ETF华泰柏瑞', trackCode: '000015.SH', trackName: '红利指数', manager: '华泰柏瑞基金管理有限公司', listedDate: '2006-11-17', listedMarketDate: '2007-01-18', fee: '0.50%', feeNum: 0.5, divCount: 1, size: 0 }
+];// ===== STATE =====
 let favorites = JSON.parse(localStorage.getItem('shixi_favs') || '[]');
 
 // ===== SORT STATE =====
@@ -835,6 +959,71 @@ function showHkEtfDetail(code) {
   document.getElementById('hkEtfDetail').classList.add('open');
 }
 
+// ===== CN ETF SORT & RENDER =====
+var cnSortKey = null;
+var cnSortDesc = false;
+
+function cnToggleSort(key) {
+  if (cnSortKey === key) { cnSortDesc = !cnSortDesc; }
+  else { cnSortKey = key; cnSortDesc = false; }
+  renderCnEtf();
+}
+
+function renderCnEtf() {
+  var c=document.getElementById('cnEtfListContainer');
+  var items = cnEtfData.slice();
+  if (cnSortKey) {
+    items.sort(function(a,b){
+      var va = a[cnSortKey], vb = b[cnSortKey];
+      if (typeof va === 'string') {
+        if (cnSortKey === 'listedDate' || cnSortKey === 'listedMarketDate') { va = va.replace(/-/g,''); vb = vb.replace(/-/g,''); }
+        else { va = parseFloat(va); vb = parseFloat(vb); if (isNaN(va)) va = -Infinity; if (isNaN(vb)) vb = -Infinity; }
+      }
+      return cnSortDesc ? (vb > va ? 1 : vb < va ? -1 : 0) : (va > vb ? 1 : va < vb ? -1 : 0);
+    });
+  }
+  function s(key) { return ' class="sort-icon'+(cnSortKey===key?' active':'')+(cnSortKey===key&&cnSortDesc?' desc':'')+'"'; }
+  var h='<div class="index-table-wrap"><table class="index-table">';
+  h+='<thead><tr>'+
+    '<th onclick="cnToggleSort(\'code\')">ETF代码<span'+s('code')+'">▼</span></th>'+
+    '<th onclick="cnToggleSort(\'name\')">ETF简称<span'+s('name')+'">▼</span></th>'+
+    '<th onclick="cnToggleSort(\'trackName\')">跟踪指数<span'+s('trackName')+'">▼</span></th>'+
+    '<th>管理费率</th>'+
+    '<th>分红次数</th>'+
+    '<th onclick="cnToggleSort(\'listedDate\')">成立日期<span'+s('listedDate')+'">▼</span></th>'+
+  '</tr></thead><tbody>';
+
+  items.forEach(function(etf){
+    h+='<tr onclick="showCnEtfDetail(\''+etf.code+'\')">'+
+      '<td class="col-code">'+etf.code+'</td>'+
+      '<td class="col-name">'+etf.name+'</td>'+
+      '<td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">'+etf.trackName+'</td>'+
+      '<td class="col-yield">'+etf.fee+'</td>'+
+      '<td>'+(etf.divCount>0?etf.divCount:'<span style="color:#b0b0b8">—</span>')+'</td>'+
+      '<td>'+etf.listedDate+'</td>'+
+    '</tr>';
+  });
+  h+='</tbody></table></div>';
+  c.innerHTML=h;
+  document.getElementById('cnEtfUpdateTime').textContent='共 '+cnEtfData.length+' 只 ETF · 点击表头排序 · 点击行查看详情 · 更新于 '+new Date().toLocaleString('zh-CN');
+}
+
+function showCnEtfDetail(code) {
+  var etf = cnEtfData.find(function(e){return e.code===code;}); if(!etf) return;
+  document.getElementById('cnEtfDetailName').textContent = etf.name;
+  document.getElementById('cnEtfDetailCode').textContent = etf.code;
+  document.getElementById('cnEtfDetailShortName').textContent = etf.name;
+  document.getElementById('cnEtfDetailFullCode').textContent = etf.code;
+  document.getElementById('cnEtfDetailTrackCode').textContent = etf.trackCode;
+  document.getElementById('cnEtfDetailTrackName').textContent = etf.trackName;
+  document.getElementById('cnEtfDetailManager').textContent = etf.manager;
+  document.getElementById('cnEtfDetailListedDate').textContent = etf.listedDate;
+  document.getElementById('cnEtfDetailMktDate').textContent = etf.listedMarketDate;
+  document.getElementById('cnEtfDetailFee').textContent = etf.fee;
+  document.getElementById('cnEtfDetailDivCount').textContent = etf.divCount > 0 ? etf.divCount+' 次' : '暂未分红';
+  document.getElementById('cnEtfDetail').classList.add('open');
+}
+
 function showIndexDetail(code) {
   var idx=indexData.find(function(i){return i.code===code;});if(!idx)return;
   document.getElementById('detailName').textContent=idx.fullname;document.getElementById('detailCode').textContent=idx.code;
@@ -941,6 +1130,7 @@ document.getElementById('profileBtn').addEventListener('click',function(){switch
 // Detail page
 document.getElementById('detailBack').addEventListener('click',function(){document.getElementById('indexDetail').classList.remove('open');});
 document.getElementById('hkEtfDetailBack').addEventListener('click',function(){document.getElementById('hkEtfDetail').classList.remove('open');});
+document.getElementById('cnEtfDetailBack').addEventListener('click',function(){document.getElementById('cnEtfDetail').classList.remove('open');});
 document.getElementById('detailFavBtn').addEventListener('click',function(){
   var code=document.getElementById('detailCode').textContent;if(!code)return;toggleFav(code);
   var isFav=favorites.includes(code);this.textContent=isFav?'⭐':'☆';this.className='detail-fav-btn'+(isFav?' active':'');renderIndices();
@@ -955,7 +1145,7 @@ document.getElementById('detailChartRange').addEventListener('change',function()
 window.addEventListener('resize',function(){if(document.getElementById('indexDetail').classList.contains('open')&&currentDetailChartData.length){drawDetailChart(currentDetailChartData);}});
 
 // ===== INIT =====
- renderAssetTable();renderIndices();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderKnowledge();renderFavorites();renderHkEtf();
+ renderAssetTable();renderIndices();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderKnowledge();renderFavorites();renderHkEtf();renderCnEtf();
 </script>
 </body>
 </html>
