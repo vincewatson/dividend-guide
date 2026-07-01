@@ -1216,6 +1216,8 @@ document.getElementById('profileBtn').addEventListener('click',function(){switch
 document.getElementById('detailBack').addEventListener('click',function(){document.getElementById('indexDetail').classList.remove('open');});
 document.getElementById('hkEtfDetailBack').addEventListener('click',function(){document.getElementById('hkEtfDetail').classList.remove('open');});
 document.getElementById('cnEtfDetailBack').addEventListener('click',function(){document.getElementById('cnEtfDetail').classList.remove('open');});
+document.getElementById('monthlyEtfDetailBack').addEventListener('click',function(){document.getElementById('monthlyEtfDetail').classList.remove('open');});
+document.getElementById('monthlyFundDetailBack').addEventListener('click',function(){document.getElementById('monthlyFundDetail').classList.remove('open');});
 document.getElementById('detailFavBtn').addEventListener('click',function(){
   var code=document.getElementById('detailCode').textContent;if(!code)return;toggleFav(code);
   var isFav=favorites.includes(code);this.textContent=isFav?'⭐':'☆';this.className='detail-fav-btn'+(isFav?' active':'');renderIndices();
