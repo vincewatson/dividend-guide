@@ -360,13 +360,15 @@
     <div class="page" id="pageMonthly">
       <div class="sub-page active" id="subEtfList">
         <div class="section-title">💰 ETF月月分红</div>
-        <div class="section-sub">每月派息的ETF，打造稳定现金流</div>
-        <div class="fund-list" id="monthlyEtfList"></div>
+        <div class="section-sub">每月派息的ETF · 点击表头排序 · 点击行查看详情</div>
+        <div class="monthly-list-container" id="monthlyEtfContainer"></div>
+        <div class="index-footer"><span id="monthlyEtfUpdateTime"></span></div>
       </div>
       <div class="sub-page" id="subFundList">
         <div class="section-title">📈 指数基金月月分红</div>
-        <div class="section-sub">每月派息的指数基金</div>
-        <div class="fund-list" id="monthlyFundList"></div>
+        <div class="section-sub">每月派息的指数基金 · 点击表头排序 · 点击行查看详情</div>
+        <div class="monthly-list-container" id="monthlyFundContainer"></div>
+        <div class="index-footer"><span id="monthlyFundUpdateTime"></span></div>
       </div>
     </div>
 
@@ -1037,9 +1039,91 @@ function showIndexDetail(code) {
   document.getElementById('indexDetail').classList.add('open');
 }
 
-function renderFundList(i,d){var c=document.getElementById(i);if(!c)return;if(!d.length){c.innerHTML='<div class="fav-empty"><span class="icon">📭</span>暂无数据<br>敬请期待</div>';return;}
-c.innerHTML=d.map(function(f){var is=favorites.includes(f.code);return '<div class="fund-card"><div class="top"><div><div class="name">'+f.name+'</div><div class="code">'+f.code+'</div></div><div class="yield">'+f.yield+'</div></div><div class="tags"><span class="tag monthly">'+f.freq+'</span><span class="tag">'+f.type+'</span><span class="tag">规模 '+f.size+'</span></div><div class="meta"><span>'+f.note+'</span><span class="fav-btn'+(is?' active':'')+'" data-fav="'+f.code+'">'+(is?'⭐':'☆')+'</span></div></div>';}).join('');
-c.querySelectorAll('.fav-btn').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();toggleFav(this.dataset.fav);});});}
+// ===== MONTHLY ETF SORT & RENDER =====
+var monthlyEtfSortKey = null;
+var monthlyEtfSortDesc = false;
+var monthlyFundSortKey = null;
+var monthlyFundSortDesc = false;
+
+function monthlyToggleSort(id, key) {
+  var sk = id === 'monthlyEtfContainer' ? 'monthlyEtfSortKey' : 'monthlyFundSortKey';
+  var sd = id === 'monthlyEtfContainer' ? 'monthlyEtfSortDesc' : 'monthlyFundSortDesc';
+  var sf = id === 'monthlyEtfContainer' ? 'renderMonthlyEtf' : 'renderMonthlyFund';
+  if (window[sk] === key) { window[sd] = !window[sd]; }
+  else { window[sk] = key; window[sd] = false; }
+  window[sf]();
+}
+
+function renderMonthlyTable(containerId, data, sortKey, sortDesc, updateId, cols, valFns) {
+  var c=document.getElementById(containerId);
+  var items = data.slice();
+  if (sortKey) {
+    items.sort(function(a,b){
+      var va = a[sortKey], vb = b[sortKey];
+      if (typeof va === 'string' && sortKey === 'listedDate') { va = va.replace(/-/g,''); vb = vb.replace(/-/g,''); }
+      else if (typeof va === 'string') { va = parseFloat(va); vb = parseFloat(vb); if (isNaN(va)) va = -Infinity; if (isNaN(vb)) vb = -Infinity; }
+      return sortDesc ? (vb > va ? 1 : vb < va ? -1 : 0) : (va > vb ? 1 : va < vb ? -1 : 0);
+    });
+  }
+  function s(key) { return ' class="sort-icon'+(sortKey===key?' active':'')+(sortKey===key&&sortDesc?' desc':'')+'"'; }
+  var h='<div class="index-table-wrap"><table class="index-table"><thead><tr>';
+  cols.forEach(function(col){
+    if (col.sortable) {
+      h+='<th onclick="monthlyToggleSort(\''+containerId+'\',\''+col.key+'\')">'+col.label+'<span'+s(col.key)+'>▼</span></th>';
+    } else {
+      h+='<th>'+col.label+'</th>';
+    }
+  });
+  h+='</tr></thead><tbody>';
+  items.forEach(function(item){
+    h+='<tr>';
+    valFns.forEach(function(fn){ h+=fn(item); });
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  c.innerHTML=h;
+  document.getElementById(updateId).textContent='共 '+data.length+' 只 · 点击表头排序 · 点击行查看详情 · 更新于 '+new Date().toLocaleString('zh-CN');
+}
+
+function renderMonthlyEtf() {
+  var cols = [
+    { label: 'ETF代码', key: 'code', sortable: true },
+    { label: 'ETF简称', key: 'name', sortable: true },
+    { label: '产品类型', key: 'type', sortable: true },
+    { label: '分红频率', key: 'freq', sortable: false },
+    { label: '近12月收益率', key: 'yield', sortable: false },
+    { label: '管理规模', key: 'size', sortable: false }
+  ];
+  var valFns = [
+    function(f){ return '<td class="col-code">'+f.code+'</td>'; },
+    function(f){ return '<td class="col-name">'+f.name+'</td>'; },
+    function(f){ return '<td style="font-size:11px;color:#8e8e93">'+f.type+'</td>'; },
+    function(f){ return '<td><span style="font-size:11px;color:#6C5CE7;font-weight:500">'+f.freq+'</span></td>'; },
+    function(f){ return '<td class="col-yield">'+f.yield+'</td>'; },
+    function(f){ return '<td style="font-size:11px;color:#8e8e93">'+f.size+'</td>'; }
+  ];
+  renderMonthlyTable('monthlyEtfContainer', etfData, monthlyEtfSortKey, monthlyEtfSortDesc, 'monthlyEtfUpdateTime', cols, valFns);
+}
+
+function renderMonthlyFund() {
+  var cols = [
+    { label: '基金代码', key: 'code', sortable: true },
+    { label: '基金简称', key: 'name', sortable: true },
+    { label: '产品类型', key: 'type', sortable: true },
+    { label: '分红频率', key: 'freq', sortable: false },
+    { label: '近12月收益率', key: 'yield', sortable: false },
+    { label: '管理规模', key: 'size', sortable: false }
+  ];
+  var valFns = [
+    function(f){ return '<td class="col-code">'+f.code+'</td>'; },
+    function(f){ return '<td class="col-name">'+f.name+'</td>'; },
+    function(f){ return '<td style="font-size:11px;color:#8e8e93">'+f.type+'</td>'; },
+    function(f){ return '<td><span style="font-size:11px;color:#6C5CE7;font-weight:500">'+f.freq+'</span></td>'; },
+    function(f){ return '<td class="col-yield">'+f.yield+'</td>'; },
+    function(f){ return '<td style="font-size:11px;color:#8e8e93">'+f.size+'</td>'; }
+  ];
+  renderMonthlyTable('monthlyFundContainer', fundData, monthlyFundSortKey, monthlyFundSortDesc, 'monthlyFundUpdateTime', cols, valFns);
+}
 
 function renderKnowledge(){var c=document.getElementById('knowledgeList');c.innerHTML=knowledgeData.map(function(k){return'<div class="knowledge-item"><div class="title">'+k.title+'</div><div class="desc">'+k.desc+'</div><div class="tag-row">'+k.tags.map(function(t){return'<span class="tag '+(k.level||'')+'">'+t+'</span>';}).join('')+'</div></div>';}).join('');}
 
@@ -1048,7 +1132,7 @@ var items=[];favorites.forEach(function(fav){var a=assetData.find(function(x){re
 c.innerHTML=items.map(function(f){return'<div class="fav-item"><div class="info"><div class="name">'+f.name+'</div><div class="sub">'+f.sub+'</div></div><div class="yield">'+f.yield+'</div></div>';}).join('');}
 
 function toggleFav(name){var idx=favorites.indexOf(name);if(idx>-1){favorites.splice(idx,1);showToast('已取消收藏');}else{if(favorites.length>=20){showToast('收藏已满');return;}favorites.push(name);showToast('已收藏 ⭐');}
-localStorage.setItem('shixi_favs',JSON.stringify(favorites));renderAssetTable();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderFavorites();}
+localStorage.setItem('shixi_favs',JSON.stringify(favorites));renderAssetTable();renderMonthlyEtf();renderMonthlyFund();renderFavorites();}
 
 function showToast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._timer);el._timer=setTimeout(function(){el.classList.remove('show');},1500);}
 
@@ -1146,7 +1230,7 @@ document.getElementById('detailChartRange').addEventListener('change',function()
 window.addEventListener('resize',function(){if(document.getElementById('indexDetail').classList.contains('open')&&currentDetailChartData.length){drawDetailChart(currentDetailChartData);}});
 
 // ===== INIT =====
- renderAssetTable();renderIndices();renderFundList('monthlyEtfList',etfData);renderFundList('monthlyFundList',fundData);renderKnowledge();renderFavorites();renderHkEtf();renderCnEtf();
+ renderAssetTable();renderIndices();renderKnowledge();renderFavorites();renderHkEtf();renderCnEtf();renderMonthlyEtf();renderMonthlyFund();
 </script>
 </body>
 </html>
