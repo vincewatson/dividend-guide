@@ -372,12 +372,24 @@
 
   <!-- ===== Index Detail Overlay ===== -->
   <div class="index-detail-page" id="indexDetail">
-    <div class="detail-page-header">
-      <span class="detail-back" id="detailBack">‹</span>
-      <div class="detail-gradient-icon"></div>
-      <div class="title">指标详情</div>
-      <div class="detail-fav-btn" id="detailFavBtn">☆</div>
-    </div>
+    <header class="top-bar">
+      <div class="brand" id="detailBack" style="cursor:pointer">
+        <div class="brand-icon">‹</div>
+        <div class="brand-text">
+          <span class="brand-name">指标详情</span>
+          <span class="brand-subtitle">点击返回</span>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
+        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
+        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
+        <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
+      </nav>
+      <div class="nav-right">
+        <button class="nav-btn" id="detailFavBtn" style="font-size:18px">☆</button>
+      </div>
+    </header>
     <div class="detail-body">
       <div class="detail-main-card">
         <div class="detail-card-section">
@@ -420,11 +432,22 @@
 
   <!-- ===== HK ETF Detail Overlay ===== -->
   <div class="index-detail-page" id="hkEtfDetail">
-    <div class="detail-page-header">
-      <span class="detail-back" id="hkEtfDetailBack">‹</span>
-      <div class="detail-gradient-icon"></div>
-      <div class="title">ETF详情</div>
-    </div>
+    <header class="top-bar">
+      <div class="brand" id="hkEtfDetailBack" style="cursor:pointer">
+        <div class="brand-icon">‹</div>
+        <div class="brand-text">
+          <span class="brand-name">ETF详情</span>
+          <span class="brand-subtitle">点击返回</span>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
+        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
+        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
+        <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
+      </nav>
+      <div class="nav-right"></div>
+    </header>
     <div class="detail-body">
       <div class="detail-main-card">
         <div class="detail-card-section">
@@ -796,6 +819,8 @@ function switchPage(pageId) {
   var targetTab = document.querySelector('.main-nav-item[data-tab="'+pageId+'"]');
   if(targetTab) targetTab.classList.add('active');
   document.getElementById(pageId).classList.add('active');
+  // Close any open detail overlays
+  document.querySelectorAll('.index-detail-page.open').forEach(function(o){o.classList.remove('open');});
 }
 
 // Dropdown items under 红利指数
