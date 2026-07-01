@@ -381,9 +381,26 @@
         </div>
       </div>
       <nav class="main-nav">
+        <!-- 食息数据 Tab -->
         <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
-        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
-        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
+        <!-- 红利指数 Tab (with dropdown) -->
+        <div class="main-nav-item" data-tab="pageIndex">
+          📈 红利指数<span class="arrow">▼</span>
+          <div class="dropdown">
+            <button class="dropdown-item active" data-sub="browser">🔍 红利指数浏览器</button>
+            <button class="dropdown-item" data-sub="etf">🏛️ 境内红利ETF</button>
+            <button class="dropdown-item" data-sub="hkEtf">🇭🇰 港交所红利ETF</button>
+          </div>
+        </div>
+        <!-- 月月分红 Tab (with dropdown) -->
+        <div class="main-nav-item" data-tab="pageMonthly">
+          💰 月月分红<span class="arrow">▼</span>
+          <div class="dropdown">
+            <button class="dropdown-item active" data-sub="etfList">📊 ETF</button>
+            <button class="dropdown-item" data-sub="fundList">📈 指数基金</button>
+          </div>
+        </div>
+        <!-- 知识专区 Tab -->
         <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
       </nav>
       <div class="nav-right">
@@ -441,9 +458,26 @@
         </div>
       </div>
       <nav class="main-nav">
+        <!-- 食息数据 Tab -->
         <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
-        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
-        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
+        <!-- 红利指数 Tab (with dropdown) -->
+        <div class="main-nav-item" data-tab="pageIndex">
+          📈 红利指数<span class="arrow">▼</span>
+          <div class="dropdown">
+            <button class="dropdown-item active" data-sub="browser">🔍 红利指数浏览器</button>
+            <button class="dropdown-item" data-sub="etf">🏛️ 境内红利ETF</button>
+            <button class="dropdown-item" data-sub="hkEtf">🇭🇰 港交所红利ETF</button>
+          </div>
+        </div>
+        <!-- 月月分红 Tab (with dropdown) -->
+        <div class="main-nav-item" data-tab="pageMonthly">
+          💰 月月分红<span class="arrow">▼</span>
+          <div class="dropdown">
+            <button class="dropdown-item active" data-sub="etfList">📊 ETF</button>
+            <button class="dropdown-item" data-sub="fundList">📈 指数基金</button>
+          </div>
+        </div>
+        <!-- 知识专区 Tab -->
         <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
       </nav>
       <div class="nav-right"></div>
@@ -856,6 +890,26 @@ function switchPage(pageId) {
      document.getElementById('sub'+this.dataset.sub.charAt(0).toUpperCase()+this.dataset.sub.slice(1)).classList.add('active');
    });
  });
+
+// Dropdown items under 指数 in detail overlays
+document.querySelectorAll('.index-detail-page .main-nav-item[data-tab="pageIndex"] .dropdown-item').forEach(function(item){
+  item.addEventListener('click',function(e){
+    e.stopPropagation();
+    switchPage('pageIndex');
+    document.querySelectorAll('#pageIndex .sub-page').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('sub'+this.dataset.sub.charAt(0).toUpperCase()+this.dataset.sub.slice(1)).classList.add('active');
+  });
+});
+
+// Dropdown items under 月月分红 in detail overlays
+document.querySelectorAll('.index-detail-page .main-nav-item[data-tab="pageMonthly"] .dropdown-item').forEach(function(item){
+  item.addEventListener('click',function(e){
+    e.stopPropagation();
+    switchPage('pageMonthly');
+    document.querySelectorAll('#pageMonthly .sub-page').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('sub'+this.dataset.sub.charAt(0).toUpperCase()+this.dataset.sub.slice(1)).classList.add('active');
+  });
+});
 
 // Profile button in top-right
 document.getElementById('profileBtn').addEventListener('click',function(){switchPage('pageProfile');});
