@@ -570,6 +570,94 @@
     </div>
   </div>
 
+  <!-- ===== Monthly ETF Detail Overlay ===== -->
+  <div class="index-detail-page" id="monthlyEtfDetail">
+    <header class="top-bar">
+      <div class="brand" id="monthlyEtfDetailBack" style="cursor:pointer">
+        <div class="brand-icon">‹</div>
+        <div class="brand-text">
+          <span class="brand-name">月月分红ETF详情</span>
+          <span class="brand-subtitle">点击返回</span>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
+        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
+        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
+        <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
+      </nav>
+      <div class="nav-right"></div>
+    </header>
+    <div class="detail-body">
+      <div class="detail-main-card">
+        <div class="detail-card-section">
+          <div class="detail-index-title" id="monthlyEtfDetailName"></div>
+          <div class="detail-index-code" id="monthlyEtfDetailCode"></div>
+        </div>
+        <div class="detail-card-section">
+          <div class="detail-info-row"><span class="label">ETF简称</span><span class="value" id="monthlyEtfDetailShortName"></span></div>
+          <div class="detail-info-row"><span class="label">基金公司</span><span class="value" id="monthlyEtfDetailCompany"></span></div>
+          <div class="detail-info-row"><span class="label">上市日期</span><span class="value" id="monthlyEtfDetailListedDate"></span></div>
+          <div class="detail-info-row"><span class="label">管理费率</span><span class="value yield" id="monthlyEtfDetailFee"></span></div>
+          <div class="detail-info-row"><span class="label">跟踪指数代码</span><span class="value" id="monthlyEtfDetailTrackCode"></span></div>
+          <div class="detail-info-row"><span class="label">跟踪指数名称</span><span class="value" id="monthlyEtfDetailTrackName"></span></div>
+          <div class="detail-info-row"><span class="label">累计分红次数</span><span class="value" id="monthlyEtfDetailTotalDiv"></span></div>
+          <div class="detail-info-row"><span class="label">年度分红次数</span><span class="value" id="monthlyEtfDetailAnnualDiv"></span></div>
+          <div class="detail-info-row"><span class="label">年度单位分红</span><span class="value" id="monthlyEtfDetailAnnualDivAmt"></span></div>
+          <div class="detail-info-row"><span class="label">月均分红（元）</span><span class="value" id="monthlyEtfDetailMonthlyDivAmt"></span></div>
+          <div class="detail-info-row"><span class="label">当前场内价格</span><span class="value" id="monthlyEtfDetailPrice"></span></div>
+          <div class="detail-info-row"><span class="label">对应指数股息率</span><span class="value" id="monthlyEtfDetailYield"></span></div>
+          <div class="detail-info-row"><span class="label">累计分红总额（亿元）</span><span class="value" id="monthlyEtfDetailDivTotal"></span></div>
+          <div class="detail-info-row"><span class="label">每月千元收益需总投入（万元）</span><span class="value" id="monthlyEtfDetailInvest"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Monthly Fund Detail Overlay ===== -->
+  <div class="index-detail-page" id="monthlyFundDetail">
+    <header class="top-bar">
+      <div class="brand" id="monthlyFundDetailBack" style="cursor:pointer">
+        <div class="brand-icon">‹</div>
+        <div class="brand-text">
+          <span class="brand-name">月月分红基金详情</span>
+          <span class="brand-subtitle">点击返回</span>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
+        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
+        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
+        <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
+      </nav>
+      <div class="nav-right"></div>
+    </header>
+    <div class="detail-body">
+      <div class="detail-main-card">
+        <div class="detail-card-section">
+          <div class="detail-index-title" id="monthlyFundDetailName"></div>
+          <div class="detail-index-code" id="monthlyFundDetailCode"></div>
+        </div>
+        <div class="detail-card-section">
+          <div class="detail-info-row"><span class="label">基金简称</span><span class="value" id="monthlyFundDetailShortName"></span></div>
+          <div class="detail-info-row"><span class="label">基金公司</span><span class="value" id="monthlyFundDetailCompany"></span></div>
+          <div class="detail-info-row"><span class="label">成立日期</span><span class="value" id="monthlyFundDetailEstablishDate"></span></div>
+          <div class="detail-info-row"><span class="label">管理费率</span><span class="value yield" id="monthlyFundDetailFee"></span></div>
+          <div class="detail-info-row"><span class="label">跟踪指数代码</span><span class="value" id="monthlyFundDetailTrackCode"></span></div>
+          <div class="detail-info-row"><span class="label">跟踪指数名称</span><span class="value" id="monthlyFundDetailTrackName"></span></div>
+          <div class="detail-info-row"><span class="label">年度分红次数</span><span class="value" id="monthlyFundDetailAnnualDiv"></span></div>
+          <div class="detail-info-row"><span class="label">年度单位分红</span><span class="value" id="monthlyFundDetailAnnualDivAmt"></span></div>
+          <div class="detail-info-row"><span class="label">月均分红（元）</span><span class="value" id="monthlyFundDetailMonthlyDivAmt"></span></div>
+          <div class="detail-info-row"><span class="label">最新净值</span><span class="value" id="monthlyFundDetailNav"></span></div>
+          <div class="detail-info-row"><span class="label">对应指数股息率</span><span class="value" id="monthlyFundDetailYield"></span></div>
+          <div class="detail-info-row"><span class="label">基金规模（亿元）</span><span class="value" id="monthlyFundDetailSize"></span></div>
+          <div class="detail-info-row"><span class="label">年度分红总额（亿元）</span><span class="value" id="monthlyFundDetailDivTotal"></span></div>
+          <div class="detail-info-row"><span class="label">每月千元收益需总投入（万元）</span><span class="value" id="monthlyFundDetailInvest"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -645,17 +733,59 @@ const indexData = [
   { code: '932584.CSI', name: '智选港股通红利低波', fullname: '中证智选港股通红利低波动策略指数', publisher: '中证指数有限公司', listedDate: '2026-06-11', market: '港股', components: 50, currency: 'HKD', weight: '因子加权|波动率加权', fundCount: 0, yield: '7.25%', yieldNum: 7.25, yrChange: -0.1205, fullReturn: '932584CNY110.CSI;932584CNY210.CSI;932584HKD210.CSI' }
 ];
 const etfData = [
-  { code: '159726.SZ', name: '红利ETF', yield: '4.85%', freq: '每月', type: '红利', size: '28.6亿', note: '近12月每月派息' },
-  { code: '515180.SH', name: '100红利ETF', yield: '4.62%', freq: '每月', type: '红利', size: '45.2亿', note: '近12月每月派息' },
-  { code: '159670.SZ', name: '中证红利ETF', yield: '5.12%', freq: '每月', type: '红利', size: '102.3亿', note: '近12月每月派息' },
-  { code: '516970.SH', name: '港股通红利ETF', yield: '5.89%', freq: '每月', type: '港股', size: '18.7亿', note: '近12月每月派息' },
-  { code: '517090.SH', name: '央企红利ETF', yield: '5.73%', freq: '每月', type: '红利', size: '12.4亿', note: '近12月每月派息' }
+  { code:'513530.SH',name:'港股通红利ETF华泰柏瑞',fundCompany:'华泰柏瑞基金',listedDate:'2022-04-25',fee:'0.50%',feeNum:0.5,totalDiv:13,annualDiv:6,annualDivAmt:0.06,monthlyDivAmt:0.01,price:1.426,cumDiv:0.15,trackCode:'930915.CSI',trackName:'港股通高股息CNY',divTotalAmt:2.68,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:14.26 },
+  { code:'561580.SH',name:'央企红利ETF华泰柏瑞',fundCompany:'华泰柏瑞基金',listedDate:'2023-05-30',fee:'0.50%',feeNum:0.5,totalDiv:14,annualDiv:6,annualDivAmt:0.04,monthlyDivAmt:0.00667,price:1.105,cumDiv:0.135,trackCode:'000825.CSI',trackName:'中证央企红利',divTotalAmt:0.93,yield:'5.22%',yieldNum:0.05224,taxRate:1,investMonthly:16.58 },
+  { code:'513630.SH',name:'港股低波红利ETF摩根',fundCompany:'摩根基金',listedDate:'2023-12-08',fee:'0.50%',feeNum:0.5,totalDiv:7,annualDiv:6,annualDivAmt:0.012,monthlyDivAmt:0.002,price:1.45,cumDiv:0.014,trackCode:'SPAHLVCP.SPI',trackName:'标普港股通低波红利指数',divTotalAmt:1.34,yield:'5.10%',yieldNum:0.05098,taxRate:0.8,investMonthly:72.5 },
+  { code:'159581.SZ',name:'红利ETF万家',fundCompany:'万家基金',listedDate:'2024-03-15',fee:'0.50%',feeNum:0.5,totalDiv:26,annualDiv:6,annualDivAmt:0.02,monthlyDivAmt:0.00333,price:0.978,cumDiv:0.087,trackCode:'000922.CSI',trackName:'中证红利',divTotalAmt:1.68,yield:'5.32%',yieldNum:0.05321,taxRate:1,investMonthly:29.34 },
+  { code:'159589.SZ',name:'红利ETF广发',fundCompany:'广发基金',listedDate:'2024-03-26',fee:'0.15%',feeNum:0.15,totalDiv:24,annualDiv:6,annualDivAmt:0.0133,monthlyDivAmt:0.00222,price:1,cumDiv:0.0508,trackCode:'000922.CSI',trackName:'中证红利',divTotalAmt:0.04,yield:'5.32%',yieldNum:0.05321,taxRate:1,investMonthly:45.11 },
+  { code:'510720.SH',name:'红利国企ETF国泰',fundCompany:'国泰基金',listedDate:'2024-05-15',fee:'0.50%',feeNum:0.5,totalDiv:26,annualDiv:6,annualDivAmt:0.0183,monthlyDivAmt:0.00305,price:0.92,cumDiv:0.0881,trackCode:'000151.SH',trackName:'上国红利',divTotalAmt:1.3,yield:'5.57%',yieldNum:0.05569,taxRate:1,investMonthly:30.16 },
+  { code:'513820.SH',name:'港股通红利ETF汇添富',fundCompany:'汇添富基金',listedDate:'2024-05-16',fee:'0.50%',feeNum:0.5,totalDiv:24,annualDiv:6,annualDivAmt:0.0103,monthlyDivAmt:0.00172,price:1.107,cumDiv:0.0823,trackCode:'930914.CSI',trackName:'港股通高股息(HKD)',divTotalAmt:1.77,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:64.49 },
+  { code:'159331.SZ',name:'红利港股ETF国泰',fundCompany:'国泰基金',listedDate:'2024-08-01',fee:'0.50%',feeNum:0.5,totalDiv:22,annualDiv:7,annualDivAmt:0.0248,monthlyDivAmt:0.00354,price:1.163,cumDiv:0.0649,trackCode:'930914.CSI',trackName:'港股通高股息(HKD)',divTotalAmt:0.1,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:32.83 },
+  { code:'159333.SZ',name:'港股央企红利ETF万家',fundCompany:'万家基金',listedDate:'2024-09-03',fee:'0.50%',feeNum:0.5,totalDiv:11,annualDiv:6,annualDivAmt:0.022,monthlyDivAmt:0.00367,price:1.223,cumDiv:0.037,trackCode:'931233.CSI',trackName:'港股通央企红利',divTotalAmt:0.12,yield:'5.27%',yieldNum:0.05267,taxRate:0.8,investMonthly:33.35 },
+  { code:'530880.SH',name:'红利国企ETF银河',fundCompany:'银河基金',listedDate:'2024-11-12',fee:'0.45%',feeNum:0.45,totalDiv:13,annualDiv:5,annualDivAmt:0.0135,monthlyDivAmt:0.0027,price:0.965,cumDiv:0.0376,trackCode:'000151.SH',trackName:'上国红利',divTotalAmt:0.03,yield:'5.57%',yieldNum:0.05569,taxRate:1,investMonthly:35.74 },
+  { code:'520550.SH',name:'港股红利低波ETF招商',fundCompany:'招商基金',listedDate:'2025-01-24',fee:'0.15%',feeNum:0.15,totalDiv:14,annualDiv:6,annualDivAmt:0.024,monthlyDivAmt:0.004,price:1.006,cumDiv:0.054,trackCode:'HSHYLV.HI',trackName:'恒生港股通高股息低波动',divTotalAmt:0.49,yield:'5.37%',yieldNum:0.05369,taxRate:0.8,investMonthly:25.15 },
+  { code:'159399.SZ',name:'现金流ETF国泰',fundCompany:'国泰基金',listedDate:'2025-02-27',fee:'0.15%',feeNum:0.15,totalDiv:16,annualDiv:6,annualDivAmt:0.0171,monthlyDivAmt:0.00285,price:0.92,cumDiv:0.0426,trackCode:'888888.FI',trackName:'富时中国A股自由现金流聚焦指数',divTotalAmt:1.62,yield:'4.27%',yieldNum:0.04266,taxRate:1,investMonthly:32.28 },
+  { code:'159209.SZ',name:'红利质量ETF招商',fundCompany:'招商基金',listedDate:'2025-03-25',fee:'0.15%',feeNum:0.15,totalDiv:12,annualDiv:6,annualDivAmt:0.018,monthlyDivAmt:0.003,price:1.077,cumDiv:0.036,trackCode:'932315.CSI',trackName:'中证红利质量',divTotalAmt:0.36,yield:'3.90%',yieldNum:0.03899,taxRate:1,investMonthly:35.9 },
+  { code:'159390.SZ',name:'中证A50ETF国联',fundCompany:'国联基金',listedDate:'2025-04-09',fee:'0.15%',feeNum:0.15,totalDiv:15,annualDiv:6,annualDivAmt:0.018,monthlyDivAmt:0.003,price:1.264,cumDiv:0.0565,trackCode:'930050.CSI',trackName:'中证A50',divTotalAmt:0.17,yield:'2.91%',yieldNum:0.02906,taxRate:1,investMonthly:42.13 },
+  { code:'159281.SZ',name:'港股央企红利ETF天弘',fundCompany:'天弘基金',listedDate:'2025-09-02',fee:'0.50%',feeNum:0.5,totalDiv:6,annualDiv:5,annualDivAmt:0.015,monthlyDivAmt:0.003,price:0.855,cumDiv:0.018,trackCode:'931233.CSI',trackName:'港股通央企红利',divTotalAmt:0.07,yield:'5.27%',yieldNum:0.05267,taxRate:0.8,investMonthly:28.5 },
+  { code:'159119.SZ',name:'800现金流ETF招商',fundCompany:'招商基金',listedDate:'2025-11-13',fee:'0.15%',feeNum:0.15,totalDiv:5,annualDiv:5,annualDivAmt:0.015,monthlyDivAmt:0.003,price:0.914,cumDiv:0.015,trackCode:'932368.CSI',trackName:'800现金流',divTotalAmt:0.03,yield:'3.65%',yieldNum:0.03654,taxRate:1,investMonthly:30.47 },
+  { code:'520810.SH',name:'港股通红利ETF易方达',fundCompany:'易方达基金',listedDate:'2026-01-12',fee:'0.15%',feeNum:0.15,totalDiv:5,annualDiv:5,annualDivAmt:0.008,monthlyDivAmt:0.0016,price:0.916,cumDiv:0.008,trackCode:'930914.CSI',trackName:'港股通高股息(HKD)',divTotalAmt:0.02,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:57.25 }
 ];
 const fundData = [
-  { code: '012345', name: 'XX中证红利指数A', yield: '4.95%', freq: '每月', type: '指数基金', size: '65.8亿', note: '每月15日派息' },
-  { code: '012346', name: 'XX红利低波指数A', yield: '4.35%', freq: '每月', type: '指数基金', size: '42.1亿', note: '每月20日派息' },
-  { code: '012347', name: 'XX央企红利指数A', yield: '5.15%', freq: '每月', type: '指数基金', size: '28.3亿', note: '每月10日派息' },
-  { code: '012348', name: 'XX港股通红利指数A', yield: '5.55%', freq: '每月', type: '指数基金', size: '15.6亿', note: '每月25日派息' }
+  { code:'003318.OF',name:'景顺长城中证500行业中性低波动A',fundCompany:'景顺长城基金',establishDate:'2017-03-03',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.045,monthlyDivAmt:0.0075,nav:1.8098,trackCode:'930782.CSI',trackName:'500SNLV',fundSize:6.54,divTotalAmt:0.16,yield:'2.13%',yieldNum:0.02133,taxRate:1,investMonthly:24.13 },
+  { code:'004597.OF',name:'南方中证银行ETF联接A',fundCompany:'南方基金',establishDate:'2017-06-29',fee:'0.50%',feeNum:0.5,annualDiv:7,annualDivAmt:0.18,monthlyDivAmt:0.02571,nav:1.2963,trackCode:'399986.SZ',trackName:'中证银行',fundSize:1.98,divTotalAmt:0.1,yield:'5.22%',yieldNum:0.05223,taxRate:1,investMonthly:5.04 },
+  { code:'007466.OF',name:'华泰柏瑞红利低波ETF联接A',fundCompany:'华泰柏瑞基金',establishDate:'2019-07-15',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.03,monthlyDivAmt:0.005,nav:1.503,trackCode:'h30269.CSI',trackName:'红利低波',fundSize:64.12,divTotalAmt:1.13,yield:'5.33%',yieldNum:0.05328,taxRate:1,investMonthly:30.06 },
+  { code:'008114.OF',name:'天弘中证红利低波动100ETF联接A',fundCompany:'天弘基金',establishDate:'2019-12-10',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.042,monthlyDivAmt:0.007,nav:1.5734,trackCode:'930955.CSI',trackName:'红利低波100',fundSize:21.88,divTotalAmt:0.21,yield:'5.21%',yieldNum:0.05213,taxRate:1,investMonthly:22.48 },
+  { code:'008163.OF',name:'南方标普中国A股大盘红利低波50ETF联接A',fundCompany:'南方基金',establishDate:'2020-01-21',fee:'0.50%',feeNum:0.5,annualDiv:7,annualDivAmt:0.06,monthlyDivAmt:0.00857,nav:0.9861,trackCode:'SPCLLHCP.SPI',trackName:'标普中国A股大盘红利低波50',fundSize:105.25,divTotalAmt:5.49,yield:'5.06%',yieldNum:0.05061,taxRate:1,investMonthly:11.5 },
+  { code:'012761.OF',name:'华泰柏瑞上证红利ETF联接A',fundCompany:'华泰柏瑞基金',establishDate:'2021-11-15',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.03,monthlyDivAmt:0.005,nav:1.0198,trackCode:'000015.SH',trackName:'红利指数',fundSize:2.68,divTotalAmt:0.06,yield:'5.28%',yieldNum:0.05276,taxRate:1,investMonthly:20.4 },
+  { code:'016128.OF',name:'景顺长城中证红利低波动100ETF联接A',fundCompany:'景顺长城基金',establishDate:'2022-08-02',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.0258,monthlyDivAmt:0.0043,nav:1.1816,trackCode:'930955.CSI',trackName:'红利低波100',fundSize:3.47,divTotalAmt:0.09,yield:'5.21%',yieldNum:0.05213,taxRate:1,investMonthly:27.48 },
+  { code:'018387.OF',name:'华泰柏瑞中证港股通高股息投资ETF联接A',fundCompany:'华泰柏瑞基金',establishDate:'2023-06-19',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.03,monthlyDivAmt:0.005,nav:1.2218,trackCode:'930915.CSI',trackName:'港股通高股息CNY',fundSize:4.6,divTotalAmt:0.07,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:24.44 },
+  { code:'019260.OF',name:'富国恒生港股通高股息低波动ETF联接A',fundCompany:'富国基金',establishDate:'2023-09-12',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.0346,monthlyDivAmt:0.00577,nav:1.1424,trackCode:'HSHYLV.HI',trackName:'恒生港股通高股息低波动',fundSize:13.2,divTotalAmt:0.23,yield:'5.37%',yieldNum:0.05369,taxRate:0.8,investMonthly:19.81 },
+  { code:'019886.OF',name:'南方国证交通运输行业ETF联接A',fundCompany:'南方基金',establishDate:'2023-11-24',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.015,monthlyDivAmt:0.0025,nav:1.0161,trackCode:'399433.SZ',trackName:'国证交运',fundSize:0.22,divTotalAmt:0.0,yield:'3.09%',yieldNum:0.03089,taxRate:1,investMonthly:40.64 },
+  { code:'020466.OF',name:'华泰柏瑞中证中央企业红利ETF联接A',fundCompany:'华泰柏瑞基金',establishDate:'2023-12-28',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.04,monthlyDivAmt:0.00667,nav:1.1258,trackCode:'000825.CSI',trackName:'中证央企红利',fundSize:2.11,divTotalAmt:0.04,yield:'5.22%',yieldNum:0.05224,taxRate:1,investMonthly:16.89 },
+  { code:'020195.OF',name:'汇添富中证红利ETF联接A',fundCompany:'汇添富基金',establishDate:'2024-01-30',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.0035,monthlyDivAmt:0.00058,nav:1.0234,trackCode:'000922.CSI',trackName:'中证红利',fundSize:0.47,divTotalAmt:0.01,yield:'5.32%',yieldNum:0.05321,taxRate:1,investMonthly:175.44 },
+  { code:'020156.OF',name:'交银中证红利低波动100指数A',fundCompany:'交银施罗德基金',establishDate:'2024-03-15',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.024,monthlyDivAmt:0.004,nav:1.0363,trackCode:'930955.CSI',trackName:'红利低波100',fundSize:1.56,divTotalAmt:0.01,yield:'5.21%',yieldNum:0.05213,taxRate:1,investMonthly:25.91 },
+  { code:'020456.OF',name:'平安上证红利低波动指数A',fundCompany:'平安基金',establishDate:'2024-04-23',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.013,monthlyDivAmt:0.00217,nav:1.0123,trackCode:'h50040.CSI',trackName:'上红低波',fundSize:0.39,divTotalAmt:0.0,yield:'5.26%',yieldNum:0.05261,taxRate:1,investMonthly:46.72 },
+  { code:'021701.OF',name:'国泰上证国有企业红利ETF联接A',fundCompany:'国泰基金',establishDate:'2024-06-19',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.018,monthlyDivAmt:0.003,nav:0.9369,trackCode:'000151.SH',trackName:'上国红利',fundSize:0.94,divTotalAmt:0.01,yield:'5.57%',yieldNum:0.05569,taxRate:1,investMonthly:31.23 },
+  { code:'021561.OF',name:'天弘中证央企红利50指数A',fundCompany:'天弘基金',establishDate:'2024-07-02',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.04,monthlyDivAmt:0.00667,nav:1.0945,trackCode:'931231.CSI',trackName:'央企红利50',fundSize:0.94,divTotalAmt:0.0,yield:'4.64%',yieldNum:0.04637,taxRate:1,investMonthly:16.42 },
+  { code:'021388.OF',name:'银河中证红利低波动100指数A',fundCompany:'银河基金',establishDate:'2024-07-24',fee:'0.50%',feeNum:0.5,annualDiv:5,annualDivAmt:0.0065,monthlyDivAmt:0.0013,nav:1.0111,trackCode:'930955.CSI',trackName:'红利低波100',fundSize:0.05,divTotalAmt:0.01,yield:'5.21%',yieldNum:0.05213,taxRate:1,investMonthly:77.78 },
+  { code:'021375.OF',name:'中欧中证红利低波动100指数A',fundCompany:'中欧基金',establishDate:'2024-08-16',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.0215,monthlyDivAmt:0.00358,nav:0.9781,trackCode:'930955.CSI',trackName:'红利低波100',fundSize:1.48,divTotalAmt:0.05,yield:'5.21%',yieldNum:0.05213,taxRate:1,investMonthly:27.3 },
+  { code:'021399.OF',name:'广发中证红利ETF联接A',fundCompany:'广发基金',establishDate:'2024-09-03',fee:'0.15%',feeNum:0.15,annualDiv:6,annualDivAmt:0.014,monthlyDivAmt:0.00233,nav:1.0605,trackCode:'000922.CSI',trackName:'中证红利',fundSize:0.67,divTotalAmt:0.02,yield:'5.32%',yieldNum:0.05321,taxRate:1,investMonthly:45.45 },
+  { code:'021971.OF',name:'南方中证国新港股通央企红利ETF联接A',fundCompany:'南方基金',establishDate:'2024-09-12',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.03,monthlyDivAmt:0.005,nav:1.0469,trackCode:'931722.CSI',trackName:'国新港股通央企红利',fundSize:1.42,divTotalAmt:0.01,yield:'6.18%',yieldNum:0.06181,taxRate:0.8,investMonthly:20.94 },
+  { code:'022072.OF',name:'天弘中证港股通高股息投资指数A',fundCompany:'天弘基金',establishDate:'2024-09-24',fee:'0.15%',feeNum:0.15,annualDiv:6,annualDivAmt:0.0242,monthlyDivAmt:0.00403,nav:1.0289,trackCode:'930914.CSI',trackName:'港股通高股息(HKD)',fundSize:0.77,divTotalAmt:0.01,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:25.51 },
+  { code:'021961.OF',name:'景顺长城中证国新港股通央企红利ETF联接A',fundCompany:'景顺长城基金',establishDate:'2024-09-27',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.0361,monthlyDivAmt:0.00602,nav:0.9435,trackCode:'931722.CSI',trackName:'国新港股通央企红利',fundSize:4.2,divTotalAmt:0.06,yield:'6.18%',yieldNum:0.06181,taxRate:0.8,investMonthly:15.68 },
+  { code:'022274.OF',name:'国泰中证港股通高股息投资ETF联接A',fundCompany:'国泰基金',establishDate:'2024-10-09',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.0142,monthlyDivAmt:0.00237,nav:1.0472,trackCode:'930914.CSI',trackName:'港股通高股息(HKD)',fundSize:0.29,divTotalAmt:0.0,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:44.25 },
+  { code:'021707.OF',name:'富国中证红利低波动ETF联接A',fundCompany:'富国基金',establishDate:'2024-11-01',fee:'0.15%',feeNum:0.15,annualDiv:6,annualDivAmt:0.0191,monthlyDivAmt:0.00318,nav:0.9612,trackCode:'h30269.CSI',trackName:'红利低波',fundSize:0.99,divTotalAmt:0,yield:'5.33%',yieldNum:0.05328,taxRate:1,investMonthly:30.19 },
+  { code:'022448.OF',name:'国泰中证A500ETF联接A',fundCompany:'国泰基金',establishDate:'2024-11-08',fee:'0.15%',feeNum:0.15,annualDiv:6,annualDivAmt:0.0148,monthlyDivAmt:0.00247,nav:1.3082,trackCode:'000510.SH',trackName:'中证A500',fundSize:13.6,divTotalAmt:0.13,yield:'2.28%',yieldNum:0.02284,taxRate:1,investMonthly:53.04 },
+  { code:'023162.OF',name:'银河上证国有企业红利ETF联接A',fundCompany:'银河基金',establishDate:'2025-01-21',fee:'0.45%',feeNum:0.45,annualDiv:5,annualDivAmt:0.0079,monthlyDivAmt:0.00158,nav:1.0027,trackCode:'000151.SH',trackName:'上国红利',fundSize:0.1,divTotalAmt:0,yield:'5.57%',yieldNum:0.05569,taxRate:1,investMonthly:63.46 },
+  { code:'023389.OF',name:'易方达中证港股通高股息投资ETF联接A',fundCompany:'易方达基金',establishDate:'2025-03-26',fee:'0.15%',feeNum:0.15,annualDiv:6,annualDivAmt:0.0132,monthlyDivAmt:0.0022,nav:1.0249,trackCode:'930914.CSI',trackName:'港股通高股息(HKD)',fundSize:1.64,divTotalAmt:0.01,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:46.59 },
+  { code:'023919.OF',name:'国泰富时中国A股自由现金流聚焦ETF联接A',fundCompany:'国泰基金',establishDate:'2025-04-29',fee:'0.15%',feeNum:0.15,annualDiv:6,annualDivAmt:0.012,monthlyDivAmt:0.002,nav:0.9442,trackCode:'888888.FI',trackName:'富时中国A股自由现金流聚焦指数',fundSize:6.03,divTotalAmt:0.02,yield:'4.27%',yieldNum:0.04266,taxRate:1,investMonthly:47.21 },
+  { code:'024029.OF',name:'招商恒生港股通高股息低波动ETF联接A',fundCompany:'招商基金',establishDate:'2025-06-30',fee:'0.15%',feeNum:0.15,annualDiv:4,annualDivAmt:0.011,monthlyDivAmt:0.00275,nav:0.8615,trackCode:'HSHYLV.HI',trackName:'恒生港股通高股息低波动',fundSize:0.52,divTotalAmt:0,yield:'5.37%',yieldNum:0.05369,taxRate:0.8,investMonthly:31.33 },
+  { code:'024218.OF',name:'融通中证诚通央企红利ETF联接A',fundCompany:'融通基金',establishDate:'2025-07-16',fee:'0.30%',feeNum:0.3,annualDiv:6,annualDivAmt:0.018,monthlyDivAmt:0.003,nav:0.9771,trackCode:'931132.CSI',trackName:'诚通央企红利',fundSize:0.71,divTotalAmt:0,yield:'4.70%',yieldNum:0.04702,taxRate:1,investMonthly:32.57 },
+  { code:'024117.OF',name:'中欧国证自由现金流指数A',fundCompany:'中欧基金',establishDate:'2025-07-22',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.0748,monthlyDivAmt:0.01247,nav:0.9005,trackCode:'980092.CNI',trackName:'自由现金流',fundSize:2.9,divTotalAmt:0.09,yield:'3.88%',yieldNum:0.03883,taxRate:1,investMonthly:7.22 },
+  { code:'024227.OF',name:'东方红中证港股通高股息投资指数A',fundCompany:'东方红资产管理',establishDate:'2025-08-19',fee:'0.50%',feeNum:0.5,annualDiv:5,annualDivAmt:0.005,monthlyDivAmt:0.001,nav:0.9019,trackCode:'930914.CSI',trackName:'港股通高股息(HKD)',fundSize:6.98,divTotalAmt:0.02,yield:'5.04%',yieldNum:0.0504,taxRate:0.8,investMonthly:90.19 },
+  { code:'024772.OF',name:'摩根标普港股通低波红利ETF联接A',fundCompany:'摩根基金',establishDate:'2025-09-23',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.02,monthlyDivAmt:0.00333,nav:0.9333,trackCode:'SPAHLVCP.SPI',trackName:'标普港股通低波红利指数',fundSize:1.35,divTotalAmt:0.0,yield:'5.10%',yieldNum:0.05098,taxRate:0.8,investMonthly:28.0 },
+  { code:'025958.OF',name:'南方中证全指自由现金流ETF联接A',fundCompany:'南方基金',establishDate:'2025-12-02',fee:'0.15%',feeNum:0.15,annualDiv:6,annualDivAmt:0.006,monthlyDivAmt:0.001,nav:0.9138,trackCode:'932365.CSI',trackName:'中证现金流',fundSize:5.0,divTotalAmt:0,yield:'3.91%',yieldNum:0.03913,taxRate:1,investMonthly:91.38 }
 ];
 const knowledgeData = [
   { title: '什么是食息投资？', desc: '食息投资是一种以获取稳定现金分红为核心目标的投资策略。与追求股价上涨的资本利得不同，食息投资者更关注企业或资产持续派发红利的能力。', tags: ['入门', '概念'], level: 'beginner' },
@@ -1089,18 +1219,18 @@ function renderMonthlyEtf() {
   var cols = [
     { label: 'ETF代码', key: 'code', sortable: true },
     { label: 'ETF简称', key: 'name', sortable: true },
-    { label: '产品类型', key: 'type', sortable: true },
-    { label: '分红频率', key: 'freq', sortable: false },
-    { label: '近12月收益率', key: 'yield', sortable: false },
-    { label: '管理规模', key: 'size', sortable: false }
+    { label: '跟踪指数', key: 'trackName', sortable: true },
+    { label: '管理费率', key: 'feeNum', sortable: true },
+    { label: '年度分红', key: 'annualDiv', sortable: true },
+    { label: '月均分红(元)', key: 'monthlyDivAmt', sortable: true }
   ];
   var valFns = [
     function(f){ return '<td class="col-code">'+f.code+'</td>'; },
     function(f){ return '<td class="col-name">'+f.name+'</td>'; },
-    function(f){ return '<td style="font-size:11px;color:#8e8e93">'+f.type+'</td>'; },
-    function(f){ return '<td><span style="font-size:11px;color:#6C5CE7;font-weight:500">'+f.freq+'</span></td>'; },
-    function(f){ return '<td class="col-yield">'+f.yield+'</td>'; },
-    function(f){ return '<td style="font-size:11px;color:#8e8e93">'+f.size+'</td>'; }
+    function(f){ return '<td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">'+f.trackName+'</td>'; },
+    function(f){ return '<td class="col-yield">'+f.fee+'</td>'; },
+    function(f){ return '<td>'+f.annualDiv+' 次</td>'; },
+    function(f){ return '<td>'+f.monthlyDivAmt.toFixed(4)+'</td>'; }
   ];
   renderMonthlyTable('monthlyEtfContainer', etfData, monthlyEtfSortKey, monthlyEtfSortDesc, 'monthlyEtfUpdateTime', cols, valFns);
 }
@@ -1109,20 +1239,62 @@ function renderMonthlyFund() {
   var cols = [
     { label: '基金代码', key: 'code', sortable: true },
     { label: '基金简称', key: 'name', sortable: true },
-    { label: '产品类型', key: 'type', sortable: true },
-    { label: '分红频率', key: 'freq', sortable: false },
-    { label: '近12月收益率', key: 'yield', sortable: false },
-    { label: '管理规模', key: 'size', sortable: false }
+    { label: '跟踪指数', key: 'trackName', sortable: true },
+    { label: '管理费率', key: 'feeNum', sortable: true },
+    { label: '年度分红', key: 'annualDiv', sortable: true },
+    { label: '月均分红(元)', key: 'monthlyDivAmt', sortable: true }
   ];
   var valFns = [
     function(f){ return '<td class="col-code">'+f.code+'</td>'; },
     function(f){ return '<td class="col-name">'+f.name+'</td>'; },
-    function(f){ return '<td style="font-size:11px;color:#8e8e93">'+f.type+'</td>'; },
-    function(f){ return '<td><span style="font-size:11px;color:#6C5CE7;font-weight:500">'+f.freq+'</span></td>'; },
-    function(f){ return '<td class="col-yield">'+f.yield+'</td>'; },
-    function(f){ return '<td style="font-size:11px;color:#8e8e93">'+f.size+'</td>'; }
+    function(f){ return '<td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">'+f.trackName+'</td>'; },
+    function(f){ return '<td class="col-yield">'+f.fee+'</td>'; },
+    function(f){ return '<td>'+f.annualDiv+' 次</td>'; },
+    function(f){ return '<td>'+f.monthlyDivAmt.toFixed(4)+'</td>'; }
   ];
   renderMonthlyTable('monthlyFundContainer', fundData, monthlyFundSortKey, monthlyFundSortDesc, 'monthlyFundUpdateTime', cols, valFns);
+}
+
+function showMonthlyEtfDetail(code) {
+  var etf = etfData.find(function(e){return e.code===code;}); if(!etf) return;
+  document.getElementById('monthlyEtfDetailName').textContent = etf.name;
+  document.getElementById('monthlyEtfDetailCode').textContent = etf.code;
+  document.getElementById('monthlyEtfDetailShortName').textContent = etf.name;
+  document.getElementById('monthlyEtfDetailCompany').textContent = etf.fundCompany;
+  document.getElementById('monthlyEtfDetailListedDate').textContent = etf.listedDate;
+  document.getElementById('monthlyEtfDetailFee').textContent = etf.fee;
+  document.getElementById('monthlyEtfDetailTrackCode').textContent = etf.trackCode;
+  document.getElementById('monthlyEtfDetailTrackName').textContent = etf.trackName;
+  document.getElementById('monthlyEtfDetailTotalDiv').textContent = etf.totalDiv+' 次';
+  document.getElementById('monthlyEtfDetailAnnualDiv').textContent = etf.annualDiv+' 次';
+  document.getElementById('monthlyEtfDetailAnnualDivAmt').textContent = etf.annualDivAmt.toFixed(4)+' 元';
+  document.getElementById('monthlyEtfDetailMonthlyDivAmt').textContent = etf.monthlyDivAmt.toFixed(4)+' 元';
+  document.getElementById('monthlyEtfDetailPrice').textContent = etf.price.toFixed(3)+' 元';
+  document.getElementById('monthlyEtfDetailYield').textContent = etf.yield;
+  document.getElementById('monthlyEtfDetailDivTotal').textContent = etf.divTotalAmt.toFixed(2)+' 亿元';
+  document.getElementById('monthlyEtfDetailInvest').textContent = etf.investMonthly.toFixed(2)+' 万元';
+  document.getElementById('monthlyEtfDetail').classList.add('open');
+}
+
+function showMonthlyFundDetail(code) {
+  var fund = fundData.find(function(e){return e.code===code;}); if(!fund) return;
+  document.getElementById('monthlyFundDetailName').textContent = fund.name;
+  document.getElementById('monthlyFundDetailCode').textContent = fund.code;
+  document.getElementById('monthlyFundDetailShortName').textContent = fund.name;
+  document.getElementById('monthlyFundDetailCompany').textContent = fund.fundCompany;
+  document.getElementById('monthlyFundDetailEstablishDate').textContent = fund.establishDate;
+  document.getElementById('monthlyFundDetailFee').textContent = fund.fee;
+  document.getElementById('monthlyFundDetailTrackCode').textContent = fund.trackCode;
+  document.getElementById('monthlyFundDetailTrackName').textContent = fund.trackName;
+  document.getElementById('monthlyFundDetailAnnualDiv').textContent = fund.annualDiv+' 次';
+  document.getElementById('monthlyFundDetailAnnualDivAmt').textContent = fund.annualDivAmt.toFixed(4)+' 元';
+  document.getElementById('monthlyFundDetailMonthlyDivAmt').textContent = fund.monthlyDivAmt.toFixed(4)+' 元';
+  document.getElementById('monthlyFundDetailNav').textContent = fund.nav.toFixed(4)+' 元';
+  document.getElementById('monthlyFundDetailYield').textContent = fund.yield;
+  document.getElementById('monthlyFundDetailSize').textContent = fund.fundSize.toFixed(2)+' 亿元';
+  document.getElementById('monthlyFundDetailDivTotal').textContent = fund.divTotalAmt.toFixed(2)+' 亿元';
+  document.getElementById('monthlyFundDetailInvest').textContent = fund.investMonthly.toFixed(2)+' 万元';
+  document.getElementById('monthlyFundDetail').classList.add('open');
 }
 
 function renderKnowledge(){var c=document.getElementById('knowledgeList');c.innerHTML=knowledgeData.map(function(k){return'<div class="knowledge-item"><div class="title">'+k.title+'</div><div class="desc">'+k.desc+'</div><div class="tag-row">'+k.tags.map(function(t){return'<span class="tag '+(k.level||'')+'">'+t+'</span>';}).join('')+'</div></div>';}).join('');}
