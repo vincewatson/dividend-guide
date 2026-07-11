@@ -161,6 +161,22 @@
   .market-tag.shs { background: rgba(51,102,204,0.12); color: #3366cc; }
   .hk-connect-tag { display: inline-block; background: #6C5CE7; color: #fff; font-size: 9px; padding: 1px 6px; font-weight: 600; vertical-align: middle; margin-left: 4px; }
 
+  /* ===== Weekly Digest ===== */
+  .weekly-nav { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; padding: 0; flex-shrink: 0; }
+  .weekly-nav-item { padding: 6px 14px; font-size: 12px; font-weight: 600; color: #8e8e93; cursor: pointer; transition: all 0.15s; white-space: nowrap; background: #fff; border: 1px solid #f0edf5; }
+  .weekly-nav-item:hover { background: rgba(108,92,231,0.06); }
+  .weekly-nav-item.active { background: #6C5CE7; color: #fff; border-color: #6C5CE7; }
+  .weekly-block { background: #fff; }
+  .weekly-header { font-size: 14px; font-weight: 700; color: #1c1c1e; padding: 18px 20px 0 20px; }
+  .weekly-list { padding: 4px 20px 20px 20px; }
+  .weekly-item { padding: 10px 0; border-bottom: 1px solid #f5f3f8; }
+  .weekly-item:last-child { border-bottom: none; }
+  .weekly-item-tags { margin-bottom: 4px; }
+  .weekly-tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 999px; margin-right: 4px; white-space: nowrap; }
+  .weekly-item-text { font-size: 13px; line-height: 1.7; color: #3a3a3c; }
+  .weekly-link { color: #3a3a3c; text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+  .weekly-link:hover { border-bottom-color: #6C5CE7; color: #6C5CE7; }
+
   /* ===== Fund Cards ===== */
   .fund-list { margin-bottom: 8px; }
   .fund-card { background: #fff; border-radius: 0; padding: 16px 18px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
@@ -324,8 +340,9 @@
     <!-- PAGE: 食息周报 -->
     <div class="page" id="pageWeekly">
       <div class="section-title">📰 食息周报</div>
-      <div class="section-sub">每周市场动态 · 开发中</div>
-      <div class="fav-empty"><span class="icon">📰</span>内容准备中<br>后续将展示每周食息市场动态</div>
+      <div class="section-sub">每周生息资产市场动态 · 点击条目查看原文</div>
+      <div class="weekly-nav" id="weeklyNav"></div>
+      <div class="weekly-items" id="weeklyItems"></div>
     </div>
 
     <!-- PAGE: 食息数据 -->
@@ -804,6 +821,125 @@ const fundData = [
   { code:'024772.OF',name:'摩根标普港股通低波红利ETF联接A',fundCompany:'摩根基金',establishDate:'2025-09-23',fee:'0.50%',feeNum:0.5,annualDiv:6,annualDivAmt:0.02,monthlyDivAmt:0.00333,nav:0.9333,trackCode:'SPAHLVCP.SPI',trackName:'标普港股通低波红利指数',fundSize:1.35,divTotalAmt:0.0,yield:'5.10%',yieldNum:0.05098,taxRate:0.8,investMonthly:28.0 },
   { code:'025958.OF',name:'南方中证全指自由现金流ETF联接A',fundCompany:'南方基金',establishDate:'2025-12-02',fee:'0.15%',feeNum:0.15,annualDiv:6,annualDivAmt:0.006,monthlyDivAmt:0.001,nav:0.9138,trackCode:'932365.CSI',trackName:'中证现金流',fundSize:5.0,divTotalAmt:0,yield:'3.91%',yieldNum:0.03913,taxRate:1,investMonthly:91.38 }
 ];
+// ===== 食息周报数据 =====
+// 每周周日晚上更新，新增条目添加在数组最前，最多保留 52 周
+const weeklyData = [
+  {
+    date: '2026-07-11',
+    items: [
+      { tags: ['存贷款','银行股','股票分红'], text: '2026年以来银行一年期定期存款基准利率降至约1.1%，主流银行理财产品年化收益2.2%-2.8%；截至6月底，42家A股上市银行中19家股息率超过5%，部分股份行、城商行达6%以上。', url: 'https://post.smzdm.com/p/az8ken7p/' },
+      { tags: ['银行股'], text: '7月7日A股收盘，42家上市银行全部跌破每股净资产，其中民生银行市净率仅0.25倍，同期沪深三大指数连续收跌。', url: 'https://www.epochtimes.com/gb/26/7/10/n14807219.htm' },
+      { tags: ['银行股','股票分红'], text: '7月10日中国银行、交通银行、招商银行、江苏银行、北京银行、西安银行六家银行同日派息884.45亿元；41家A股上市银行2025年末现金分红合计3458.72亿元，全年累计分红6456.37亿元，创历史新高，34家银行股息率超4%、15家超5%。', url: 'https://finance.sina.com.cn/money/bank/bank_hydt/2026-07-10/doc-inihinfw3871842.shtml' },
+      { tags: ['红利指数','银行股','保险'], text: '银行股破净之际资金态度分化：红利低波ETF华泰柏瑞（512890）7月10日半日成交4.39亿元，居同类ETF首位；业内人士认为险资对银行板块的配置比例与投资力度仍有提升空间。', url: 'https://finance.sina.com.cn/money/fund/original/2026-07-10/doc-inihhvka7161691.shtml' },
+      { tags: ['银行股','股票分红'], text: '兴业银行公告2025年度合计派发普通股现金红利225.60亿元，分红率达31.02%，为连续第16年提升分红水平。', url: 'http://www.zqrb.cn/gscy/ggkx/2026-07-09/A1783584446083.html' },
+      { tags: ['银行股','股票分红'], text: '全国19家民营银行中，微众银行、蓝海银行等已连续两年现金分红，但受经营情况等因素约束，多数民营银行仍以留存利润补充资本为主，公开披露分红的案例较少。', url: 'https://m.jiemian.com/article/14738517.html' },
+      { tags: ['银行股'], text: '紫金银行、青农商行合计近百亿元存量可转债即将到期，两行正股价均大幅低于转股价，转股动力不足；过去一年中证银行指数已累计下跌近20%。', url: 'https://finance.sina.com.cn/roll/2026-07-10/doc-inihhzry7125450.shtml' },
+      { tags: ['股票分红'], text: '紫金矿业公告2026年中期利润分配方案，拟每10股派发现金红利4.20元，合计派发现金红利约111.36亿元，对应上半年净利润391亿元、同比增长68%。', url: 'https://www.bestblogs.dev/article/153d8313' },
+      { tags: ['保险','股票分红'], text: 'A股五大上市险企2025年度分红合计首次突破千亿元，达1023.94亿元，同比增长12.8%；中国人寿7月9日每股派现0.618元，中国太保将于7月17日每股派现1.15元。', url: 'https://finance.sina.com.cn/stock/zqgd/2026-07-10/doc-inihhzsc8373103.shtml' },
+      { tags: ['存贷款','货币基金'], text: '2026年4-5月全国居民存款合计减少2.05万亿元，同期非银金融机构存款增加3.61万亿元；上半年111只二级债基成立，首募规模970.89亿元，全市场固收+类基金规模增至3.15万亿元，创历史新高。', url: 'https://m.jiemian.com/article/14739617.html' },
+      { tags: ['REITs','基金分红'], text: '首批4只中证REITs全收益指数基金于7月8日全部结束募集，部分产品提前结束募集或触发比例配售，合计12亿元增量资金将陆续入场。', url: 'http://baijiahao.baidu.com/s?id=1870188477275660716' },
+      { tags: ['REITs','租金'], text: '博时蛇口产园REIT披露上半年经营数据：万海大厦出租率84.49%、万融大厦出租率79.11%、光明加速器二期出租率84.27%。', url: 'http://www.guandian.cn/article/20260710/572711.html' },
+      { tags: ['REITs'], text: '商业不动产REITs持续扩容：浦东建设获批32.18亿元绿色定向资产支持票据注册额度；大悦城拟以天津大悦城购物中心为底层资产申报商业不动产REITs。', url: 'http://www.guandian.cn/article/20260710/572681.html' },
+      { tags: ['租金'], text: '香港楼市租金回报率回升至4.5%附近，市场讨论认为在缺乏金融属性支撑下，租金回报率正成为房价的主要"锚"。', url: 'http://www.newsmth.net/nForum/article/OurEstate/3486275' }
+    ]
+  },
+  {
+    date: '2026-07-07',
+    items: [
+      { tags: ['银行股'], text: 'A股42家上市银行年内已全部破净，仅9家股价年内上涨、33家下跌，申万银行指数年内跌超9%，但当前银行板块股息率已回升至5.16%。', url: 'https://finance.sina.com.cn/money/bank/bank_hydt/2026-07-07/doc-inifyvat1598576.shtml' },
+      { tags: ['银行股','股票分红'], text: '分红"超级周"来袭：本周10家A股银行合计拟派现近千亿元；银行板块自7月1日起连续5个交易日获主力资金净流入。', url: 'http://www.eeo.com.cn/2026/0707/947057.shtml' },
+      { tags: ['银行股','股票分红'], text: '低估值遇上高分红：今年以来A股银行板块维持"低估值、高分红"特征，估值修复窗口正在打开；本轮调整后部分银行股息率已回升至2024年水平。', url: 'https://www.yicai.com/brief/103262705.html' },
+      { tags: ['银行股','保险'], text: '农业银行AH价差达28%：平安人寿6月30日增持农业银行H股超1.7亿股、耗资超9亿港元，持股比例升至24.11%。', url: 'https://finance.sina.com.cn/roll/2026-07-06/doc-inifvkki1813790.shtml' },
+      { tags: ['银行股','股票分红'], text: '徽商银行分红争议持续十年"未了局"：二股东中静系提案要求2025年度分红47.34亿元，董事会坚持34.72亿元方案获股东会通过。', url: 'https://finance.sina.com.cn/money/bank/gsdt/2026-07-07/doc-inifyquw8309609.shtml' },
+      { tags: ['股票分红'], text: '广发证券因向普通股股东分红，触发已发行的14只永续次级债券强制付息条款。', url: 'http://www.guandian.cn/article/20260707/571838.html' },
+      { tags: ['保险'], text: '中国机构配置手册(2026版)保险资管篇：截至2026年4月末，保险业总资产达42.93万亿元，低利率环境下险资资产配置逻辑生变。', url: 'http://stock.hexun.com/2026-07-06/224545700.html' },
+      { tags: ['保险','股票分红'], text: '股息收入将成为保险股胜负手（下）：人保财险近年不再单独公布净投资收益率，作者尝试自行测算该指标走势。', url: 'http://xueqiu.com/7543024848/398734266' },
+      { tags: ['REITs'], text: '河南出台新政，探索推行基础设施REITs上市发行"分步走"模式。', url: 'https://m.jiemian.com/article/14706581.html' },
+      { tags: ['租金'], text: '网络热议：不少人计算的租金回报率与实际情况相比偏高；有讨论指500万房产每月房租收益仅相当于2-3万元"本金"。', url: 'http://www.newsmth.net/nForum/article/OurEstate/3483851' },
+      { tags: ['利率'], text: '天河区属国企首发科创债，利率创广州市私募债券历史新低。', url: 'https://news.google.com/rss/articles/CBMiiAFBVV95cUxNc19HbHBLN21meFZpdzFZOEJlT2xkVl9HSDlhd3JLMmlZWml4T0Q5UHdfUjItNGIzQl9nVV9ydG5FdVZjbG1UVGpIQV90bkJSUTEtTHB3MUJGb2l1MHRtM3B5RmhnRFFkUVEzaXM5VWQ0NXJGZWdxNnBsbUVBRkxIbDRxMWRKMG82' }
+    ]
+  },
+  {
+    date: '2026-07-05',
+    items: [
+      { tags: ['保险','国债','股票分红'], text: '本周保险股估值回落：中国平安AH股修正市赚率跌至约0.6折区间，A股/H股股息率分别约5.5%和6.0%，对比当前10年期国债收益率仅1.73%。', url: 'http://xueqiu.com/9363345092/398418956' },
+      { tags: ['股票分红'], text: '三七互娱公告第三季度拟每10股派现2.10元，预计分红4.62亿元，前三季度累计分红达13.86亿元，占归母净利润约59%。', url: 'https://tech.ifeng.com/c/8nwiAyFWQTf' },
+      { tags: ['股票分红'], text: '格力电器股东大会上董明珠"家电不改为格力，凭什么分红"言论引发争议，时代周报评论指出分红是股东依法享有的权利。', url: 'https://time-weekly.com/post/330637' },
+      { tags: ['保险'], text: '新华保险推进"保险+服务+投资"三端协同，首次公开分红账户底层资产。', url: 'https://news.google.com/rss/articles/CBMijAFBVV95cUxNcEJyakE0OHAzekJNZ0d1SVBOZnJFYVY5OHhEUkZGcVJtTllOV0pPbHZ6bU4wdVNoYW1BZzktTU1KMnNtUkxMU2J0dEZ3THlfc2RBSDVuNGtIR0R6amNOZ1F5NUtuYjRMUFQ0WGdVcnBBd2pTU3A3VTlKWGRpQUFNT25SbGRDRjZPV0tVRQ' },
+      { tags: ['REITs','基金分红'], text: '银行理财资金加速布局公募REITs：首批4单商业不动产REITs集体挂牌，第二批6单封闭式商业REITs随后获批，有机构测算年化收益达27%。', url: 'https://www.jiemian.com/article/14696774.html' },
+      { tags: ['REITs'], text: '华夏保利发展商业不动产REIT获批，为首单获批的央企商业不动产REIT，将于2026年7月15日起发售。', url: 'http://weixin.sogou.com/weixin?type=2&query=%E7%BB%8F%E6%B5%8E%E8%A7%82%E5%AF%9F%E6%8A%A5+%E4%BF%9D%E5%88%A9%E5%8F%91%E5%B1%95%E9%A6%96%E5%8D%95%E5%A4%AE%E4%BC%81%E5%95%86%E4%B8%9AREITs%E8%8E%B7%E6%89%B9' },
+      { tags: ['REITs','基金分红'], text: '南方基金旗下南方中证REITs全收益指数基金首发当日售罄，华夏、易方达、南方、中金四家机构的首批REITs指数基金同步发售，合计上限12亿元。', url: 'https://m.jiemian.com/article/14683650.html' },
+      { tags: ['REITs'], text: '首批REITs指数基金发行火热，业内认为REITs估值经短期回调后已进入适宜区间。', url: 'https://36kr.com/newsflashes/3879164024598532' },
+      { tags: ['REITs'], text: '京东产发联合高和资本设立的"京东高和现代化基础设施机构间REITs"在上交所挂牌，总投资规模约42亿元。', url: 'http://www.guandian.cn/article/20260702/570707.html' },
+      { tags: ['国债','利率'], text: '银行业周度报告：本周国债收益率普遍小幅上行，1Y上行1bp、3Y上行0.1bp、5Y上行1.3bp、7Y上行2.1bp、10Y上行1.5bp、30Y上行5.1bp。', url: 'http://stock.hexun.com/2026-07-04/224529735.html' }
+    ]
+  },
+  {
+    date: '2026-07-04',
+    items: [
+      { tags: ['保险','国债','股票分红'], text: '本周保险股估值回落：中国平安AH股修正市赚率跌至约0.6折区间，A股/H股股息率分别约5.5%和6.0%，对比当前10年期国债收益率仅1.73%；中国平安2025年度每股派现2.7元，分红总额连续14年增长。', url: 'http://xueqiu.com/9363345092/398418956' }
+    ]
+  }
+];
+
+// 固定标签配色
+const weeklyTagColors = {
+  '利率':     { bg:'#dbeafe', fg:'#1e40af' },
+  '存贷款':   { bg:'#ccfbf1', fg:'#0f766e' },
+  '国债':     { bg:'#e0e7ff', fg:'#3730a3' },
+  '股票分红': { bg:'#d1fae5', fg:'#065f46' },
+  '基金分红': { bg:'#ecfccb', fg:'#4d7c0f' },
+  '红利指数': { bg:'#fef3c7', fg:'#92400e' },
+  '银行股':   { bg:'#ffedd5', fg:'#9a3412' },
+  '同业存单': { bg:'#cffafe', fg:'#155e75' },
+  '货币基金': { bg:'#e0f2fe', fg:'#075985' },
+  '保险':     { bg:'#f3e8ff', fg:'#6b21a8' },
+  'REITs':    { bg:'#fce7f3', fg:'#9d174d' },
+  '租金':     { bg:'#ffe4e6', fg:'#9f1239' }
+};
+
+let weeklyIndex = 0;
+
+function renderWeekly() {
+  var nav = document.getElementById('weeklyNav');
+  var items = document.getElementById('weeklyItems');
+  var data = weeklyData;
+  
+  if (!data.length) {
+    items.innerHTML = '<div class="fav-empty"><span class="icon">📭</span>暂无周报数据</div>';
+    nav.innerHTML = '';
+    return;
+  }
+  
+  // Week selector
+  nav.innerHTML = data.map(function(w,i){
+    return '<span class="weekly-nav-item'+(i===weeklyIndex?' active':'')+'" data-idx="'+i+'">'+w.date+'</span>';
+  }).join('');
+  
+  // Bind nav clicks
+  nav.querySelectorAll('.weekly-nav-item').forEach(function(el){
+    el.addEventListener('click',function(){
+      weeklyIndex = parseInt(this.dataset.idx);
+      renderWeekly();
+      // Scroll back to top
+      document.getElementById('pageWeekly').scrollTop = 0;
+    });
+  });
+  
+  // Render items for selected week
+  var week = data[weeklyIndex];
+  var list = week.items.map(function(it){
+    var tags = (it.tags||[]).map(function(t){
+      var c = weeklyTagColors[t] || { bg:'#f0f0f0', fg:'#555' };
+      return '<span class="weekly-tag" style="background:'+c.bg+';color:'+c.fg+'">'+t+'</span>';
+    }).join('');
+    var href = it.url ? ' href="'+it.url+'" target="_blank" rel="noopener"' : '';
+    return '<div class="weekly-item"><div class="weekly-item-tags">'+tags+'</div><div class="weekly-item-text"><a'+href+' class="weekly-link">'+it.text+'</a></div></div>';
+  }).join('');
+  
+  items.innerHTML = '<div class="weekly-block"><div class="weekly-header">'+week.date+'</div><div class="weekly-list">'+list+'</div></div><div class="index-footer">共 '+week.items.length+' 条 · 点击条目查看原文</div>';
+}
+
 const knowledgeData = [
   { title: '什么是食息投资？', desc: '食息投资是一种以获取稳定现金分红为核心目标的投资策略。与追求股价上涨的资本利得不同，食息投资者更关注企业或资产持续派发红利的能力。', tags: ['入门', '概念'], level: 'beginner' },
   { title: '股息率怎么算？', desc: '股息率 = 每股年度分红 ÷ 当前股价 × 100%。例如某股票股价10元，每股分红0.5元，股息率就是5%。注意区分"静态股息率"和"TTM股息率"。', tags: ['入门', '计算'], level: 'beginner' },
@@ -1421,7 +1557,7 @@ document.getElementById('detailChartRange').addEventListener('change',function()
 window.addEventListener('resize',function(){if(document.getElementById('indexDetail').classList.contains('open')&&currentDetailChartData.length){drawDetailChart(currentDetailChartData);}});
 
 // ===== INIT =====
- renderAssetTable();renderIndices();renderKnowledge();renderFavorites();renderHkEtf();renderCnEtf();renderMonthlyEtf();renderMonthlyFund();
+ renderAssetTable();renderIndices();renderKnowledge();renderFavorites();renderHkEtf();renderCnEtf();renderMonthlyEtf();renderMonthlyFund();renderWeekly();
 </script>
 </body>
 </html>
