@@ -1799,7 +1799,7 @@ function renderBlogList() {
   var html = '';
   blogPosts.slice().reverse().forEach(function(post){
     var tags = (post.tags||[]).map(function(t){return '<span class="tag">'+t+'</span>';}).join('');
-    html += '<div class="blog-card" data-slug="'+post.slug+'">'+
+    html += '<div class="blog-card" data-slug="'+post.slug+'" onclick="showBlogDetail(\''+post.slug+'\')">'+
       '<div class="title">'+post.title+'</div>'+
       '<div class="meta">'+post.date+'</div>'+
       '<div class="tags">'+tags+'</div>'+
@@ -1841,15 +1841,6 @@ document.getElementById('blogDetailBack').addEventListener('click',function(){
 });
 document.getElementById('blogDetailBackBtn').addEventListener('click',function(){
   document.getElementById('blogDetail').classList.remove('open');
-});
-
-// 事件委托：博客卡片点击
-document.getElementById('blogList').addEventListener('click', function(e){
-  var card = e.target.closest('.blog-card');
-  if (card) {
-    var slug = card.dataset.slug;
-    if (slug) showBlogDetail(slug);
-  }
 });
 
 // ===== INIT =====
