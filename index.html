@@ -277,65 +277,63 @@
   .blog-empty { background: #fff; padding: 40px 20px; text-align: center; color: #8e8e93; font-size: 13px; line-height: 1.8; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
   .blog-empty .icon { font-size: 38px; display: block; margin-bottom: 10px; }
 
-  /* ===== Blog Detail Rendering (Substack-style) ===== */
-  #blogDetail .blog-detail-back {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 14px; color: #8e8e93; cursor: pointer;
-    margin-bottom: 28px; transition: color 0.15s;
-    text-decoration: none; border: none; background: none;
-    font-family: inherit; padding: 0;
+  /* ===== Blog Detail Modal (simple standalone) ===== */
+  .blog-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 200; background: #fff; overflow-y: auto;
   }
-  #blogDetail .blog-detail-back:hover { color: #001AFF; }
-  #blogDetail .blog-detail-back-arrow { font-size: 18px; line-height: 1; }
-  #blogDetail .blog-detail-header { margin-bottom: 28px; }
-  #blogDetail .blog-detail-title {
-    font-size: 32px; font-weight: 700; color: #1c1c1e;
-    letter-spacing: -0.025em; line-height: 1.25;
-    margin-bottom: 12px; max-width: 680px;
+  .blog-overlay.open { display: block; }
+  .blog-overlay-close {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 6px;
+    padding: 14px 20px; background: #fff;
+    border-bottom: 1px solid #eef1f8;
+    font-size: 14px; color: #001AFF; cursor: pointer;
+    font-weight: 500; font-family: inherit;
+    border: none; width: 100%; text-align: left;
   }
-  #blogDetail .blog-detail-meta {
-    font-size: 13px; color: #8e8e93;
-    margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+  .blog-overlay-close:hover { background: #f8f7fc; }
+  .blog-overlay-content {
+    max-width: 720px; margin: 0 auto; padding: 32px 24px 60px;
   }
-  #blogDetail .blog-detail-tags { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-  #blogDetail .blog-detail-tags .tag {
+  .blog-overlay-content .blog-detail-title {
+    font-size: 28px; font-weight: 700; color: #1c1c1e;
+    line-height: 1.3; margin-bottom: 10px;
+  }
+  .blog-overlay-content .blog-detail-meta {
+    font-size: 13px; color: #8e8e93; margin-bottom: 8px;
+  }
+  .blog-overlay-content .blog-detail-tags {
+    display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .blog-overlay-content .blog-detail-tags .tag {
     font-size: 11px; padding: 3px 10px;
-    background: rgba(0,26,255,0.08); color: #001AFF; font-weight: 500;
-    border-radius: 3px;
+    background: rgba(0,26,255,0.08); color: #001AFF;
+    font-weight: 500; border-radius: 3px;
   }
-  #blogDetail .blog-detail-divider {
-    border: none; height: 1px; background: #e8e6ed;
-    margin: 0 0 28px;
+  .blog-overlay-content hr {
+    border: none; height: 1px; background: #e8e6ed; margin: 0 0 24px;
   }
-  #blogDetail .blog-detail-body {
+  .blog-overlay-body {
     font-size: 16px; color: #2c2c2e; line-height: 1.8;
-    max-width: 680px;
   }
-  #blogDetail .blog-detail-body h2 {
-    font-size: 22px; font-weight: 700; margin: 36px 0 14px;
-    color: #1c1c1e; letter-spacing: -0.01em;
-  }
-  #blogDetail .blog-detail-body h3 {
-    font-size: 19px; font-weight: 700; margin: 28px 0 12px;
-    color: #1c1c1e;
-  }
-  #blogDetail .blog-detail-body p { margin-bottom: 18px; }
-  #blogDetail .blog-detail-body ul, #blogDetail .blog-detail-body ol { margin: 12px 0 18px; padding-left: 24px; }
-  #blogDetail .blog-detail-body li { margin-bottom: 8px; }
-  #blogDetail .blog-detail-body strong { font-weight: 700; color: #1c1c1e; }
-  #blogDetail .blog-detail-body blockquote {
-    margin: 20px 0; padding: 16px 20px;
+  .blog-overlay-body h2 { font-size: 22px; font-weight: 700; margin: 32px 0 12px; color: #1c1c1e; }
+  .blog-overlay-body h3 { font-size: 19px; font-weight: 700; margin: 24px 0 10px; color: #1c1c1e; }
+  .blog-overlay-body p { margin-bottom: 16px; }
+  .blog-overlay-body ul, .blog-overlay-body ol { margin: 10px 0 16px; padding-left: 24px; }
+  .blog-overlay-body li { margin-bottom: 6px; }
+  .blog-overlay-body strong { font-weight: 700; color: #1c1c1e; }
+  .blog-overlay-body blockquote {
+    margin: 16px 0; padding: 14px 20px;
     background: #f8f7fc; border-left: 3px solid #001AFF;
     color: #636366; font-size: 15px; line-height: 1.7;
-    border-radius: 0 4px 4px 0;
   }
-  #blogDetail .blog-detail-body table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 18px 0; }
-  #blogDetail .blog-detail-body th, #blogDetail .blog-detail-body td { padding: 10px 12px; border: 1px solid #e0dde5; text-align: left; }
-  #blogDetail .blog-detail-body th { background: #f8f7fc; font-weight: 600; color: #1c1c1e; }
-  #blogDetail .blog-detail-body a { color: #001AFF; text-decoration: underline; }
-  #blogDetail .blog-detail-body a:hover { color: #0000cc; }
-  #blogDetail .blog-detail-body code { font-family: 'SF Mono', Menlo, monospace; font-size: 14px; background: #f5f4f8; padding: 2px 6px; border-radius: 3px; }
-  #blogDetail .blog-detail-body img { max-width: 100%; height: auto; margin: 20px 0; border-radius: 4px; }
+  .blog-overlay-body table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+  .blog-overlay-body th, .blog-overlay-body td { padding: 8px 10px; border: 1px solid #e0dde5; text-align: left; }
+  .blog-overlay-body th { background: #f8f7fc; font-weight: 600; color: #1c1c1e; }
+  .blog-overlay-body a { color: #001AFF; text-decoration: underline; }
+  .blog-overlay-body code { font-family: 'SF Mono', Menlo, monospace; font-size: 14px; background: #f5f4f8; padding: 2px 6px; }
+  .blog-overlay-body img { max-width: 100%; height: auto; margin: 16px 0; }
 
   /* ===== Mobile ===== */
   @media (max-width: 767px) {
@@ -347,12 +345,9 @@
     .main-nav-item { padding: 0 10px; font-size: 13px; }
     .page { padding: 14px; max-width: none; }
     .detail-main-card { padding: 16px; }
-    #blogDetail .blog-detail-title { font-size: 24px; }
-    #blogDetail .blog-detail-body { font-size: 15px; }
-    #blogDetail .blog-detail-body h2 { font-size: 19px; }
-    #blogDetail .blog-detail-body h3 { font-size: 17px; }
-    #blogDetail .blog-detail-divider { margin: 0 0 20px; }
-    #blogDetail .blog-detail-back { margin-bottom: 20px; font-size: 13px; }
+    .blog-overlay-content { padding: 20px 16px 40px; }
+    .blog-overlay-content .blog-detail-title { font-size: 22px; }
+    .blog-overlay-body { font-size: 15px; }
   }
 </style>
 </head>
@@ -760,33 +755,10 @@
         </div>
       </div>
     </div>
-  <!-- ===== Blog Detail Overlay ===== -->
-  <div class="index-detail-page" id="blogDetail">
-    <header class="top-bar">
-      <div class="brand" id="blogDetailBack" style="cursor:pointer">
-        <div class="brand-icon">‹</div>
-        <div class="brand-text">
-          <span class="brand-name">食息指南</span>
-          <span class="brand-subtitle">返回首页</span>
-        </div>
-      </div>
-      <nav class="main-nav">
-        <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
-        <div class="main-nav-item" data-tab="pageWeekly">📬 食息资讯</div>
-        <div class="main-nav-item" data-tab="pageBlog">📖 食息之路</div>
-        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
-        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
-      </nav>
-      <div class="nav-right"></div>
-    </header>
-    <div class="detail-body" id="blogDetailBody">
-      <div class="detail-main-card" id="blogDetailCard">
-        <button class="blog-detail-back" id="blogDetailBackBtn">
-          <span class="blog-detail-back-arrow">←</span> 返回文章列表
-        </button>
-        <div id="blogDetailContent"></div>
-      </div>
-    </div>
+  <!-- ===== Blog Detail Modal (simple standalone) ===== -->
+  <div class="blog-overlay" id="blogOverlay">
+    <button class="blog-overlay-close" id="blogOverlayClose">← 返回文章列表</button>
+    <div class="blog-overlay-content" id="blogOverlayContent"></div>
   </div>
 
 </div>
@@ -1811,40 +1783,31 @@ function renderBlogList() {
 }
 
 function showBlogDetail(slug) {
-  console.log('[Blog] showBlogDetail called with slug:', slug);
   fetch('/blog/'+slug+'.md').then(function(r){
-    if (!r.ok) throw new Error('Not found: '+slug);
+    if (!r.ok) throw new Error('Not found');
     return r.text();
   }).then(function(text){
-    console.log('[Blog] markdown loaded, length:', text.length);
     var fm = parseFrontmatter(text);
     var title = fm.meta.title || slug;
     var date = fm.meta.date || '';
     var tags = (Array.isArray(fm.meta.tags) ? fm.meta.tags : []).map(function(t){return '<span class="tag">'+t+'</span>';}).join('');
     var bodyHtml = mdToHtml(fm.body);
-    document.getElementById('blogDetailContent').innerHTML =
-      '<div class="blog-detail-header">'+
-        '<div class="blog-detail-title">'+title+'</div>'+
-        '<div class="blog-detail-meta">'+
-          '<span>'+date+'</span>'+
-        '</div>'+
-        (tags ? '<div class="blog-detail-tags">'+tags+'</div>' : '')+
-      '</div>'+
-      '<hr class="blog-detail-divider">'+
-      '<div class="blog-detail-body">'+bodyHtml+'</div>';
-    document.getElementById('blogDetail').classList.add('open');
-    console.log('[Blog] detail overlay opened');
-  }).catch(function(err){
-    console.error('[Blog] Error:', err);
+    document.getElementById('blogOverlayContent').innerHTML =
+      '<div class="blog-detail-title">'+title+'</div>'+
+      '<div class="blog-detail-meta">'+date+'</div>'+
+      (tags ? '<div class="blog-detail-tags">'+tags+'</div>' : '')+
+      '<hr>'+
+      '<div class="blog-overlay-body">'+bodyHtml+'</div>';
+    document.getElementById('blogOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }).catch(function(){
     showToast('文章加载失败');
   });
 }
 
-document.getElementById('blogDetailBack').addEventListener('click',function(){
-  document.getElementById('blogDetail').classList.remove('open');
-});
-document.getElementById('blogDetailBackBtn').addEventListener('click',function(){
-  document.getElementById('blogDetail').classList.remove('open');
+document.getElementById('blogOverlayClose').addEventListener('click',function(){
+  document.getElementById('blogOverlay').classList.remove('open');
+  document.body.style.overflow = '';
 });
 
 // ===== INIT =====
