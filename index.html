@@ -1811,10 +1811,12 @@ function renderBlogList() {
 }
 
 function showBlogDetail(slug) {
+  console.log('[Blog] showBlogDetail called with slug:', slug);
   fetch('/blog/'+slug+'.md').then(function(r){
-    if (!r.ok) throw new Error('Not found');
+    if (!r.ok) throw new Error('Not found: '+slug);
     return r.text();
   }).then(function(text){
+    console.log('[Blog] markdown loaded, length:', text.length);
     var fm = parseFrontmatter(text);
     var title = fm.meta.title || slug;
     var date = fm.meta.date || '';
@@ -1831,7 +1833,9 @@ function showBlogDetail(slug) {
       '<hr class="blog-detail-divider">'+
       '<div class="blog-detail-body">'+bodyHtml+'</div>';
     document.getElementById('blogDetail').classList.add('open');
-  }).catch(function(){
+    console.log('[Blog] detail overlay opened');
+  }).catch(function(err){
+    console.error('[Blog] Error:', err);
     showToast('文章加载失败');
   });
 }
