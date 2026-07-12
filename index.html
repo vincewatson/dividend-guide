@@ -1745,7 +1745,7 @@ fetch('/blog/posts.json').then(function(r){
 function renderBlogList() {
   var c = document.getElementById('blogList');
   if (!blogPosts.length) {
-    c.innerHTML = '<div class="blog-empty"><span class="icon">📝</span>还没有博客文章<br><span style="font-size:12px;color:#b0b0b8">第一篇即将到来</span></div><div class="blog-admin-link" onclick="window.open(\'/studio\',\'_blank\')">📋 内容管理</div>';
+    c.innerHTML = '<div class="blog-empty"><span class="icon">📝</span>还没有博客文章<br><span style="font-size:12px;color:#b0b0b8">第一篇即将到来</span></div><div class="blog-admin-link" onclick="window.open(\'/studio\',\'_blank\')">📋 管理后台</div>';
     return;
   }
   var html = '';
