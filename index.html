@@ -276,27 +276,66 @@
   .blog-card .read-more { font-size: 12px; color: #001AFF; font-weight: 600; margin-top: 8px; }
   .blog-empty { background: #fff; padding: 40px 20px; text-align: center; color: #8e8e93; font-size: 13px; line-height: 1.8; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
   .blog-empty .icon { font-size: 38px; display: block; margin-bottom: 10px; }
-  .blog-admin-link { display: inline-block; font-size: 11px; color: #b0b0b8; text-decoration: underline; cursor: pointer; margin-top: 4px; }
-  .blog-admin-link:hover { color: #001AFF; }
 
-  /* ===== Blog Detail Rendering ===== */
-  #blogDetailContent .blog-detail-title { font-size: 22px; font-weight: 700; color: #1c1c1e; margin-bottom: 6px; letter-spacing: -0.02em; }
-  #blogDetailContent .blog-detail-meta { font-size: 12px; color: #8e8e93; margin-bottom: 16px; }
-  #blogDetailContent .blog-detail-tags { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-  #blogDetailContent .blog-detail-tags .tag { font-size: 10px; padding: 2px 8px; background: rgba(0,26,255,0.1); color: #001AFF; font-weight: 500; }
-  #blogDetailContent .blog-detail-body { font-size: 14px; color: #3a3a3c; line-height: 1.9; }
-  #blogDetailContent .blog-detail-body h2 { font-size: 18px; font-weight: 700; margin: 28px 0 12px; color: #1c1c1e; }
-  #blogDetailContent .blog-detail-body h3 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; color: #1c1c1e; }
-  #blogDetailContent .blog-detail-body p { margin-bottom: 14px; }
-  #blogDetailContent .blog-detail-body ul, #blogDetailContent .blog-detail-body ol { margin: 10px 0 14px; padding-left: 22px; }
-  #blogDetailContent .blog-detail-body li { margin-bottom: 6px; }
-  #blogDetailContent .blog-detail-body strong { font-weight: 700; color: #1c1c1e; }
-  #blogDetailContent .blog-detail-body blockquote { margin: 14px 0; padding: 12px 16px; background: #f8f7fc; border-left: 3px solid #001AFF; color: #8e8e93; font-size: 13px; }
-  #blogDetailContent .blog-detail-body table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 14px 0; }
-  #blogDetailContent .blog-detail-body th, #blogDetailContent .blog-detail-body td { padding: 8px 10px; border: 1px solid #e0dde5; text-align: left; }
-  #blogDetailContent .blog-detail-body th { background: #f8f7fc; font-weight: 600; color: #1c1c1e; }
-  #blogDetailContent .blog-detail-body a { color: #001AFF; text-decoration: underline; }
-  #blogDetailContent .blog-detail-body code { font-family: 'SF Mono', Menlo, monospace; font-size: 12px; background: #f5f4f8; padding: 2px 6px; }
+  /* ===== Blog Detail Rendering (Substack-style) ===== */
+  #blogDetail .blog-detail-back {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 14px; color: #8e8e93; cursor: pointer;
+    margin-bottom: 28px; transition: color 0.15s;
+    text-decoration: none; border: none; background: none;
+    font-family: inherit; padding: 0;
+  }
+  #blogDetail .blog-detail-back:hover { color: #001AFF; }
+  #blogDetail .blog-detail-back-arrow { font-size: 18px; line-height: 1; }
+  #blogDetail .blog-detail-header { margin-bottom: 28px; }
+  #blogDetail .blog-detail-title {
+    font-size: 32px; font-weight: 700; color: #1c1c1e;
+    letter-spacing: -0.025em; line-height: 1.25;
+    margin-bottom: 12px; max-width: 680px;
+  }
+  #blogDetail .blog-detail-meta {
+    font-size: 13px; color: #8e8e93;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+  }
+  #blogDetail .blog-detail-tags { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  #blogDetail .blog-detail-tags .tag {
+    font-size: 11px; padding: 3px 10px;
+    background: rgba(0,26,255,0.08); color: #001AFF; font-weight: 500;
+    border-radius: 3px;
+  }
+  #blogDetail .blog-detail-divider {
+    border: none; height: 1px; background: #e8e6ed;
+    margin: 0 0 28px;
+  }
+  #blogDetail .blog-detail-body {
+    font-size: 16px; color: #2c2c2e; line-height: 1.8;
+    max-width: 680px;
+  }
+  #blogDetail .blog-detail-body h2 {
+    font-size: 22px; font-weight: 700; margin: 36px 0 14px;
+    color: #1c1c1e; letter-spacing: -0.01em;
+  }
+  #blogDetail .blog-detail-body h3 {
+    font-size: 19px; font-weight: 700; margin: 28px 0 12px;
+    color: #1c1c1e;
+  }
+  #blogDetail .blog-detail-body p { margin-bottom: 18px; }
+  #blogDetail .blog-detail-body ul, #blogDetail .blog-detail-body ol { margin: 12px 0 18px; padding-left: 24px; }
+  #blogDetail .blog-detail-body li { margin-bottom: 8px; }
+  #blogDetail .blog-detail-body strong { font-weight: 700; color: #1c1c1e; }
+  #blogDetail .blog-detail-body blockquote {
+    margin: 20px 0; padding: 16px 20px;
+    background: #f8f7fc; border-left: 3px solid #001AFF;
+    color: #636366; font-size: 15px; line-height: 1.7;
+    border-radius: 0 4px 4px 0;
+  }
+  #blogDetail .blog-detail-body table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 18px 0; }
+  #blogDetail .blog-detail-body th, #blogDetail .blog-detail-body td { padding: 10px 12px; border: 1px solid #e0dde5; text-align: left; }
+  #blogDetail .blog-detail-body th { background: #f8f7fc; font-weight: 600; color: #1c1c1e; }
+  #blogDetail .blog-detail-body a { color: #001AFF; text-decoration: underline; }
+  #blogDetail .blog-detail-body a:hover { color: #0000cc; }
+  #blogDetail .blog-detail-body code { font-family: 'SF Mono', Menlo, monospace; font-size: 14px; background: #f5f4f8; padding: 2px 6px; border-radius: 3px; }
+  #blogDetail .blog-detail-body img { max-width: 100%; height: auto; margin: 20px 0; border-radius: 4px; }
 
   /* ===== Mobile ===== */
   @media (max-width: 767px) {
@@ -308,6 +347,12 @@
     .main-nav-item { padding: 0 10px; font-size: 13px; }
     .page { padding: 14px; max-width: none; }
     .detail-main-card { padding: 16px; }
+    #blogDetail .blog-detail-title { font-size: 24px; }
+    #blogDetail .blog-detail-body { font-size: 15px; }
+    #blogDetail .blog-detail-body h2 { font-size: 19px; }
+    #blogDetail .blog-detail-body h3 { font-size: 17px; }
+    #blogDetail .blog-detail-divider { margin: 0 0 20px; }
+    #blogDetail .blog-detail-back { margin-bottom: 20px; font-size: 13px; }
   }
 </style>
 </head>
@@ -721,8 +766,8 @@
       <div class="brand" id="blogDetailBack" style="cursor:pointer">
         <div class="brand-icon">‹</div>
         <div class="brand-text">
-          <span class="brand-name">文章详情</span>
-          <span class="brand-subtitle">点击返回</span>
+          <span class="brand-name">食息指南</span>
+          <span class="brand-subtitle">返回首页</span>
         </div>
       </div>
       <nav class="main-nav">
@@ -731,11 +776,14 @@
         <div class="main-nav-item" data-tab="pageBlog">📖 食息之路</div>
         <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
         <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
-              </nav>
+      </nav>
       <div class="nav-right"></div>
     </header>
-    <div class="detail-body">
-      <div class="detail-main-card">
+    <div class="detail-body" id="blogDetailBody">
+      <div class="detail-main-card" id="blogDetailCard">
+        <button class="blog-detail-back" id="blogDetailBackBtn">
+          <span class="blog-detail-back-arrow">←</span> 返回文章列表
+        </button>
         <div id="blogDetailContent"></div>
       </div>
     </div>
@@ -1745,7 +1793,7 @@ fetch('/blog/posts.json').then(function(r){
 function renderBlogList() {
   var c = document.getElementById('blogList');
   if (!blogPosts.length) {
-    c.innerHTML = '<div class="blog-empty"><span class="icon">📝</span>还没有博客文章<br><span style="font-size:12px;color:#b0b0b8">第一篇即将到来</span></div><div class="blog-admin-link" onclick="window.open(\'/studio\',\'_blank\')">📋 管理后台</div>';
+    c.innerHTML = '<div class="blog-empty"><span class="icon">📝</span>还没有博客文章<br><span style="font-size:12px;color:#b0b0b8">第一篇即将到来</span></div>';
     return;
   }
   var html = '';
@@ -1758,7 +1806,6 @@ function renderBlogList() {
       (post.excerpt ? '<div class="excerpt">'+post.excerpt+'</div>' : '')+
       '<div class="read-more">阅读全文 →</div></div>';
   });
-  html += '<div class="blog-admin-link" onclick="window.open(\'/studio\',\'_blank\')">📋 管理后台</div>';
   c.innerHTML = html;
   c.querySelectorAll('.blog-card').forEach(function(card){
     card.addEventListener('click',function(){
@@ -1779,9 +1826,14 @@ function showBlogDetail(slug) {
     var tags = (Array.isArray(fm.meta.tags) ? fm.meta.tags : []).map(function(t){return '<span class="tag">'+t+'</span>';}).join('');
     var bodyHtml = mdToHtml(fm.body);
     document.getElementById('blogDetailContent').innerHTML =
-      '<div class="blog-detail-title">'+title+'</div>'+
-      '<div class="blog-detail-meta">'+date+'</div>'+
-      '<div class="blog-detail-tags">'+tags+'</div>'+
+      '<div class="blog-detail-header">'+
+        '<div class="blog-detail-title">'+title+'</div>'+
+        '<div class="blog-detail-meta">'+
+          '<span>'+date+'</span>'+
+        '</div>'+
+        (tags ? '<div class="blog-detail-tags">'+tags+'</div>' : '')+
+      '</div>'+
+      '<hr class="blog-detail-divider">'+
       '<div class="blog-detail-body">'+bodyHtml+'</div>';
     document.getElementById('blogDetail').classList.add('open');
   }).catch(function(){
@@ -1790,6 +1842,9 @@ function showBlogDetail(slug) {
 }
 
 document.getElementById('blogDetailBack').addEventListener('click',function(){
+  document.getElementById('blogDetail').classList.remove('open');
+});
+document.getElementById('blogDetailBackBtn').addEventListener('click',function(){
   document.getElementById('blogDetail').classList.remove('open');
 });
 
