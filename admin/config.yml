@@ -1,0 +1,49 @@
+# 食息指南 — Decap CMS 管理后台配置
+
+backend:
+  name: github
+  repo: vincewatson/dividend-guide
+  branch: main
+  base_url: https://dividend-guide.cn
+  auth_endpoint: api/oauth
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "blog"
+    label: "博客文章"
+    label_singular: "文章"
+    folder: "blog"
+    create: true
+    delete: true
+    format: "frontmatter"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    preview_path: "blog/{{slug}}"
+    editor:
+      preview: false
+    fields:
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "发布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD" }
+      - { label: "标签", name: "tags", widget: "list", allow_add: true, hint: "如：食息周报、投资心得、知识科普" }
+      - { label: "摘要", name: "excerpt", widget: "text", hint: "列表页显示的简短描述", required: false }
+      - { label: "正文", name: "body", widget: "markdown" }
+
+  - name: "blogIndex"
+    label: "博客索引"
+    delete: false
+    format: "json"
+    files:
+      - name: "posts"
+        label: "文章列表"
+        file: "blog/posts.json"
+        fields:
+          - label: "文章列表"
+            name: "posts"
+            widget: "list"
+            fields:
+              - { label: "链接标识", name: "slug", widget: "string", hint: "对应 .md 文件的文件名（不含 .md）" }
+              - { label: "标题", name: "title", widget: "string" }
+              - { label: "发布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD" }
+              - { label: "标签", name: "tags", widget: "list" }
+              - { label: "摘要", name: "excerpt", widget: "text" }

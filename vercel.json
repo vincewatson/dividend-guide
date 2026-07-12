@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/admin/:path*", "destination": "/admin/:path*" },
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/oauth.js": { "maxDuration": 10 }
+  }
+}

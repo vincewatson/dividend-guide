@@ -265,6 +265,39 @@
   /* ===== Global Footer ===== */
   .global-footer { padding: 16px 28px 28px; font-size: 11px; color: #b0b0b8; line-height: 1.6; border-top: 1px solid #e0dde5; text-align: center; }
 
+  /* ===== Blog ===== */
+  .blog-card { background: #fff; padding: 20px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .blog-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+  .blog-card .title { font-size: 16px; font-weight: 700; color: #1c1c1e; margin-bottom: 6px; }
+  .blog-card .meta { font-size: 11px; color: #8e8e93; margin-bottom: 8px; }
+  .blog-card .tags { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .blog-card .tag { font-size: 10px; padding: 2px 8px; background: rgba(0,26,255,0.1); color: #001AFF; font-weight: 500; }
+  .blog-card .excerpt { font-size: 13px; color: #3a3a3c; line-height: 1.7; }
+  .blog-card .read-more { font-size: 12px; color: #001AFF; font-weight: 600; margin-top: 8px; }
+  .blog-empty { background: #fff; padding: 40px 20px; text-align: center; color: #8e8e93; font-size: 13px; line-height: 1.8; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .blog-empty .icon { font-size: 38px; display: block; margin-bottom: 10px; }
+  .blog-admin-link { display: inline-block; font-size: 11px; color: #b0b0b8; text-decoration: underline; cursor: pointer; margin-top: 4px; }
+  .blog-admin-link:hover { color: #001AFF; }
+
+  /* ===== Blog Detail Rendering ===== */
+  #blogDetailContent .blog-detail-title { font-size: 22px; font-weight: 700; color: #1c1c1e; margin-bottom: 6px; letter-spacing: -0.02em; }
+  #blogDetailContent .blog-detail-meta { font-size: 12px; color: #8e8e93; margin-bottom: 16px; }
+  #blogDetailContent .blog-detail-tags { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  #blogDetailContent .blog-detail-tags .tag { font-size: 10px; padding: 2px 8px; background: rgba(0,26,255,0.1); color: #001AFF; font-weight: 500; }
+  #blogDetailContent .blog-detail-body { font-size: 14px; color: #3a3a3c; line-height: 1.9; }
+  #blogDetailContent .blog-detail-body h2 { font-size: 18px; font-weight: 700; margin: 28px 0 12px; color: #1c1c1e; }
+  #blogDetailContent .blog-detail-body h3 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; color: #1c1c1e; }
+  #blogDetailContent .blog-detail-body p { margin-bottom: 14px; }
+  #blogDetailContent .blog-detail-body ul, #blogDetailContent .blog-detail-body ol { margin: 10px 0 14px; padding-left: 22px; }
+  #blogDetailContent .blog-detail-body li { margin-bottom: 6px; }
+  #blogDetailContent .blog-detail-body strong { font-weight: 700; color: #1c1c1e; }
+  #blogDetailContent .blog-detail-body blockquote { margin: 14px 0; padding: 12px 16px; background: #f8f7fc; border-left: 3px solid #001AFF; color: #8e8e93; font-size: 13px; }
+  #blogDetailContent .blog-detail-body table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 14px 0; }
+  #blogDetailContent .blog-detail-body th, #blogDetailContent .blog-detail-body td { padding: 8px 10px; border: 1px solid #e0dde5; text-align: left; }
+  #blogDetailContent .blog-detail-body th { background: #f8f7fc; font-weight: 600; color: #1c1c1e; }
+  #blogDetailContent .blog-detail-body a { color: #001AFF; text-decoration: underline; }
+  #blogDetailContent .blog-detail-body code { font-family: 'SF Mono', Menlo, monospace; font-size: 12px; background: #f5f4f8; padding: 2px 6px; }
+
   /* ===== Mobile ===== */
   @media (max-width: 767px) {
     .top-bar { padding: 0 14px; height: 52px; gap: 0; }
@@ -302,6 +335,11 @@
       <!-- 食息周报 Tab -->
       <div class="main-nav-item" data-tab="pageWeekly">
         📰 食息周报
+      </div>
+
+      <!-- 博客 Tab -->
+      <div class="main-nav-item" data-tab="pageBlog">
+        📝 博客
       </div>
 
       <!-- 红利指数 Tab (with dropdown) -->
@@ -343,6 +381,13 @@
       <div class="section-sub">每周生息资产市场动态 · 点击条目查看原文</div>
       <div class="weekly-nav" id="weeklyNav"></div>
       <div class="weekly-items" id="weeklyItems"></div>
+    </div>
+
+    <!-- PAGE: 博客 -->
+    <div class="page" id="pageBlog">
+      <div class="section-title">📝 食息博客</div>
+      <div class="section-sub">投资心得 · 食息周报合集 · 知识科普 · 市场观察</div>
+      <div id="blogList"></div>
     </div>
 
     <!-- PAGE: 食息数据 -->
@@ -438,10 +483,9 @@
         </div>
       </div>
       <nav class="main-nav">
-        <!-- 食息数据 Tab -->
         <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
         <div class="main-nav-item" data-tab="pageWeekly">📰 食息周报</div>
-        <!-- 红利指数 Tab (with dropdown) -->
+        <div class="main-nav-item" data-tab="pageBlog">📝 博客</div>
         <div class="main-nav-item" data-tab="pageIndex">
           📈 红利指数<span class="arrow">▼</span>
           <div class="dropdown">
@@ -450,7 +494,6 @@
             <button class="dropdown-item" data-sub="hkEtf">🇭🇰 港交所红利ETF</button>
           </div>
         </div>
-        <!-- 月月分红 Tab (with dropdown) -->
         <div class="main-nav-item" data-tab="pageMonthly">
           💰 月月分红<span class="arrow">▼</span>
           <div class="dropdown">
@@ -458,7 +501,6 @@
             <button class="dropdown-item" data-sub="fundList">📈 指数基金</button>
           </div>
         </div>
-        <!-- 知识专区 Tab -->
         <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
       </nav>
       <div class="nav-right">
@@ -516,10 +558,9 @@
         </div>
       </div>
       <nav class="main-nav">
-        <!-- 食息数据 Tab -->
         <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
         <div class="main-nav-item" data-tab="pageWeekly">📰 食息周报</div>
-        <!-- 红利指数 Tab (with dropdown) -->
+        <div class="main-nav-item" data-tab="pageBlog">📝 博客</div>
         <div class="main-nav-item" data-tab="pageIndex">
           📈 红利指数<span class="arrow">▼</span>
           <div class="dropdown">
@@ -528,7 +569,6 @@
             <button class="dropdown-item" data-sub="hkEtf">🇭🇰 港交所红利ETF</button>
           </div>
         </div>
-        <!-- 月月分红 Tab (with dropdown) -->
         <div class="main-nav-item" data-tab="pageMonthly">
           💰 月月分红<span class="arrow">▼</span>
           <div class="dropdown">
@@ -536,7 +576,6 @@
             <button class="dropdown-item" data-sub="fundList">📈 指数基金</button>
           </div>
         </div>
-        <!-- 知识专区 Tab -->
         <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
       </nav>
       <div class="nav-right"></div>
@@ -574,6 +613,7 @@
       <nav class="main-nav">
         <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
         <div class="main-nav-item" data-tab="pageWeekly">📰 食息周报</div>
+        <div class="main-nav-item" data-tab="pageBlog">📝 博客</div>
         <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
         <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
         <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
@@ -615,6 +655,7 @@
       <nav class="main-nav">
         <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
         <div class="main-nav-item" data-tab="pageWeekly">📰 食息周报</div>
+        <div class="main-nav-item" data-tab="pageBlog">📝 博客</div>
         <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
         <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
         <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
@@ -660,6 +701,7 @@
       <nav class="main-nav">
         <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
         <div class="main-nav-item" data-tab="pageWeekly">📰 食息周报</div>
+        <div class="main-nav-item" data-tab="pageBlog">📝 博客</div>
         <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
         <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
         <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
@@ -688,6 +730,31 @@
           <div class="detail-info-row"><span class="label">年度分红总额（亿元）</span><span class="value" id="monthlyFundDetailDivTotal"></span></div>
           <div class="detail-info-row"><span class="label">每月千元收益需总投入（万元）</span><span class="value" id="monthlyFundDetailInvest"></span></div>
         </div>
+      </div>
+    </div>
+  <!-- ===== Blog Detail Overlay ===== -->
+  <div class="index-detail-page" id="blogDetail">
+    <header class="top-bar">
+      <div class="brand" id="blogDetailBack" style="cursor:pointer">
+        <div class="brand-icon">‹</div>
+        <div class="brand-text">
+          <span class="brand-name">文章详情</span>
+          <span class="brand-subtitle">点击返回</span>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <div class="main-nav-item" data-tab="pageData">📊 食息数据</div>
+        <div class="main-nav-item" data-tab="pageWeekly">📰 食息周报</div>
+        <div class="main-nav-item" data-tab="pageBlog">📝 博客</div>
+        <div class="main-nav-item" data-tab="pageIndex">📈 红利指数</div>
+        <div class="main-nav-item" data-tab="pageMonthly">💰 月月分红</div>
+        <div class="main-nav-item" data-tab="pageKnowledge">📖 知识专区</div>
+      </nav>
+      <div class="nav-right"></div>
+    </header>
+    <div class="detail-body">
+      <div class="detail-main-card">
+        <div id="blogDetailContent"></div>
       </div>
     </div>
   </div>
@@ -1634,8 +1701,120 @@ document.getElementById('detailChartRange').addEventListener('change',function()
 
 window.addEventListener('resize',function(){if(document.getElementById('indexDetail').classList.contains('open')&&currentDetailChartData.length){drawDetailChart(currentDetailChartData);}});
 
+// ===== BLOG =====
+// Simple markdown-to-HTML for basic formatting
+function mdToHtml(md) {
+  var h = md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/!\[(.+?)\]\((.+?)\)/g,'<img src="$2" alt="$1" style="max-width:100%">')
+    .replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\n{2,}/g,'</p><p>')
+    .replace(/\n/g,'<br>');
+  // Wrap consecutive <li> in <ul>
+  h = h.replace(/((?:<li>.*?<\/li><br>?)+)/g,'<ul>$1</ul>');
+  h = h.replace(/<\/ul><br><ul>/g,'');
+  // Wrap <blockquote><br> to </blockquote><p>
+  return '<p>'+h+'</p>'
+    .replace(/<p><blockquote>/g,'<blockquote>')
+    .replace(/<\/blockquote><br><\/p>/g,'</blockquote>')
+    .replace(/<p><\/p>/g,'')
+    .replace(/<br><\/p>/g,'</p>')
+    .replace(/<p><br>/g,'<p>');
+}
+
+// Parse YAML frontmatter from markdown text
+function parseFrontmatter(text) {
+  var m = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!m) return { meta: {}, body: text };
+  var meta = {}, body = m[2];
+  (m[1]+'\n').split('\n').forEach(function(line){
+    var kv = line.match(/^(\w+):\s*(.+)$/);
+    if (kv) {
+      var v = kv[2].trim();
+      if (v.startsWith('[') && v.endsWith(']')) {
+        try { v = JSON.parse(v.replace(/'/g,'"')); } catch(e) { v = [v.slice(1,-1)]; }
+      }
+      meta[kv[1]] = v;
+    }
+  });
+  return { meta: meta, body: body.trim() };
+}
+
+var blogPosts = [];
+
+// Fetch blog index on load
+fetch('/blog/posts.json').then(function(r){
+  if (!r.ok) throw new Error('No posts');
+  return r.json();
+}).then(function(data){
+  blogPosts = data.posts || data;
+  renderBlogList();
+}).catch(function(){
+  renderBlogList();
+});
+
+function renderBlogList() {
+  var c = document.getElementById('blogList');
+  if (!blogPosts.length) {
+    c.innerHTML = '<div class="blog-empty"><span class="icon">📝</span>还没有博客文章<br><span style="font-size:12px;color:#b0b0b8">第一篇即将到来</span></div><div class="blog-admin-link" onclick="window.open(\'/admin\',\'_blank\')">📋 管理后台</div>';
+    return;
+  }
+  var html = '';
+  blogPosts.slice().reverse().forEach(function(post){
+    var tags = (post.tags||[]).map(function(t){return '<span class="tag">'+t+'</span>';}).join('');
+    html += '<div class="blog-card" data-slug="'+post.slug+'">'+
+      '<div class="title">'+post.title+'</div>'+
+      '<div class="meta">'+post.date+'</div>'+
+      '<div class="tags">'+tags+'</div>'+
+      (post.excerpt ? '<div class="excerpt">'+post.excerpt+'</div>' : '')+
+      '<div class="read-more">阅读全文 →</div></div>';
+  });
+  html += '<div class="blog-admin-link" onclick="window.open(\'/admin\',\'_blank\')">📋 管理后台</div>';
+  c.innerHTML = html;
+  c.querySelectorAll('.blog-card').forEach(function(card){
+    card.addEventListener('click',function(){
+      var slug = this.dataset.slug;
+      showBlogDetail(slug);
+    });
+  });
+}
+
+function showBlogDetail(slug) {
+  fetch('/blog/'+slug+'.md').then(function(r){
+    if (!r.ok) throw new Error('Not found');
+    return r.text();
+  }).then(function(text){
+    var fm = parseFrontmatter(text);
+    var title = fm.meta.title || slug;
+    var date = fm.meta.date || '';
+    var tags = (Array.isArray(fm.meta.tags) ? fm.meta.tags : []).map(function(t){return '<span class="tag">'+t+'</span>';}).join('');
+    var bodyHtml = mdToHtml(fm.body);
+    document.getElementById('blogDetailContent').innerHTML =
+      '<div class="blog-detail-title">'+title+'</div>'+
+      '<div class="blog-detail-meta">'+date+'</div>'+
+      '<div class="blog-detail-tags">'+tags+'</div>'+
+      '<div class="blog-detail-body">'+bodyHtml+'</div>';
+    document.getElementById('blogDetail').classList.add('open');
+  }).catch(function(){
+    showToast('文章加载失败');
+  });
+}
+
+document.getElementById('blogDetailBack').addEventListener('click',function(){
+  document.getElementById('blogDetail').classList.remove('open');
+});
+
 // ===== INIT =====
- renderAssetTable();renderIndices();renderKnowledge();renderFavorites();renderHkEtf();renderCnEtf();renderMonthlyEtf();renderMonthlyFund();renderWeekly();
+ renderAssetTable();renderIndices();renderKnowledge();renderFavorites();renderHkEtf();renderCnEtf();renderMonthlyEtf();renderMonthlyFund();renderWeekly();renderBlogList();
 </script>
 </body>
 </html>

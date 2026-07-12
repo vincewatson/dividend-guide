@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "name": "dividend-guide",
+  "version": "1.0.0",
+  "description": "食息指南 — 低利率时代的理财之道",
+  "scripts": {
+    "dev": "echo 'Static site — no build required'"
+  }
+}
