@@ -1771,7 +1771,7 @@ function renderBlogList() {
   var html = '';
   blogPosts.slice().reverse().forEach(function(post){
     var tags = (post.tags||[]).map(function(t){return '<span class="tag">'+t+'</span>';}).join('');
-    html += '<div class="blog-card" data-slug="'+post.slug+'" onclick="showBlogDetail(\''+post.slug+'\')">'+
+    html += '<div class="blog-card" data-slug="'+post.slug+'">'+
       '<div class="title">'+post.title+'</div>'+
       '<div class="meta">'+post.date+'</div>'+
       '<div class="tags">'+tags+'</div>'+
@@ -1779,8 +1779,16 @@ function renderBlogList() {
       '<div class="read-more">阅读全文 →</div></div>';
   });
   c.innerHTML = html;
-  // 使用事件委托监听点击
 }
+
+// 事件委托：点击博客卡片
+document.addEventListener('click',function(e){
+  var card = e.target.closest('.blog-card');
+  if (card) {
+    var slug = card.getAttribute('data-slug');
+    if (slug) showBlogDetail(slug);
+  }
+});
 
 function showBlogDetail(slug) {
   fetch('/blog/'+slug+'.md').then(function(r){
