@@ -1055,6 +1055,84 @@ const cnEtfData = [
 // ===== STATE =====
 let favorites = JSON.parse(localStorage.getItem('shixi_favs') || '[]');
 
+// ===== DATA CENTER =====
+// 总数据中心 - 管理所有数据表及其与MCP金融数据工具的映射关系
+// 外部调用：SOLO 可通过 DataCenter.update('assetData', newArray) 推送数据自动刷新页面
+window.DataCenter = {
+  registry: {
+    assetData: {
+      label: '主流资产食息率', ref: function(){return assetData;},
+      needsUpdate: true, frequency: '每周', fields: 'type,name,yield,date,note,source'.split(','),
+      mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_ashare_finance_data'] },
+      reRender: function(){renderAssetTable();}
+    },
+    indexData: {
+      label: '红利指数浏览器', ref: function(){return indexData;},
+      needsUpdate: true, frequency: '交易日', fields: 'code,name,fullname,publisher,listedDate,market,components,currency,weight,fundCount,yield,yieldNum,yrChange,fullReturn'.split(','),
+      mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_index_block_finance_data'] },
+      reRender: function(){sortKey=null;renderIndices();}
+    },
+    cnEtfData: {
+      label: '境内红利ETF列表', ref: function(){return cnEtfData;},
+      needsUpdate: true, frequency: '每周', fields: 'code,name,trackCode,trackName,manager,listedDate,listedMarketDate,fee,feeNum,divCount,size'.split(','),
+      mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_fund_finance_data'] },
+      reRender: function(){cnSortKey=null;renderCnEtf();}
+    },
+    hkEtfData: {
+      label: '港交所红利ETF列表', ref: function(){return hkEtfData;},
+      needsUpdate: true, frequency: '每周', fields: 'code,name,fullname,connect,trackCode,trackName,manager,listedDate,fee,feeNum'.split(','),
+      mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_hk_finance_data'] },
+      reRender: function(){hkSortKey=null;renderHkEtf();}
+    },
+    etfData: {
+      label: '月月分红ETF', ref: function(){return etfData;},
+      needsUpdate: true, frequency: '交易日', fields: 'code,name,fundCompany,listedDate,fee,feeNum,totalDiv,annualDiv,annualDivAmt,monthlyDivAmt,price,cumDiv,trackCode,trackName,divTotalAmt,yield,yieldNum,taxRate,investMonthly'.split(','),
+      mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_fund_finance_data'] },
+      reRender: function(){monthlyEtfSortKey=null;renderMonthlyEtf();}
+    },
+    fundData: {
+      label: '月月分红指数基金', ref: function(){return fundData;},
+      needsUpdate: true, frequency: '交易日', fields: 'code,name,fundCompany,establishDate,fee,feeNum,annualDiv,annualDivAmt,monthlyDivAmt,nav,trackCode,trackName,fundSize,divTotalAmt,yield,yieldNum,taxRate,investMonthly'.split(','),
+      mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_fund_finance_data'] },
+      reRender: function(){monthlyFundSortKey=null;renderMonthlyFund();}
+    },
+    weeklyData: {
+      label: '食息周报', ref: function(){return weeklyData;},
+      needsUpdate: true, frequency: '每周日', fields: 'date,items'.split(','),
+      mcp: null,
+      reRender: function(){renderWeekly();}
+    },
+    knowledgeData: {
+      label: '知识专区', ref: function(){return knowledgeData;},
+      needsUpdate: false, frequency: null, fields: 'title,desc,tags,level'.split(','),
+      mcp: null,
+      reRender: function(){renderKnowledge();}
+    }
+  },
+  // 替换数据（供SOLO/MCP自动化调用）
+  update: function(tableName, newData) {
+    var table = this.registry[tableName];
+    if (!table) { console.error('[DataCenter] 未知表:', tableName); return false; }
+    var arr = table.ref();
+    arr.length = 0;
+    Array.prototype.push.apply(arr, newData);
+    table.lastUpdated = new Date().toISOString();
+    if (table.reRender) table.reRender();
+    console.log('[DataCenter] 已更新', tableName, newData.length, '条');
+    return true;
+  },
+  // 获取所有需要实时更新的表的概览
+  getUpdatableSummary: function() {
+    return Object.keys(this.registry).filter(function(k){return this.registry[k].needsUpdate;},this)
+      .map(function(k){var t=this.registry[k];return{name:k,label:t.label,count:t.ref().length,frequency:t.frequency,mcp:t.mcp?t.mcp.tools[0]:null};},this);
+  },
+  // 获取完整概览
+  getOverview: function() {
+    return Object.keys(this.registry).map(function(k){var t=this.registry[k];return{name:k,label:t.label,count:t.ref().length,needsUpdate:t.needsUpdate,frequency:t.frequency,fieldCount:t.fields.length};},this);
+  }
+};
+console.log('[DataCenter] 初始化完成，共 '+Object.keys(DataCenter.registry).length+' 个注册表');
+
 // ===== SORT STATE =====
 var sortKey = null;        // 'listedDate' | 'components' | 'yieldNum' | 'dailyChange' | 'yrChange'
 var sortDesc = false;
