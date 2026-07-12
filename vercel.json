@@ -1,14 +1,14 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/admin/config.yml", "destination": "/admin/config.yml" },
-    { "source": "/admin/index.html", "destination": "/admin/index.html" },
-    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/studio", "destination": "/studio/index.html" },
     { "source": "/blog/(.*)", "destination": "/blog/$1" },
     { "source": "/images/(.*)", "destination": "/images/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/oauth.js": { "maxDuration": 10 }
+    "api/studio/auth.js": { "maxDuration": 10 },
+    "api/studio/save.js": { "maxDuration": 30 },
+    "api/studio/delete.js": { "maxDuration": 30 }
   }
 }

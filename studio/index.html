@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>食息指南 · 内容管理</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+    background: #f4f2f7; color: #1c1c1e; font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* ===== Login ===== */
+  .login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #001AFF, #4A7CFF); }
+  .login-card { background: #fff; padding: 40px; width: 360px; }
+  .login-card h1 { font-size: 22px; font-weight: 700; color: #1c1c1e; margin-bottom: 4px; }
+  .login-card p { font-size: 13px; color: #8e8e93; margin-bottom: 24px; }
+  .login-card input { width: 100%; padding: 12px 14px; font-size: 15px; border: 1px solid #e0dde5; outline: none; margin-bottom: 14px; font-family: inherit; }
+  .login-card input:focus { border-color: #001AFF; }
+  .login-card button { width: 100%; padding: 12px; background: #001AFF; color: #fff; font-size: 15px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+  .login-card button:hover { background: #0000cc; }
+  .login-card .error { color: #d0312d; font-size: 12px; margin-top: 8px; display: none; }
+
+  /* ===== Dashboard ===== */
+  .dash-header { background: #fff; border-bottom: 1px solid rgba(0,0,0,0.06); padding: 0 28px; height: 56px; display: flex; align-items: center; gap: 16px; }
+  .dash-header .brand { font-size: 17px; font-weight: 700; color: #001AFF; }
+  .dash-header .nav { margin-left: auto; display: flex; gap: 8px; }
+  .dash-header .nav button { padding: 6px 16px; font-size: 13px; border: 1px solid #e0dde5; background: #fff; cursor: pointer; font-family: inherit; }
+  .dash-header .nav button:hover { background: #f8f7fc; }
+  .dash-header .nav button.active { background: #001AFF; color: #fff; border-color: #001AFF; }
+
+  .dash-body { max-width: 800px; margin: 0 auto; padding: 28px; }
+  .dash-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+  /* ===== Post List ===== */
+  .post-card { background: #fff; padding: 16px 20px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .post-card .info { flex: 1; }
+  .post-card .title { font-size: 14px; font-weight: 600; }
+  .post-card .meta { font-size: 11px; color: #8e8e93; margin-top: 4px; }
+  .post-card .actions { display: flex; gap: 8px; }
+  .post-card .actions button { padding: 4px 12px; font-size: 12px; border: 1px solid #e0dde5; background: #fff; cursor: pointer; font-family: inherit; }
+  .post-card .actions button:hover { background: #f8f7fc; }
+  .post-card .actions button.danger { color: #d0312d; border-color: #d0312d; }
+  .post-card .actions button.danger:hover { background: #fff5f5; }
+
+  /* ===== Editor ===== */
+  .editor-section { background: #fff; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .editor-section label { display: block; font-size: 12px; font-weight: 600; color: #8e8e93; margin-bottom: 4px; margin-top: 16px; }
+  .editor-section label:first-child { margin-top: 0; }
+  .editor-section input, .editor-section textarea { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid #e0dde5; outline: none; font-family: inherit; }
+  .editor-section input:focus, .editor-section textarea:focus { border-color: #001AFF; }
+  .editor-section textarea { min-height: 300px; resize: vertical; line-height: 1.8; }
+  .editor-section .row { display: flex; gap: 12px; }
+  .editor-section .row input { flex: 1; }
+  .editor-section .actions { display: flex; gap: 8px; margin-top: 16px; }
+  .editor-section .actions button { padding: 10px 24px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+  .editor-section .actions .primary { background: #001AFF; color: #fff; }
+  .editor-section .actions .primary:hover { background: #0000cc; }
+  .editor-section .actions .secondary { background: #f0f0f0; color: #1c1c1e; }
+  .editor-section .actions .secondary:hover { background: #e0dde5; }
+  .editor-section .toast { margin-top: 12px; padding: 10px 14px; display: none; font-size: 13px; }
+  .editor-section .toast.success { display: block; background: #d1fae5; color: #065f46; }
+  .editor-section .toast.error { display: block; background: #fee2e2; color: #991b1b; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: #8e8e93; }
+  .empty-state .icon { font-size: 40px; display: block; margin-bottom: 10px; }
+
+  @media (max-width: 767px) {
+    .dash-body { padding: 14px; }
+    .editor-section { padding: 16px; }
+    .login-card { width: 100%; margin: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Login Page -->
+<div class="page active" id="pageLogin">
+  <div class="login-page">
+    <div class="login-card">
+      <h1>🛤️ 食息之路</h1>
+      <p>内容管理系统 · 请输入密码</p>
+      <input type="password" id="loginPwd" placeholder="管理密码" onkeydown="if(event.key==='Enter')doLogin()">
+      <button onclick="doLogin()">登录</button>
+      <div class="error" id="loginError">密码错误</div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Page -->
+<div class="page" id="pageDash">
+  <div class="dash-header">
+    <span class="brand">🛤️ 食息之路 · 管理后台</span>
+    <div class="nav">
+      <button class="active" id="navList" onclick="showPanel('list')">📋 文章列表</button>
+      <button id="navNew" onclick="showPanel('editor')">✏️ 写文章</button>
+      <button onclick="doLogout()">🚪 退出</button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <!-- List Panel -->
+    <div class="panel active" id="panelList">
+      <div class="dash-title">📋 所有文章</div>
+      <div id="postList"></div>
+    </div>
+
+    <!-- Editor Panel -->
+    <div class="panel" id="panelEditor">
+      <div class="dash-title">✏️ <span id="editorTitle">写新文章</span></div>
+      <div class="editor-section">
+        <label>文章标题</label>
+        <input id="editSlug" type="hidden">
+        <input id="editTitle" placeholder="输入文章标题">
+        <label>标签（逗号分隔）</label>
+        <input id="editTags" placeholder="如：投资心得, 入门">
+        <label>摘要</label>
+        <input id="editExcerpt" placeholder="简短描述，显示在文章列表中">
+        <label>正文（Markdown 格式）</label>
+        <textarea id="editBody" placeholder="使用 Markdown 写正文..."></textarea>
+        <div class="actions">
+          <button class="primary" onclick="doSave()">💾 保存</button>
+          <button class="secondary" onclick="showPanel('list')">取消</button>
+        </div>
+        <div class="toast" id="saveToast"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== State =====
+var TOKEN = sessionStorage.getItem('studio_token') || '';
+var posts = [];
+var editingSlug = null;
+
+// ===== Login =====
+function doLogin() {
+  var pwd = document.getElementById('loginPwd').value;
+  fetch('/api/studio/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pwd })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    if (data.token) {
+      TOKEN = data.token;
+      sessionStorage.setItem('studio_token', TOKEN);
+      document.getElementById('pageLogin').classList.remove('active');
+      document.getElementById('pageDash').classList.add('active');
+      loadPosts();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }).catch(function(){
+    document.getElementById('loginError').style.display = 'block';
+  });
+}
+
+function doLogout() {
+  TOKEN = '';
+  sessionStorage.removeItem('studio_token');
+  document.getElementById('pageDash').classList.remove('active');
+  document.getElementById('pageLogin').classList.add('active');
+  document.getElementById('loginPwd').value = '';
+}
+
+// Auto-login if token exists
+if (TOKEN) {
+  document.getElementById('pageLogin').classList.remove('active');
+  document.getElementById('pageDash').classList.add('active');
+  loadPosts();
+}
+
+// ===== Panel =====
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  document.querySelectorAll('.dash-header .nav button').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('nav' + name.charAt(0).toUpperCase() + name.slice(1));
+  if (btn) btn.classList.add('active');
+  if (name === 'editor' && !editingSlug) {
+    document.getElementById('editorTitle').textContent = '写新文章';
+    clearEditor();
+  }
+}
+
+// ===== Load Posts =====
+function loadPosts() {
+  fetch('/api/studio/list', { headers: { 'X-Studio-Token': TOKEN } })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.error) { showToast(data.error, true); return; }
+      posts = data.posts || [];
+      renderPosts();
+    })
+    .catch(function(){ showToast('加载失败', true); });
+}
+
+function renderPosts() {
+  var c = document.getElementById('postList');
+  if (!posts.length) {
+    c.innerHTML = '<div class="empty-state"><span class="icon">📝</span>还没有文章<br><span style="font-size:12px;color:#b0b0b8">点击「写文章」开始创作</span></div>';
+    return;
+  }
+  var html = '';
+  posts.slice().reverse().forEach(function(p){
+    html += '<div class="post-card"><div class="info"><div class="title">'+p.title+'</div><div class="meta">'+p.date+' · '+(p.tags||[]).join(', ')+'</div></div><div class="actions"><button onclick="editPost(\''+p.slug+'\')">编辑</button><button class="danger" onclick="deletePost(\''+p.slug+'\',\''+p.title.replace(/'/g,"\\'")+'\')">删除</button></div></div>';
+  });
+  c.innerHTML = html;
+}
+
+// ===== Editor =====
+function clearEditor() {
+  editingSlug = null;
+  document.getElementById('editSlug').value = '';
+  document.getElementById('editTitle').value = '';
+  document.getElementById('editTags').value = '';
+  document.getElementById('editExcerpt').value = '';
+  document.getElementById('editBody').value = '';
+  document.getElementById('saveToast').className = 'toast';
+  document.getElementById('saveToast').style.display = 'none';
+}
+
+function editPost(slug) {
+  var p = posts.find(function(x){ return x.slug === slug; });
+  if (!p) return;
+  editingSlug = slug;
+  document.getElementById('editorTitle').textContent = '编辑：' + p.title;
+  document.getElementById('editSlug').value = slug;
+  document.getElementById('editTitle').value = p.title;
+  document.getElementById('editTags').value = (p.tags||[]).join(', ');
+  document.getElementById('editExcerpt').value = p.excerpt || '';
+  
+  // Load markdown body
+  fetch('/blog/'+slug+'.md').then(function(r){ return r.text(); }).then(function(text){
+    // Strip frontmatter
+    var body = text.replace(/^---[\s\S]*?---\n*/, '');
+    document.getElementById('editBody').value = body.trim();
+  }).catch(function(){
+    document.getElementById('editBody').value = '';
+  });
+  
+  showPanel('editor');
+}
+
+function generateSlug(title) {
+  var d = new Date();
+  var date = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  var slug = title.toLowerCase()
+    .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 50);
+  return date + '-' + slug;
+}
+
+function doSave() {
+  var title = document.getElementById('editTitle').value.trim();
+  var tagsStr = document.getElementById('editTags').value.trim();
+  var excerpt = document.getElementById('editExcerpt').value.trim();
+  var body = document.getElementById('editBody').value.trim();
+  var slug = editingSlug || generateSlug(title);
+  
+  if (!title || !body) {
+    showToast('请填写标题和正文', true);
+    return;
+  }
+  
+  var tags = tagsStr ? tagsStr.split(/[,，]/).map(function(t){ return t.trim(); }).filter(Boolean) : [];
+  
+  var btn = document.querySelector('.editor-section .actions .primary');
+  btn.textContent = '⏳ 保存中...';
+  btn.disabled = true;
+  
+  fetch('/api/studio/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Studio-Token': TOKEN },
+    body: JSON.stringify({ slug: slug, title: title, tags: tags, excerpt: excerpt, body: body })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    if (data.success) {
+      showToast('✅ 保存成功！Vercel 将自动部署', false);
+      editingSlug = slug;
+      loadPosts();
+    } else {
+      showToast('❌ ' + (data.error || '保存失败'), true);
+    }
+  }).catch(function(){
+    showToast('❌ 网络错误', true);
+  }).finally(function(){
+    btn.textContent = '💾 保存';
+    btn.disabled = false;
+  });
+}
+
+function deletePost(slug, title) {
+  if (!confirm('确定删除《' + title + '》？')) return;
+  fetch('/api/studio/delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Studio-Token': TOKEN },
+    body: JSON.stringify({ slug: slug })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    if (data.success) {
+      showToast('✅ 已删除', false);
+      if (editingSlug === slug) { editingSlug = null; clearEditor(); }
+      loadPosts();
+    } else {
+      showToast('❌ ' + (data.error || '删除失败'), true);
+    }
+  });
+}
+
+function showToast(msg, isError) {
+  var el = document.getElementById('saveToast');
+  el.textContent = msg;
+  el.className = 'toast ' + (isError ? 'error' : 'success');
+  el.style.display = 'block';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(function(){ el.style.display = 'none'; }, 4000);
+}
+</script>
+</body>
+</html>
