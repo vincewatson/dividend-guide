@@ -1807,12 +1807,7 @@ function renderBlogList() {
       '<div class="read-more">阅读全文 →</div></div>';
   });
   c.innerHTML = html;
-  c.querySelectorAll('.blog-card').forEach(function(card){
-    card.addEventListener('click',function(){
-      var slug = this.dataset.slug;
-      showBlogDetail(slug);
-    });
-  });
+  // 使用事件委托监听点击
 }
 
 function showBlogDetail(slug) {
@@ -1846,6 +1841,15 @@ document.getElementById('blogDetailBack').addEventListener('click',function(){
 });
 document.getElementById('blogDetailBackBtn').addEventListener('click',function(){
   document.getElementById('blogDetail').classList.remove('open');
+});
+
+// 事件委托：博客卡片点击
+document.getElementById('blogList').addEventListener('click', function(e){
+  var card = e.target.closest('.blog-card');
+  if (card) {
+    var slug = card.dataset.slug;
+    if (slug) showBlogDetail(slug);
+  }
 });
 
 // ===== INIT =====
