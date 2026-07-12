@@ -10,41 +10,83 @@
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
       background: #f4f2f7;
     }
-    /* 登录页自定义背景 */
-    .cms-login-wrapper {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #001AFF 0%, #4A7CFF 100%);
-    }
-    .cms-login-card {
-      background: #fff;
-      padding: 40px 48px;
-      max-width: 400px;
-      width: 100%;
-      text-align: center;
-    }
-    .cms-login-card .logo {
-      font-size: 40px;
-      font-weight: 700;
-      color: #001AFF;
-      margin-bottom: 8px;
-    }
-    .cms-login-card h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1c1c1e;
-      margin-bottom: 4px;
-    }
-    .cms-login-card p {
-      font-size: 13px;
-      color: #8e8e93;
-      margin-bottom: 24px;
-    }
   </style>
 </head>
 <body>
+  <script>
+  window.CMS_MANUAL_INIT = true;
+
+  window.CMS_CONFIG = {
+    backend: {
+      name: "github",
+      repo: "vincewatson/dividend-guide",
+      branch: "main",
+      base_url: "https://dividend-guide.cn",
+      auth_endpoint: "api/oauth"
+    },
+    media_folder: "images/uploads",
+    public_folder: "/images/uploads",
+    collections: [
+      {
+        name: "blog",
+        label: "博客文章",
+        label_singular: "文章",
+        folder: "blog",
+        create: true,
+        delete: true,
+        format: "frontmatter",
+        slug: "{{year}}-{{month}}-{{day}}-{{slug}}",
+        preview_path: "blog/{{slug}}",
+        editor: { preview: false },
+        fields: [
+          { label: "标题", name: "title", widget: "string" },
+          { label: "发布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD" },
+          { label: "标签", name: "tags", widget: "list", allow_add: true, hint: "如：食息周报、投资心得、知识科普" },
+          { label: "摘要", name: "excerpt", widget: "text", hint: "列表页显示的简短描述", required: false },
+          { label: "正文", name: "body", widget: "markdown" }
+        ]
+      },
+      {
+        name: "blogIndex",
+        label: "博客索引",
+        delete: false,
+        format: "json",
+        files: [
+          {
+            name: "posts",
+            label: "文章列表",
+            file: "blog/posts.json",
+            fields: [
+              {
+                label: "文章列表",
+                name: "posts",
+                widget: "list",
+                fields: [
+                  { label: "链接标识", name: "slug", widget: "string", hint: "对应 .md 文件的文件名（不含 .md）" },
+                  { label: "标题", name: "title", widget: "string" },
+                  { label: "发布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD" },
+                  { label: "标签", name: "tags", widget: "list" },
+                  { label: "摘要", name: "excerpt", widget: "text" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  </script>
   <script src="https://unpkg.com/decap-cms@^3/dist/decap-cms.js"></script>
+  <script>
+  // Wait for CMS to be ready, then init with inline config
+  function tryInit() {
+    if (typeof CMS !== 'undefined' && CMS.init) {
+      CMS.init({ config: window.CMS_CONFIG });
+    } else {
+      setTimeout(tryInit, 200);
+    }
+  }
+  tryInit();
+  </script>
 </body>
 </html>

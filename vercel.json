@@ -1,8 +1,11 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" },
-    { "source": "/admin/:path*", "destination": "/admin/:path*" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/admin/config.yml", "destination": "/admin/config.yml" },
+    { "source": "/admin/index.html", "destination": "/admin/index.html" },
     { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/blog/(.*)", "destination": "/blog/$1" },
+    { "source": "/images/(.*)", "destination": "/images/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
