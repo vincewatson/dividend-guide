@@ -4,6 +4,7 @@
     { "source": "/studio", "destination": "/studio/index.html" },
     { "source": "/blog/(.*)", "destination": "/blog/$1" },
     { "source": "/images/(.*)", "destination": "/images/$1" },
+    { "source": "/v2/(.*)", "destination": "/v2/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
