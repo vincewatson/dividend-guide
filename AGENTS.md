@@ -14,6 +14,7 @@
 - 提交信息用 `feat:` / `fix:` / `docs:` 前缀 + 简述；版本类改动带上版本号（如 `v0.1.84`）。
 - 推送前确认 `.gitignore` 已排除敏感/大文件（`data/user/`、`user_upload/`、`*.xlsx`、`backup/`、`archive/`、`*.bak*`）。
 - 仓库为 **public**：禁止提交/推送用户原始数据与上传文件。
+- 推送凭据：GitHub 细粒度 PAT（仅本仓 `Contents: Read and write`）存于 `~/.config/dividend-guide/studio-credentials.txt`，且已写入 macOS 钥匙串（`host=github.com`）。若 push 报 `Invalid username or token`，从该文件取 `GITHUB_PAT` 重新写入钥匙串（`git credential-osxkeychain store`）或临时用 `git -c http.extraheader="Authorization: Basic <base64(x-access-token:PAT)>" push origin main`。
 
 ## 统一数据库 data_center（2026-09-24 确立）
 
