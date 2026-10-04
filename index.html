@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.87">
+<meta name="app-version" content="v0.1.88">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -61,7 +61,7 @@
     --th-bg: #ffffff;        /* 表头背景（2026-10-01 用户要求：由 #fafafa 改纯白） */
     --th-fg: #000000;        /* 表头默认文字 */
     --hl-lilac: rgba(70,128,253,0.05);   /* 浅紫 hover 底：顶部二级菜单 + 表头共用（2026-10-01 用户要求，较原 0.08 更淡）*/
-    --th-bg-hover: var(--hl-lilac);    /* 表头 hover = 顶部二级菜单 hover 同色浅紫（2026-10-01）*/
+    --th-bg-hover: #F6F9FF;    /* 表头 hover 底（**不透明**）= 二级菜单 hover 浅蓝 rgba(70,128,253,.05) 叠白后的实色；⚠ 2026-10-04 修复：原用半透明 rgba 作表头 hover → sticky 表头悬浮时下方数据行透出 */
     --th-line: var(--line-soft);   /* 表头与表体之间的分隔线：2026-10-03 用户要求由纯黑改与顶栏下沿同色（浅灰）*/
     --pad-row: 18px;   /* 内容框体/行 统一「上下」内边距（2026-10-03 用户要求）：列表项 / 内容卡 / 筛选面板一律 18px；footer 除外 */
     --pad-row-tb: 11px;  /* 表格行/表头「上下」内边距（2026-10-03 二次用户要求：行高缩 ~1/4，18→11）：仅 .index-table th/td 与首页 .asset-row/.asset-table-header 使用 */
@@ -270,10 +270,12 @@
      ⚠ 2026-10-03 用户要求：**仅本块**恢复到 11reader 对齐之前的效果——
      底色 #FBFBFE、外框 #E7E9FB、光晕 rgba(0,26,255,.07)/rgba(124,92,255,.08)、渐变 #FBFBFE→#F5F4FE、
      面板内文字回旧藏青 #1a2b45 / #8e8e93 / #4a5260（其余全站仍为 11reader 后的纯黑白调）。
-     背景：11reader 对齐时本块底色由偏蓝白被改为中性灰 #fafafa → 视觉发灰，故本块单独回退。 */
-  .reminder { position: relative; overflow: hidden; background: #FBFBFE; padding: 18px 20px; margin-bottom: 16px; border: 1px solid #E7E9FB; border-radius: var(--r-ctl); }  /* 2026-10-03 用户要求：仅本块恢复到 11reader 之前（偏蓝白底 + 浅蓝紫外框） */
-  /* 装饰层：两团极浅径向光晕（左上偏蓝 / 右下偏紫）+ 135° 渐变打底 */
-  .reminder::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(circle at 12% 0%, rgba(0,26,255,0.07), rgba(0,26,255,0) 42%), radial-gradient(circle at 88% 100%, rgba(124,92,255,0.08), rgba(124,92,255,0) 46%), linear-gradient(135deg, #FBFBFE 0%, #F5F4FE 100%); }
+     背景：11reader 对齐时本块底色由偏蓝白被改为中性灰 #fafafa → 视觉发灰，故本块单独回退。
+     ⚠ 2026-10-04 用户要求：紫色光晕不符合站点「蓝色为辅助色」的基调 → 改为**品牌蓝 #4680FD 双晕**（方案 A），
+     底色 #FBFCFE / 外框 #E3EBFC / 光晕均 rgba(70,128,253,…) / 渐变 #FBFCFE→#F0F5FF。 */
+  .reminder { position: relative; overflow: hidden; background: #FBFCFE; padding: 18px 20px; margin-bottom: 16px; border: 1px solid #E3EBFC; border-radius: var(--r-ctl); }  /* 2026-10-04：光晕紫→品牌蓝（方案 A） */
+  /* 装饰层：两团极浅径向光晕（左上 / 右下，均为品牌蓝）+ 135° 渐变打底 */
+  .reminder::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(circle at 12% 0%, rgba(70,128,253,0.11), rgba(70,128,253,0) 42%), radial-gradient(circle at 88% 100%, rgba(70,128,253,0.09), rgba(70,128,253,0) 46%), linear-gradient(135deg, #FBFCFE 0%, #F0F5FF 100%); }
   /* 内容层抬到装饰层之上 */
   .reminder > * { position: relative; z-index: 1; }
   /* 「食息提示」折叠面板（2026-09-20 用户要求）：标题左文案 + 右箭头，默认折叠

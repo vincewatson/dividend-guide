@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>首页 reminder · 浅蓝版候选（预览，未上线）</title>
+<style>
+  :root{
+    --ink:#1a2b45; --arrow:#8e8e93; --item:#4a5260;
+    --fs-base:14px; --fs-md:14px; --lh-body:1.6; --r-ctl:6px;
+    --brand:#4680FD;              /* 站点品牌蓝 */
+    --hover:rgba(70,128,253,0.05);/* 顶部二级菜单 hover 底（--hl-lilac） */
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:#f2f4f8;color:#1a2b45;
+       font-family:Arial,-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+       -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:22px;margin:0 0 6px;}
+  .lead{font-size:14px;color:#4a5260;line-height:1.7;margin:0 0 8px;}
+  .lead b{color:var(--brand);}
+  .note{font-size:12px;color:#8e8e93;margin:0 0 26px;}
+  .group{margin:0 0 30px;}
+  .group-h{font-size:15px;font-weight:700;margin:26px 0 12px;padding-left:10px;border-left:3px solid var(--brand);}
+  .group-h span{font-weight:400;font-size:12px;color:#8e8e93;margin-left:8px;}
+  .card{margin:0 0 22px;}
+  .card-h{display:flex;align-items:baseline;gap:10px;margin:0 0 8px;}
+  .card-h .name{font-size:14px;font-weight:700;}
+  .card-h .tag{font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;background:rgba(70,128,253,0.10);color:var(--brand);}
+  .swatches{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;}
+  .sw{display:flex;align-items:center;gap:5px;font-size:11px;color:#4a5260;}
+  .sw i{width:13px;height:13px;border-radius:3px;border:1px solid rgba(0,0,0,0.10);display:inline-block;}
+  .stage{background:#fff;border-radius:10px;padding:20px;}
+
+  /* ===== reminder 基类（与线上一致） ===== */
+  .reminder{position:relative;overflow:hidden;padding:18px 20px;border-radius:var(--r-ctl);}
+  .reminder::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;}
+  .reminder > *{position:relative;z-index:1;}
+  .intro-toggle{display:flex;justify-content:space-between;align-items:center;width:100%;
+    font:inherit;font-size:var(--fs-base);font-weight:700;color:var(--ink);background:none;border:none;
+    padding:0;margin:0;cursor:pointer;text-align:left;}
+  .intro-toggle .arrow{display:inline-flex;align-items:center;color:var(--arrow);transform:rotate(180deg);}
+  .intro-toggle .arrow svg{width:14px;height:14px;}
+  .intro-toggle{margin-bottom:12px;}
+  .intro-title{font-size:var(--fs-base);font-weight:700;color:var(--ink);margin-bottom:12px;}
+  .intro-item{font-size:var(--fs-md);line-height:var(--lh-body);color:var(--item);display:flex;gap:6px;align-items:flex-start;margin:0 0 4px;}
+  .intro-item b{flex:0 0 108px;}
+  .intro-icon{flex:0 0 auto;}
+
+  /* ===== 候选配色 ===== */
+  /* 0 · 现状（紫晕，仅供参考，不替换） */
+  .v-cur{background:#FBFBFE;border:1px solid #E7E9FB;}
+  .v-cur::before{background:
+    radial-gradient(circle at 12% 0%, rgba(0,26,255,0.07), rgba(0,26,255,0) 42%),
+    radial-gradient(circle at 88% 100%, rgba(124,92,255,0.08), rgba(124,92,255,0) 46%),
+    linear-gradient(135deg,#FBFBFE 0%,#F5F4FE 100%);}
+  /* A1 双晕·品牌蓝 */
+  .v-a1{background:#FBFCFE;border:1px solid #E3EBFC;}
+  .v-a1::before{background:
+    radial-gradient(circle at 12% 0%, rgba(70,128,253,0.11), rgba(70,128,253,0) 42%),
+    radial-gradient(circle at 88% 100%, rgba(70,128,253,0.09), rgba(70,128,253,0) 46%),
+    linear-gradient(135deg,#FBFCFE 0%,#F0F5FF 100%);}
+  /* A2 单晕·淡蓝 */
+  .v-a2{background:#FCFDFF;border:1px solid #E6EDFB;}
+  .v-a2::before{background:
+    radial-gradient(circle at 12% 0%, rgba(70,128,253,0.08), rgba(70,128,253,0) 48%),
+    linear-gradient(135deg,#FCFDFF 0%,#F5F8FF 100%);}
+  /* A3 hover 同色·极淡 */
+  .v-a3{background:#FDFDFF;border:1px solid #EAEFFB;}
+  .v-a3::before{background:
+    radial-gradient(circle at 14% -6%, rgba(70,128,253,0.06), rgba(70,128,253,0) 55%),
+    linear-gradient(180deg,#FDFDFF 0%,#F8FAFF 100%);}
+  /* B1 双晕·天青蓝 */
+  .v-b1{background:#FBFDFF;border:1px solid #D9EEFE;}
+  .v-b1::before{background:
+    radial-gradient(circle at 12% 0%, rgba(74,167,242,0.15), rgba(74,167,242,0) 44%),
+    radial-gradient(circle at 88% 100%, rgba(120,205,255,0.16), rgba(120,205,255,0) 48%),
+    linear-gradient(135deg,#FBFDFF 0%,#E9F7FF 100%);}
+  /* B2 单晕·天青蓝 */
+  .v-b2{background:#FCFEFF;border:1px solid #E0F0FE;}
+  .v-b2::before{background:
+    radial-gradient(circle at 12% 0%, rgba(74,167,242,0.11), rgba(74,167,242,0) 50%),
+    linear-gradient(135deg,#FCFEFF 0%,#EFF9FF 100%);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>首页 reminder · 浅蓝版候选</h1>
+  <p class="lead">保留原版结构（左上/右下双光晕 + 135° 底渐变），把 <b>紫色光晕</b> 换成两种浅蓝：<b>品牌蓝系</b>（#4680FD，与顶部二级菜单 hover 同源）与 <b>天青蓝系</b>（#4AA7F2，更清透偏青）。参考基准：二级菜单 hover 底 = <b>rgba(70,128,253,0.05)</b>。</p>
+  <p class="note">仅预览，未改动 index.html、未部署。默认折叠态较矮不易看光晕，此处统一按「展开」展示以便比较。</p>
+
+  <div class="group">
+    <div class="group-h">现状（紫晕）<span>对比用 · 不替换</span></div>
+    <div class="card">
+      <div class="card-h"><span class="name">当前线上版本</span></div>
+      <div class="stage"><div class="reminder v-cur">
+        <button class="intro-toggle" type="button"><span>💡 食息提示：适合普通人的几种常见生息资产</span><span class="arrow"><svg viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.5" d="M6 9l6 6 6-6"/></svg></span></button>
+        <div class="intro-list">
+          <div class="intro-item"><span class="intro-icon">📄</span><b>股票 → 股息</b>股票的分红，可通过【高息股】或【红利类ETF】获得，目前很多基金设有【月月可分红】条款</div>
+          <div class="intro-item"><span class="intro-icon">🏦</span><b>债券 → 债息</b>债券的票息，可通过【债券型基金】和【国债】获得</div>
+          <div class="intro-item"><span class="intro-icon">🏗️</span><b>REITs → 分红</b>不动产项目运作产生的现金流，REITs在场内交易（需开证券公司账户）</div>
+          <div class="intro-item"><span class="intro-icon">🛡️</span><b>保险 → 分红</b>可通过【年金险】或【增额寿】等险种获得</div>
+          <div class="intro-item"><span class="intro-icon">💵</span><b>现金 → 现金收益</b>可通过【货币基金】或者【存款】【大额存单】获得</div>
+          <div class="intro-item"><span class="intro-icon">📋</span><b>其他</b>比如【房屋租金】、【美元货币基金】，以及【带有定期支付条款的金融产品】等等</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-h">方案 A · 品牌蓝系 #4680FD<span>与二级菜单 hover 同源</span></div>
+
+    <div class="card">
+      <div class="card-h"><span class="tag">A1</span><span class="name">双晕 · 品牌蓝</span></div>
+      <div class="swatches">
+        <span class="sw"><i style="background:#FBFCFE"></i>底 #FBFCFE</span>
+        <span class="sw"><i style="background:#E3EBFC"></i>框 #E3EBFC</span>
+        <span class="sw"><i style="background:rgba(70,128,253,0.11)"></i>左上 rgba(70,128,253,.11)</span>
+        <span class="sw"><i style="background:rgba(70,128,253,0.09)"></i>右下 rgba(70,128,253,.09)</span>
+        <span class="sw"><i style="background:#F0F5FF"></i>渐变 #FBFCFE→#F0F5FF</span>
+      </div>
+      <div class="stage"><div class="reminder v-a1">
+        <button class="intro-toggle" type="button"><span>💡 食息提示：适合普通人的几种常见生息资产</span><span class="arrow"><svg viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.5" d="M6 9l6 6 6-6"/></svg></span></button>
+        <div class="intro-list">
+          <div class="intro-item"><span class="intro-icon">📄</span><b>股票 → 股息</b>股票的分红，可通过【高息股】或【红利类ETF】获得，目前很多基金设有【月月可分红】条款</div>
+          <div class="intro-item"><span class="intro-icon">🏦</span><b>债券 → 债息</b>债券的票息，可通过【债券型基金】和【国债】获得</div>
+          <div class="intro-item"><span class="intro-icon">🏗️</span><b>REITs → 分红</b>不动产项目运作产生的现金流，REITs在场内交易（需开证券公司账户）</div>
+          <div class="intro-item"><span class="intro-icon">🛡️</span><b>保险 → 分红</b>可通过【年金险】或【增额寿】等险种获得</div>
+          <div class="intro-item"><span class="intro-icon">💵</span><b>现金 → 现金收益</b>可通过【货币基金】或者【存款】【大额存单】获得</div>
+          <div class="intro-item"><span class="intro-icon">📋</span><b>其他</b>比如【房屋租金】、【美元货币基金】，以及【带有定期支付条款的金融产品】等等</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="tag">A2</span><span class="name">单晕 · 淡蓝</span></div>
+      <div class="swatches">
+        <span class="sw"><i style="background:#FCFDFF"></i>底 #FCFDFF</span>
+        <span class="sw"><i style="background:#E6EDFB"></i>框 #E6EDFB</span>
+        <span class="sw"><i style="background:rgba(70,128,253,0.08)"></i>左上 rgba(70,128,253,.08)</span>
+        <span class="sw"><i style="background:#F5F8FF"></i>渐变 →#F5F8FF</span>
+      </div>
+      <div class="stage"><div class="reminder v-a2">
+        <button class="intro-toggle" type="button"><span>💡 食息提示：适合普通人的几种常见生息资产</span><span class="arrow"><svg viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.5" d="M6 9l6 6 6-6"/></svg></span></button>
+        <div class="intro-list">
+          <div class="intro-item"><span class="intro-icon">📄</span><b>股票 → 股息</b>股票的分红，可通过【高息股】或【红利类ETF】获得，目前很多基金设有【月月可分红】条款</div>
+          <div class="intro-item"><span class="intro-icon">🏦</span><b>债券 → 债息</b>债券的票息，可通过【债券型基金】和【国债】获得</div>
+          <div class="intro-item"><span class="intro-icon">🏗️</span><b>REITs → 分红</b>不动产项目运作产生的现金流，REITs在场内交易（需开证券公司账户）</div>
+          <div class="intro-item"><span class="intro-icon">🛡️</span><b>保险 → 分红</b>可通过【年金险】或【增额寿】等险种获得</div>
+          <div class="intro-item"><span class="intro-icon">💵</span><b>现金 → 现金收益</b>可通过【货币基金】或者【存款】【大额存单】获得</div>
+          <div class="intro-item"><span class="intro-icon">📋</span><b>其他</b>比如【房屋租金】、【美元货币基金】，以及【带有定期支付条款的金融产品】等等</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="tag">A3</span><span class="name">hover 同色 · 极淡</span></div>
+      <div class="swatches">
+        <span class="sw"><i style="background:#FDFDFF"></i>底 #FDFDFF</span>
+        <span class="sw"><i style="background:#EAEFFB"></i>框 #EAEFFB</span>
+        <span class="sw"><i style="background:rgba(70,128,253,0.06)"></i>左上 rgba(70,128,253,.06)</span>
+        <span class="sw"><i style="background:#F8FAFF"></i>渐变 →#F8FAFF</span>
+      </div>
+      <div class="stage"><div class="reminder v-a3">
+        <button class="intro-toggle" type="button"><span>💡 食息提示：适合普通人的几种常见生息资产</span><span class="arrow"><svg viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.5" d="M6 9l6 6 6-6"/></svg></span></button>
+        <div class="intro-list">
+          <div class="intro-item"><span class="intro-icon">📄</span><b>股票 → 股息</b>股票的分红，可通过【高息股】或【红利类ETF】获得，目前很多基金设有【月月可分红】条款</div>
+          <div class="intro-item"><span class="intro-icon">🏦</span><b>债券 → 债息</b>债券的票息，可通过【债券型基金】和【国债】获得</div>
+          <div class="intro-item"><span class="intro-icon">🏗️</span><b>REITs → 分红</b>不动产项目运作产生的现金流，REITs在场内交易（需开证券公司账户）</div>
+          <div class="intro-item"><span class="intro-icon">🛡️</span><b>保险 → 分红</b>可通过【年金险】或【增额寿】等险种获得</div>
+          <div class="intro-item"><span class="intro-icon">💵</span><b>现金 → 现金收益</b>可通过【货币基金】或者【存款】【大额存单】获得</div>
+          <div class="intro-item"><span class="intro-icon">📋</span><b>其他</b>比如【房屋租金】、【美元货币基金】，以及【带有定期支付条款的金融产品】等等</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-h">方案 B · 天青蓝系 #4AA7F2<span>更清透、略偏青</span></div>
+
+    <div class="card">
+      <div class="card-h"><span class="tag">B1</span><span class="name">双晕 · 天青蓝</span></div>
+      <div class="swatches">
+        <span class="sw"><i style="background:#FBFDFF"></i>底 #FBFDFF</span>
+        <span class="sw"><i style="background:#D9EEFE"></i>框 #D9EEFE</span>
+        <span class="sw"><i style="background:rgba(74,167,242,0.15)"></i>左上 rgba(74,167,242,.15)</span>
+        <span class="sw"><i style="background:rgba(120,205,255,0.16)"></i>右下 rgba(120,205,255,.16)</span>
+        <span class="sw"><i style="background:#E9F7FF"></i>渐变 →#E9F7FF</span>
+      </div>
+      <div class="stage"><div class="reminder v-b1">
+        <button class="intro-toggle" type="button"><span>💡 食息提示：适合普通人的几种常见生息资产</span><span class="arrow"><svg viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.5" d="M6 9l6 6 6-6"/></svg></span></button>
+        <div class="intro-list">
+          <div class="intro-item"><span class="intro-icon">📄</span><b>股票 → 股息</b>股票的分红，可通过【高息股】或【红利类ETF】获得，目前很多基金设有【月月可分红】条款</div>
+          <div class="intro-item"><span class="intro-icon">🏦</span><b>债券 → 债息</b>债券的票息，可通过【债券型基金】和【国债】获得</div>
+          <div class="intro-item"><span class="intro-icon">🏗️</span><b>REITs → 分红</b>不动产项目运作产生的现金流，REITs在场内交易（需开证券公司账户）</div>
+          <div class="intro-item"><span class="intro-icon">🛡️</span><b>保险 → 分红</b>可通过【年金险】或【增额寿】等险种获得</div>
+          <div class="intro-item"><span class="intro-icon">💵</span><b>现金 → 现金收益</b>可通过【货币基金】或者【存款】【大额存单】获得</div>
+          <div class="intro-item"><span class="intro-icon">📋</span><b>其他</b>比如【房屋租金】、【美元货币基金】，以及【带有定期支付条款的金融产品】等等</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="tag">B2</span><span class="name">单晕 · 天青蓝</span></div>
+      <div class="swatches">
+        <span class="sw"><i style="background:#FCFEFF"></i>底 #FCFEFF</span>
+        <span class="sw"><i style="background:#E0F0FE"></i>框 #E0F0FE</span>
+        <span class="sw"><i style="background:rgba(74,167,242,0.11)"></i>左上 rgba(74,167,242,.11)</span>
+        <span class="sw"><i style="background:#EFF9FF"></i>渐变 →#EFF9FF</span>
+      </div>
+      <div class="stage"><div class="reminder v-b2">
+        <button class="intro-toggle" type="button"><span>💡 食息提示：适合普通人的几种常见生息资产</span><span class="arrow"><svg viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.5" d="M6 9l6 6 6-6"/></svg></span></button>
+        <div class="intro-list">
+          <div class="intro-item"><span class="intro-icon">📄</span><b>股票 → 股息</b>股票的分红，可通过【高息股】或【红利类ETF】获得，目前很多基金设有【月月可分红】条款</div>
+          <div class="intro-item"><span class="intro-icon">🏦</span><b>债券 → 债息</b>债券的票息，可通过【债券型基金】和【国债】获得</div>
+          <div class="intro-item"><span class="intro-icon">🏗️</span><b>REITs → 分红</b>不动产项目运作产生的现金流，REITs在场内交易（需开证券公司账户）</div>
+          <div class="intro-item"><span class="intro-icon">🛡️</span><b>保险 → 分红</b>可通过【年金险】或【增额寿】等险种获得</div>
+          <div class="intro-item"><span class="intro-icon">💵</span><b>现金 → 现金收益</b>可通过【货币基金】或者【存款】【大额存单】获得</div>
+          <div class="intro-item"><span class="intro-icon">📋</span><b>其他</b>比如【房屋租金】、【美元货币基金】，以及【带有定期支付条款的金融产品】等等</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <p class="note">选定后我再把该方案替换进 index.html 的 .reminder 规则并部署；在此之前不动线上。</p>
+</div>
+</body>
+</html>
