@@ -1,0 +1,14 @@
+# Cloudflare Pages 响应头（2026-10-03 从 vercel.json 迁移）
+# 与 Vercel 版保持一致：HTML 不缓存、blog/data 走协商缓存
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/blog/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/data/*
+  Cache-Control: public, max-age=0, must-revalidate

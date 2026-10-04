@@ -7,7 +7,7 @@
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+    font-family: Arial, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
     background: #f4f2f7; color: #1c1c1e; font-size: 14px; line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -284,7 +284,7 @@ function doSave() {
     body: JSON.stringify({ slug: slug, title: title, tags: tags, excerpt: excerpt, body: body })
   }).then(function(r){ return r.json(); }).then(function(data){
     if (data.success) {
-      showToast('✅ 保存成功！Vercel 将自动部署', false);
+      showToast('✅ 保存成功！文章已提交到 GitHub', false);
       editingSlug = slug;
       loadPosts();
     } else {

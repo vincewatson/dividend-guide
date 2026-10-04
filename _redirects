@@ -1,0 +1,6 @@
+# Cloudflare Pages 路由规则（2026-10-03 从 vercel.json 迁移）
+# 说明：本项目为 hash 路由 SPA，静态资源（index.html / mobile.* / data/* / blog/* / favicon*）
+#       由 Pages 直接命中，无需 SPA 兜底；仅 /studio 目录索引显式声明。
+
+/studio     /studio/index.html   200
+/studio/    /studio/index.html   200

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>移动端筛选器原型 · 食息指南</title>
+<!--
+  食息指南 · 移动端筛选器改版「原型」（2026-10-03）
+  目的：把「红利指数浏览器」页面的移动端筛选器，从「常驻展开」改为「漏斗按钮 + 底部弹出面板」。
+  参考：豆瓣 App 的筛选器（折叠态只留漏斗图标；展开态为底部面板：区块标题 + 胶囊标签 + 固定取消/确定）。
+  说明：① 纯静态原型，未上线、未接入站点；② 数据取自 data/indexData.json 的 49 条真实指数；
+        ③ 顶部「原型」小条可切换 新版 / 旧版 对照，正式上线时该小条与本文件都会移除。
+-->
+<style>
+  :root{
+    --blue:#4680FD;
+    --ink:#000;
+    --ink2:#404040;
+    --gray:#767676;
+    --gray2:#949494;
+    --line:rgba(0,0,0,0.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:Arial,-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
+    color:#000;background:#F5F5F5;font-size:14px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:#fff;position:relative;box-shadow:0 0 24px rgba(0,0,0,.06)}
+
+  /* ---------- 原型专属小条（正式上线删除） ---------- */
+  .proto-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#FBFBFE;border-bottom:1px solid var(--line);font-size:12px;color:var(--gray);position:sticky;top:0;z-index:30}
+  .proto-tag{background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:2px 6px;letter-spacing:.04em}
+  .seg{display:flex;margin-left:auto}
+  .seg-btn{border:1px solid var(--line);background:#fff;color:#525252;font-size:12px;padding:5px 10px;cursor:pointer;font-family:inherit}
+  .seg-btn+.seg-btn{border-left:0}
+  .seg-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+
+  /* ---------- 顶栏 ---------- */
+  .topbar{height:49px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--line);background:#fff}
+  .brand{font-size:14px;font-weight:700;color:#000}
+
+  /* ---------- 内容 ---------- */
+  .page{padding:18px 14px 60px}
+  .section-title{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0 0 6px}
+  .section-sub{font-size:13px;color:var(--gray);margin-bottom:12px}
+
+  /* 工具栏：左计数 + 右「漏斗 + 筛选器」 */
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0 12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+  .tb-count{font-size:13px;color:var(--gray)}
+  .tb-count b{color:#000;font-weight:700}
+  .filter-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;color:#525252;
+    font-size:14px;font-weight:600;padding:7px 12px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+  .filter-btn svg{width:16px;height:16px;display:block}
+  .filter-btn.active{border-color:var(--blue);color:var(--blue)}
+  .filter-btn .badge{display:none;min-width:16px;height:16px;padding:0 4px;background:var(--blue);color:#fff;font-size:11px;
+    font-weight:700;line-height:16px;text-align:center}
+  .filter-btn.active .badge{display:inline-block}
+
+  /* ---------- 列表 ---------- */
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .row .n{font-size:14px;color:#000}
+  .row .c{font-size:12px;color:var(--gray2);margin-top:2px}
+  .row .y{font-size:14px;font-weight:700;color:#000;text-align:right}
+  .row .d{font-size:12px;margin-top:2px;text-align:right}
+  .up{color:#DC2626}.down{color:#059661}.flat{color:var(--gray2)}
+  .empty{padding:48px 0;text-align:center;color:var(--gray2)}
+
+  /* ---------- 旧版：常驻展开（站点现状，移动端） ---------- */
+  .old-tagbar{display:none;padding:18px 0;margin-bottom:10px;background:#fff}
+  body.mode-old .old-tagbar{display:block}
+  body.mode-old .toolbar{display:none}
+  .old-row{display:flex;align-items:center;gap:10px;padding:5px 0}
+  .old-group{display:flex;align-items:center;width:72px;min-width:72px;flex-shrink:0;white-space:nowrap;
+    font-size:14px;color:var(--gray);font-weight:600}
+  .old-scroll{display:flex;flex-wrap:nowrap;align-items:center;gap:10px;overflow-x:auto;scrollbar-width:none;
+    flex:1;min-width:0;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .old-scroll::-webkit-scrollbar{display:none}
+  .old-tag{flex-shrink:0;white-space:nowrap;min-height:36px;display:inline-flex;align-items:center;
+    border:1px solid var(--line);background:#fff;color:#525252;font-size:14px;padding:4px 12px;
+    cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+  .old-tag.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+  .old-reset{border:0;background:none;color:var(--gray);font-size:14px;cursor:pointer;padding:4px 2px;
+    font-family:inherit;min-height:36px}
+
+  /* ---------- 新版：底部弹出面板 ---------- */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;visibility:hidden;transition:opacity .25s ease;z-index:40}
+  .mask.open{opacity:1;visibility:visible}
+  .sheet{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:480px;background:#fff;z-index:50;
+    transform:translateY(101%);transition:transform .28s cubic-bezier(.22,.61,.36,1);
+    display:flex;flex-direction:column;max-height:86vh;box-shadow:0 -8px 30px rgba(0,0,0,.12)}
+  .sheet.open{transform:translateY(0)}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 6px}
+  .sheet-head h2{margin:0;font-size:16px;font-weight:700}
+  .sheet-close{border:0;background:none;font-size:18px;line-height:1;color:var(--gray);cursor:pointer;padding:4px 2px;font-family:inherit}
+  .sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px 16px 10px}
+  .fgroup{padding:14px 0}
+  .fgroup+.fgroup{border-top:1px solid var(--line)}
+  .fgroup-title{font-size:15px;font-weight:600;color:#000;margin:0 0 10px}
+  .fchips{display:flex;flex-wrap:wrap;gap:10px}
+  .fchip{border:1px solid var(--line);background:#fff;color:#525252;font-size:14px;font-family:inherit;
+    padding:5px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .fchip i{font-style:normal;font-size:11px;color:var(--gray2);margin-left:5px}
+  .fchip.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+  .fchip.active i{color:rgba(255,255,255,.85)}
+  .sheet-foot{display:flex;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .sheet-foot button{flex:1;height:52px;border:0;background:#fff;font-size:15px;font-family:inherit;cursor:pointer}
+  .sf-cancel{color:#525252}
+  .sf-ok{color:var(--blue);font-weight:700;border-left:1px solid var(--line)}
+</style>
+</head>
+<body class="mode-new">
+<div class="wrap">
+
+  <div class="proto-bar">
+    <span class="proto-tag">原型</span>
+    <span>移动端筛选器 · 未上线</span>
+    <div class="seg">
+      <button class="seg-btn active" data-mode="new">漏斗式（新）</button>
+      <button class="seg-btn" data-mode="old">常驻展开（旧）</button>
+    </div>
+  </div>
+
+  <div class="topbar"><span class="brand">食息指南</span></div>
+
+  <div class="page">
+    <div class="section-title">红利指数浏览器</div>
+    <div class="section-sub" id="subInfo">共 49 只红利指数</div>
+
+    <!-- 新版：计数 + 漏斗筛选器按钮 -->
+    <div class="toolbar">
+      <div class="tb-count" id="countText"></div>
+      <button class="filter-btn" id="filterBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        <span>筛选器</span>
+        <span class="badge" id="filterBadge">0</span>
+      </button>
+    </div>
+
+    <!-- 旧版：常驻展开的筛选器（站点现状） -->
+    <div class="old-tagbar" id="oldTagbar"></div>
+
+    <div id="list"></div>
+  </div>
+</div>
+
+<!-- 新版：底部弹出面板 -->
+<div class="mask" id="mask"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="筛选">
+  <div class="sheet-head">
+    <h2>筛选</h2>
+    <button class="sheet-close" id="sheetClose" type="button">✕</button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+  <div class="sheet-foot">
+    <button class="sf-cancel" id="btnCancel" type="button">取消</button>
+    <button class="sf-ok" id="btnOk" type="button">确定</button>
+  </div>
+</div>
+
+<script>
+/* ===== 真实数据（取自 data/indexData.json，49 条）===== */
+var ROWS = [{"code":"932584.CSI","name":"智选港股通红利低波","fullname":"中证智选港股通红利低波动策略指数","publisher":"中证指数","market":"港股","adjustCycle":"一年","yield":"6.11%","dailyChange":0.007},{"code":"932422.CSI","name":"A500红利低波","fullname":"中证A500红利低波动指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"4.13%","dailyChange":0.0108},{"code":"932305.CSI","name":"智选高股息","fullname":"中证智选高股息策略指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"6.23%","dailyChange":0.0118},{"code":"932315.CSI","name":"中证红利质量","fullname":"中证全指红利质量指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"3.92%","dailyChange":0.0068},{"code":"931848.CSI","name":"800红利低波","fullname":"中证800红利低波动指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"4.11%","dailyChange":0.0114},{"code":"989016.CNI","name":"红利价值","fullname":"新华中诚信红利价值指数","publisher":"新华指数, 中诚信指数","market":"沪深","adjustCycle":"季度","yield":"4.54%","dailyChange":0.0097},{"code":"931722.CSI","name":"国新港股通央企红利","fullname":"中证国新港股通央企红利指数","publisher":"中证指数","market":"港股","adjustCycle":"一年","yield":"5.78%","dailyChange":0.0033},{"code":"HSSCSOY.HI","name":"恒生港股通中国央企红利","fullname":"恒生港股通中国央企红利指数","publisher":"恒生指数","market":"港股","adjustCycle":"一年","yield":"5.10%","dailyChange":0.0062},{"code":"931231.CSI","name":"央企红利50","fullname":"中证央企红利50指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"3.90%","dailyChange":0.0073},{"code":"931132.CSI","name":"诚通央企红利","fullname":"中证诚通央企红利指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"3.98%","dailyChange":0.0078},{"code":"932039.CSI","name":"央企股东回报","fullname":"中证国新央企股东回报指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"4.05%","dailyChange":0.0069},{"code":"995128.SSI","name":"沪深港红利50","fullname":"华证沪深港红利50指数","publisher":"华证指数","market":"沪港深","adjustCycle":"季度","yield":"6.04%","dailyChange":0.0109},{"code":"995127.SSI","name":"沪港深红利100","fullname":"华证沪港深红利100指数","publisher":"华证指数","market":"沪港深","adjustCycle":"季度","yield":"5.61%","dailyChange":0.0116},{"code":"995082.SSI","name":"龙头红利50","fullname":"华证龙头红利50指数","publisher":"华证指数","market":"沪深","adjustCycle":"季度","yield":"4.85%","dailyChange":0.0094},{"code":"987016.CNI","name":"港股通红利低波","fullname":"国证港股通红利低波动率指数","publisher":"国证指数","market":"港股","adjustCycle":"半年","yield":"5.11%","dailyChange":0.0066},{"code":"931468.CSI","name":"红利质量","fullname":"中证红利质量指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"3.15%","dailyChange":0.0106},{"code":"931446.CSI","name":"东证红利低波","fullname":"中证东方红红利低波动指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"4.17%","dailyChange":0.0109},{"code":"HSSCHKY.HI","name":"恒生港股通高股息率","fullname":"恒生港股通高股息率指数","publisher":"恒生指数","market":"港股","adjustCycle":"半年","yield":"5.27%","dailyChange":0.0057},{"code":"HSMCHYI.HI","name":"恒生中国内地企业高股息率","fullname":"恒生中国内地企业高股息率指数","publisher":"恒生指数","market":"港股","adjustCycle":"半年","yield":"5.12%","dailyChange":0.0051},{"code":"CESFHY.CSI","name":"中华预期高股息","fullname":"中华交易服务预期高股息指数","publisher":"中华交易服务","market":"港股","adjustCycle":"半年","yield":"6.85%","dailyChange":0.0071},{"code":"931157.CSI","name":"SHS红利成长LV","fullname":"中证沪港深红利成长低波动指数","publisher":"中证指数","market":"沪港深","adjustCycle":"半年","yield":"4.53%","dailyChange":0.0096},{"code":"SPCLLHCP.SPI","name":"标普中国A股大盘红利低波50","fullname":"标普中国A股大盘红利低波50指数","publisher":"标普道琼斯","market":"沪深","adjustCycle":"半年","yield":"4.30%","dailyChange":0.0096},{"code":"930740.CSI","name":"300红利低波","fullname":"沪深300红利低波动指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"4.35%","dailyChange":0.0098},{"code":"SPCADMCP.SPI","name":"标普中国A股红利100","fullname":"标普中国A股红利100指数","publisher":"标普道琼斯","market":"沪深","adjustCycle":"半年","yield":"","dailyChange":null},{"code":"931233.CSI","name":"港股通央企红利","fullname":"中证港股通央企红利指数","publisher":"中证指数","market":"港股","adjustCycle":"一年","yield":"5.19%","dailyChange":0.0062},{"code":"930955.CSI","name":"红利低波100","fullname":"中证红利低波动100指数","publisher":"中证指数","market":"沪深","adjustCycle":"季度","yield":"4.41%","dailyChange":0.0111},{"code":"HSHYLV.HI","name":"恒生港股通高股息低波动","fullname":"恒生港股通高股息低波动指数","publisher":"恒生指数","market":"港股","adjustCycle":"半年","yield":"6.02%","dailyChange":0.0083},{"code":"SPAHLVCP.SPI","name":"标普港股通低波红利指数","fullname":"标普港股通低波红利指数","publisher":"标普道琼斯","market":"港股","adjustCycle":"半年","yield":"5.38%","dailyChange":0.0057},{"code":"930917.CSI","name":"SHS高股息(CNY)","fullname":"中证沪港深高股息指数(人民币)","publisher":"中证指数","market":"沪港深","adjustCycle":"一年","yield":"5.11%","dailyChange":0.0097},{"code":"930914.CSI","name":"港股通高股息(HKD)","fullname":"中证港股通高股息投资指数(HKD)","publisher":"中证指数","market":"港股","adjustCycle":"一年","yield":"5.01%","dailyChange":0.0068},{"code":"930839.CSI","name":"港股通高息精选","fullname":"中证港股通高股息精选指数(HKD)","publisher":"中证指数","market":"港股","adjustCycle":"一年","yield":"5.95%","dailyChange":0.009},{"code":"930792.CSI","name":"HK银行(HKD)","fullname":"中证香港银行投资指数(港币)","publisher":"中证指数","market":"港股","adjustCycle":"半年","yield":"4.11%","dailyChange":0.0074},{"code":"H30366.CSI","name":"高息策略","fullname":"中证高股息策略指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"4.69%","dailyChange":0.007},{"code":"H50040.CSI","name":"上红低波","fullname":"上证红利低波动指数","publisher":"中证指数","market":"沪市","adjustCycle":"一年","yield":"4.23%","dailyChange":0.0143},{"code":"H30270.CSI","name":"红利价值","fullname":"中证红利价值指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"4.32%","dailyChange":0.0141},{"code":"H30269.CSI","name":"红利低波","fullname":"中证红利低波动指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"4.39%","dailyChange":0.0141},{"code":"399986.SZ","name":"中证银行","fullname":"中证银行指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"4.13%","dailyChange":0.0152},{"code":"H30089.CSI","name":"红利潜力","fullname":"中证红利潜力指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"4.01%","dailyChange":0.0107},{"code":"H30094.CSI","name":"消费红利","fullname":"中证主要消费红利指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"4.55%","dailyChange":0.0211},{"code":"000151.SH","name":"上国红利","fullname":"上证国有企业红利指数","publisher":"中证指数","market":"沪市","adjustCycle":"一年","yield":"4.17%","dailyChange":0.012},{"code":"000824.CSI","name":"中证国企红利","fullname":"中证国有企业红利指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"4.20%","dailyChange":0.0111},{"code":"000821.CSI","name":"沪深300红利","fullname":"沪深300红利指数","publisher":"中证指数","market":"沪深","adjustCycle":"半年","yield":"4.40%","dailyChange":0.0102},{"code":"000825.CSI","name":"中证央企红利","fullname":"中证中央企业红利指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"3.99%","dailyChange":0.0092},{"code":"H11140.CSI","name":"香港红利","fullname":"中证香港红利指数","publisher":"中证指数","market":"港股","adjustCycle":"一年","yield":"5.47%","dailyChange":0.0068},{"code":"CSPSADRP.CI","name":"标普A股红利","fullname":"标普中国A股红利机会指数","publisher":"标普道琼斯","market":"沪深","adjustCycle":"半年","yield":"5.24%","dailyChange":0.009},{"code":"000922.CSI","name":"中证红利","fullname":"中证红利指数","publisher":"中证指数","market":"沪深","adjustCycle":"一年","yield":"4.28%","dailyChange":0.0119},{"code":"399324.SZ","name":"深证红利","fullname":"深证红利指数","publisher":"国证指数","market":"深市","adjustCycle":"半年","yield":"3.89%","dailyChange":0.0062},{"code":"000015.SH","name":"红利指数","fullname":"上证红利指数","publisher":"中证指数","market":"沪市","adjustCycle":"一年","yield":"4.05%","dailyChange":0.0113},{"code":"HSHDYI.HI","name":"恒生高股息率","fullname":"恒生高股息率指数","publisher":"恒生指数有限公司","market":"港股","adjustCycle":"一年","yield":"5.53%","dailyChange":0.008}];
+
+/* ===== 筛选分组定义（与站点 index.html 的 INDEX_*_TAGS 完全一致）===== */
+var GROUPS = [
+  { key:'theme', label:'主题', field:'fullname', tags:[
+    { id:'dividend', label:'纯红利',   test:function(fn){ return /红利|股息|高息/.test(fn) && !/低波|低波动|质量|价值|潜力|成长|策略|精选|央企|中央企业|国企|国有企业/.test(fn); } },
+    { id:'lowvol',   label:'红利低波', test:function(fn){ return /低波/.test(fn); } },
+    { id:'quality',  label:'红利质量', test:function(fn){ return /质量/.test(fn); } },
+    { id:'value',    label:'红利价值', test:function(fn){ return /价值/.test(fn); } },
+    { id:'central',  label:'央国企',   test:function(fn){ return /央企|中央企业|国企|国有企业/.test(fn); } },
+    { id:'bank',     label:'银行',     test:function(fn){ return /银行/.test(fn); } }
+  ]},
+  { key:'market', label:'市场', field:'market', tags:[
+    { id:'a',    label:'A股',   test:function(m){ return m === '沪深' || m === '沪市' || m === '深市'; } },
+    { id:'hk',   label:'港股',   test:function(m){ return m === '港股'; } },
+    { id:'hkhs', label:'沪港深', test:function(m){ return m === '沪港深'; } }
+  ]},
+  { key:'adjust', label:'调仓频率', field:'adjustCycle', tags:[
+    { id:'quarter', label:'季度', test:function(a){ return a === '季度'; } },
+    { id:'half',    label:'半年', test:function(a){ return a === '半年'; } },
+    { id:'year',    label:'一年', test:function(a){ return a === '一年'; } }
+  ]},
+  { key:'publisher', label:'指数公司', field:'publisher', tags:[
+    { id:'sp',      label:'标普道琼斯',   test:function(p){ return /标普/.test(p); } },
+    { id:'csi',     label:'中证指数',     test:function(p){ return /中证/.test(p); } },
+    { id:'cnindex', label:'国证指数',     test:function(p){ return /国证/.test(p); } },
+    { id:'hsi',     label:'恒生指数',     test:function(p){ return /恒生/.test(p); } },
+    { id:'cninfo',  label:'华证指数',     test:function(p){ return /华证/.test(p); } },
+    { id:'xinhua',  label:'新华指数',     test:function(p){ return /新华/.test(p); } },
+    { id:'ccx',     label:'中诚信指数',   test:function(p){ return /中诚信/.test(p); } },
+    { id:'ctcs',    label:'中华交易服务', test:function(p){ return /中华交易/.test(p); } }
+  ]}
+];
+
+/* ===== 状态 ===== */
+var state = { theme:'', market:'', adjust:'', publisher:'' };   // 已生效
+var draft = null;                                               // 面板内草稿
+
+var $ = function(id){ return document.getElementById(id); };
+var countText = $('countText'), filterBadge = $('filterBadge'), filterBtn = $('filterBtn');
+var listEl = $('list'), oldTagbar = $('oldTagbar');
+var sheet = $('sheet'), mask = $('mask'), sheetBody = $('sheetBody');
+
+function groupOf(k){ for (var i=0;i<GROUPS.length;i++) if (GROUPS[i].key===k) return GROUPS[i]; return null; }
+function tagOf(k,t){ var g=groupOf(k); if(!g) return null; for (var i=0;i<g.tags.length;i++) if (g.tags[i].id===t) return g.tags[i]; return null; }
+function rowMatch(r,k,t){ var g=groupOf(k), tg=tagOf(k,t); if(!g||!tg) return false; return !!tg.test(r[g.field]); }
+
+/* sel 下、忽略 exceptKey 组，r 是否通过 */
+function passes(r, sel, exceptKey){
+  for (var i=0;i<GROUPS.length;i++){
+    var g=GROUPS[i];
+    if (exceptKey && g.key===exceptKey) continue;
+    var s=sel[g.key];
+    if (!s) continue;
+    if (!rowMatch(r, g.key, s)) return false;
+  }
+  return true;
+}
+/* 某组某标签（t='' 表示「全部」）在当前草稿下的数量 */
+function countFor(sel, k, t){
+  var n=0;
+  for (var i=0;i<ROWS.length;i++){
+    var r=ROWS[i];
+    if (!passes(r, sel, k)) continue;
+    if (t && !rowMatch(r, k, t)) continue;
+    n++;
+  }
+  return n;
+}
+
+function fmtPct(v){
+  if (v===''||v===null||v===undefined||isNaN(v)) return '—';
+  var n=Number(v);
+  return (n>0?'+':'')+n.toFixed(2)+'%';
+}
+function rowHtml(r){
+  var dc=r.dailyChange;
+  var cls=(typeof dc==='number'&&dc>0)?'up':((typeof dc==='number'&&dc<0)?'down':'flat');
+  return '<div class="row">'
+    + '<div><div class="n">'+r.name+'</div><div class="c">'+r.code+' · '+r.market+'</div></div>'
+    + '<div><div class="y">'+(r.yield||'—')+'</div><div class="d '+cls+'">'+(dc==null?'—':fmtPct(dc))+'</div></div>'
+    + '</div>';
+}
+
+function activeCount(sel){ var n=0; for (var k in sel){ if (sel[k]) n++; } return n; }
+
+function render(){
+  var items=ROWS.filter(function(r){ return passes(r, state); });
+  countText.innerHTML = '共 <b>'+items.length+'</b> 只';
+  var n=activeCount(state);
+  filterBadge.textContent = n;
+  filterBtn.classList.toggle('active', n>0);
+  listEl.innerHTML = items.length ? items.map(rowHtml).join('') : '<div class="empty">没有符合条件的指数</div>';
+  if (document.body.classList.contains('mode-old')) renderOld();
+}
+
+/* ---------- 旧版：常驻展开 ---------- */
+function renderOld(){
+  var h='';
+  GROUPS.forEach(function(g){
+    h+='<div class="old-row"><span class="old-group">'+g.label+'</span><div class="old-scroll">';
+    g.tags.forEach(function(t){
+      var on = state[g.key]===t.id?' active':'';
+      h+='<button class="old-tag'+on+'" data-g="'+g.key+'" data-t="'+t.id+'">'+t.label+'</button>';
+    });
+    h+='</div></div>';
+  });
+  h+='<div class="old-row"><button class="old-reset" type="button" data-reset="1">✕ 清除筛选</button></div>';
+  oldTagbar.innerHTML=h;
+}
+oldTagbar.addEventListener('click', function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  if (b.dataset.reset){ state={theme:'',market:'',adjust:'',publisher:''}; render(); return; }
+  var k=b.dataset.g, t=b.dataset.t;
+  state[k] = (state[k]===t) ? '' : t;   /* 再点一次取消 */
+  render();
+});
+
+/* ---------- 新版：底部面板 ---------- */
+function renderSheet(){
+  var h='';
+  GROUPS.forEach(function(g){
+    h+='<div class="fgroup"><div class="fgroup-title">'+g.label+'</div><div class="fchips">';
+    h+='<button class="fchip'+(!draft[g.key]?' active':'')+'" data-g="'+g.key+'" data-t="">全部<i>'+countFor(draft,g.key,'')+'</i></button>';
+    g.tags.forEach(function(t){
+      var on = draft[g.key]===t.id?' active':'';
+      h+='<button class="fchip'+on+'" data-g="'+g.key+'" data-t="'+t.id+'">'+t.label+'<i>'+countFor(draft,g.key,t.id)+'</i></button>';
+    });
+    h+='</div></div>';
+  });
+  sheetBody.innerHTML=h;
+}
+sheetBody.addEventListener('click', function(e){
+  var b=e.target.closest('.fchip'); if(!b) return;
+  var k=b.dataset.g, t=b.dataset.t;
+  draft[k] = (draft[k]===t) ? '' : t;   /* 单选；点「全部」或再点已选项 = 取消该组 */
+  renderSheet();
+});
+
+function openSheet(){
+  draft = { theme:state.theme, market:state.market, adjust:state.adjust, publisher:state.publisher };
+  renderSheet();
+  mask.classList.add('open'); sheet.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeSheet(){
+  mask.classList.remove('open'); sheet.classList.remove('open');
+  document.body.style.overflow='';
+}
+filterBtn.addEventListener('click', openSheet);
+$('sheetClose').addEventListener('click', closeSheet);
+$('btnCancel').addEventListener('click', closeSheet);
+mask.addEventListener('click', closeSheet);
+$('btnOk').addEventListener('click', function(){
+  state = { theme:draft.theme, market:draft.market, adjust:draft.adjust, publisher:draft.publisher };
+  closeSheet(); render();
+});
+
+/* ---------- 新版 / 旧版 切换 ---------- */
+document.querySelector('.seg').addEventListener('click', function(e){
+  var b=e.target.closest('.seg-btn'); if(!b) return;
+  document.querySelectorAll('.seg-btn').forEach(function(x){ x.classList.toggle('active', x===b); });
+  var mode=b.dataset.mode;
+  document.body.classList.toggle('mode-old', mode==='old');
+  document.body.classList.toggle('mode-new', mode==='new');
+  render();
+});
+
+/* ---------- 初始 ---------- */
+render();
+</script>
+</body>
+</html>

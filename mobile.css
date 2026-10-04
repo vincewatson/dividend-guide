@@ -1,0 +1,623 @@
+/* ============================================================
+   食息指南 · 移动端适配（2026-08-17）
+   ------------------------------------------------------------
+   原则：
+   1. 桌面端（≥768px）零影响——手机规则全部包在 max-width:767px 内，
+      平板（768–1024px）仅微调字号/padding，保持表格布局。
+   2. 不修改 HTML 结构与 JS 逻辑；排序下拉框由 mobile.js 动态注入。
+   3. 触屏体验：36px 触控区、无 hover 残留、安全区适配。
+   ============================================================ */
+
+/* ============ 平板区间 768–1024px：保留表格，防拥挤 ============ */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .page { padding: 16px; }
+  .main-nav { margin: 0 12px; }
+  .main-nav-item { padding: 0 12px; font-size: 14px; }
+  .index-table th { padding: var(--pad-row-tb) 10px; font-size: var(--fs-sm); }   /* 单元格左右 inset 10px（2026-10-03）；上下用表格专用 token */
+  .index-table td { padding: var(--pad-row-tb) 10px; font-size: var(--fs-xs); white-space: normal; }
+  .index-table .col-name { min-width: 72px; }
+  .index-table .col-code { font-size: var(--fs-xs); }
+  .index-table th:first-child, .index-table td:first-child { padding-left: 10px; }
+  .asset-table-header { font-size: var(--fs-xs); }
+  .asset-table-header, .asset-row { gap: 2px; padding-left: 10px; padding-right: 10px; }
+  .asset-row { font-size: var(--fs-sm); }
+  .detail-body { padding: var(--topbar-h, 64px) 10px 0; }
+  .detail-footer { margin: 32px -10px 0; width: calc(100% + 20px); }  /* 与平板区间 detail-body 10px padding 匹配，footer 正好铺满（2026-09-20 修正原 -28px 残留导致的 18px 溢出）；margin-top 2026-10-03 二次：16->32（与上方卡片间距） */
+  #pageWeekly .df-day { padding-left: 12px; padding-right: 12px; }
+  #pageWeekly .df-toolbar { padding-left: 0; padding-right: 0; }
+}
+
+/* ============ 手机端（≤767px）：全部适配 ============ */
+@media (max-width: 767px) {
+
+  /* ---- 触控基础 ---- */
+  * { -webkit-tap-highlight-color: transparent; }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+  .page { padding: 12px; }
+
+  /* ---- 1. 顶部导航：汉堡菜单（默认折叠，2026-08-17 用户要求）---- */
+  .top-bar {
+    padding-top: env(safe-area-inset-top);
+    height: auto;
+    min-height: 60px;   /* 2026-10-04 用户要求：手机端页头 52 → 60px */
+  }
+  .mobile-hamburger {
+    display: inline-flex; flex-direction: column; justify-content: center;
+    gap: 4px; width: 40px; height: 40px; padding: 10px;
+    margin-left: auto; flex-shrink: 0;
+    background: none; border: none; cursor: pointer;
+  }
+  .mobile-hamburger .hb-bar {
+    display: block; height: 2px; background: #000000; border-radius: 1px;
+    transition: transform .2s, opacity .2s;
+  }
+  .mobile-hamburger.open .hb-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .mobile-hamburger.open .hb-bar:nth-child(2) { opacity: 0; }
+  .mobile-hamburger.open .hb-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    /* ===== 汉堡菜单：左侧滑出抽屉（2026-08-17 用户最终要求）
+     左侧抽屉(280px) + 背景遮罩变暗 + 内容左对齐横向文字 + 子层级右侧 > 箭头 ===== */
+  .m-nav-mask {
+    position: fixed; inset: 0; z-index: 990;
+    background: rgba(15, 18, 32, 0.45);
+    opacity: 0; visibility: hidden;
+    transition: opacity .3s ease, visibility .3s;
+  }
+  .m-nav-mask.show { opacity: 1; visibility: visible; }
+
+  .m-nav-drawer {
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; right: 0;   /* left+right=0 → 全屏宽（2026-10-04 用户要求：从左到右全屏，替换原 220px 半屏抽屉）*/
+    width: auto;
+    max-width: none;
+    height: auto;                                  /* 高度=内容：下沿不再贴屏幕底部（2026-10-04 用户要求）*/
+    max-height: 100vh; max-height: 100dvh;         /* 仅当内容超过一屏时才封顶、抽屉整体滚动 */
+    margin: 0; padding: 0;
+    background: rgba(255,255,255,0.80);   /* 2026-10-04 用户要求：菜单 80% 不透明度（半透明） */
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);   /* 与 web 版 .top-bar 同款毛玻璃，保证半透明下文字清晰 */
+    border-bottom: 1px solid var(--line-soft);   /* 2026-10-04 用户要求：菜单下沿加一条与 web 版（.top-bar 下沿）一致的浅灰分隔符 */
+    z-index: 1000;
+    overflow-y: auto;
+    overflow-x: hidden;            /* 2026-10-04：禁止横向滑动。根因——隐藏的二级层 .m-nav-sub(translateX(100%))
+                                     绝对定位在 left:390..780，会把本抽屉的可滚动宽度撑到 2×屏宽（780 vs 390），
+                                     导致在一/二级菜单上左右滑动时整层跟着平移。锁死横向溢出。*/
+    touch-action: pan-y;           /* 仅放行纵向手势；横向滑动手势不再触发滚动/平移 */
+    align-items: stretch;          /* 覆盖主样式 .main-nav align-items:center：列表撑满抽屉宽（2026-08-17） */
+    transform: translateX(100%);   /* 右侧滑出抽屉（2026-08-17 用户要求） */
+    visibility: hidden;
+    transition: transform .35s ease, visibility .35s;
+  }
+  .m-nav-drawer.menu-open { transform: translateX(0); visibility: visible; }
+
+  /* 顶部：logo 左对齐 + 右上 ✕；底部一条浅灰分隔线（2026-10-04 用户要求：置于「食息指南」与首个菜单项「首页」之间，
+     样式与「食息资讯」的条目分隔线一致 = 1px solid var(--line-soft)） */
+  .m-nav-drawer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px; flex-shrink: 0;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .m-nav-drawer-header .m-drawer-logo { font-size: var(--fs-lg); font-weight: 600; color: #000000; white-space: nowrap; }
+  .m-nav-close {
+    width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer;
+    border-radius: 0; color: #000000;
+  }
+  .m-nav-close svg { width: 22px; height: 22px; }
+
+  /* 一级列表：从上往下、左对齐、横向单行、行高适度 */
+  .m-nav-list {
+    flex: 0 0 auto; overflow: visible;   /* 高度=内容（2026-10-04）：不再 flex:1 撑满抽屉；内容超高时由抽屉整体滚动 */
+    padding: 8px 0 16px;
+  }
+  .m-nav-list .main-nav-item {
+    display: flex; align-items: center;
+    width: 100%;            /* 全宽：与二级统一（2026-10-04：选中态已改为加粗+蓝字，无蓝底） */
+    height: 44px; padding: 0 16px;
+    gap: 0;                 /* 消除主样式 gap 6px：文字→箭头间距统一 8px（2026-08-17） */
+    font-size: 16px; font-weight: 400; color: #000000;   /* 选项字体 16px（2026-10-04 用户指定：15 → 16） */
+    white-space: nowrap;            /* 禁止单字竖排 / 换行 */
+    text-align: left;
+    background: none; border: none; border-radius: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;   /* Safari 点击蓝色高亮禁用（2026-08-17） */
+    -webkit-touch-callout: none;
+    outline: none;
+  }
+  .m-nav-list .main-nav-item:hover,
+  .m-nav-list .main-nav-item:active,
+  .m-nav-list .main-nav-item:focus { background: none; color: #000000; outline: none; }
+  .m-nav-list .main-nav-item.active { font-weight: 700; color: #4680FD; box-shadow: none; }   /* 2026-10-04 用户要求：选中=加粗+蓝字，不要蓝底白字（并去掉桌面遗留的蓝色下划线 box-shadow） */
+  /* 子层级：右侧 svg 右箭头（与二级返回的 svg 同款线条风格，2026-08-17） */
+  .m-nav-list .main-nav-item .m-nav-arrow {
+    margin-left: 0;          /* 不推右：箭头紧跟文字 8px（间距与二级统一，2026-08-17） */
+    padding-left: 8px;
+    display: inline-flex; align-items: center;
+    color: #737373;
+  }
+  .m-nav-list .main-nav-item .m-nav-arrow svg { width: 16px; height: 16px; }
+
+  /* 二级层：抽屉内覆盖（从右侧滑入第二层） */
+  .m-nav-sub {
+    position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+    background: #fff;
+    display: flex; flex-direction: column;
+    z-index: 5;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform .3s ease, visibility .3s;
+  }
+  .m-nav-sub.open { transform: translateX(0); visibility: visible; }
+  /* 二级页头：返回箭头悬挂在文字左侧，标题与子项文字统一左对齐（2026-08-17 用户要求） */
+  .m-nav-sub-header {
+    position: relative;
+    display: flex; align-items: center;
+    height: 60px; flex-shrink: 0;
+    padding: 0 32px;                 /* 文字列从 32px：箭头→文字间距 8px（2026-08-17 与一级统一） */
+  }
+  .m-nav-sub-back {
+    position: absolute; left: 8px; top: 10px;   /* 左侧留白 8px（2026-08-17 用户要求） */
+    width: 36px; height: 40px;
+    display: flex; align-items: center; justify-content: flex-start;   /* 箭头 8-24，悬挂在文字列左侧 */
+    background: none; border: none; cursor: pointer;
+    border-radius: 0; color: #737373;
+  }
+  .m-nav-sub-back svg { width: 16px; height: 16px; }
+  .m-nav-sub-title { font-size: var(--fs-lg); font-weight: 500; color: #000000; white-space: nowrap; }
+  .m-nav-sub-list { flex: 1; overflow-y: auto; padding: 8px 0 16px; }
+  .m-nav-sub .dropdown-item {
+    display: flex; align-items: center;
+    height: 44px; padding: 0 32px;   /* 与标题文字列对齐（2026-08-17） */
+    font-size: 16px; font-weight: 400; color: #000000;   /* 选项字体 16px（与一级一致，2026-10-04 用户指定：15 → 16） */
+    white-space: nowrap; text-align: left;
+    background: none; border: none; border-radius: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;   /* Safari 点击蓝色高亮禁用 */
+    -webkit-touch-callout: none;
+    outline: none;
+  }
+  .m-nav-sub .dropdown-item:hover,
+  .m-nav-sub .dropdown-item:active,
+  .m-nav-sub .dropdown-item:focus { background: none; color: #000000; outline: none; }
+  .m-nav-sub .dropdown-item.active { font-weight: 700; color: #4680FD; }   /* 2026-10-04 用户要求：选中=加粗+蓝字，不要蓝底白字 */
+
+  .m-nav-drawer .dropdown-item.active { font-weight: 700; color: #4680FD; }   /* 2026-10-04：同上，加粗+蓝字 */
+  .m-nav-drawer .main-nav-item:last-child { border-bottom: none; }
+  .m-nav-drawer .main-nav-item .arrow { display: none; }   /* 平铺展开后箭头无意义（2026-08-17） */
+  /* 二级选项：与一级样式完全一致（2026-08-17 用户要求：无背景/无符号/无 padding 容器感），选中主色蓝 */
+  .m-nav-drawer .dropdown {
+    position: static; top: auto; left: auto; right: auto;
+    display: block;
+    width: 100%; max-height: none; overflow: visible;
+    margin: 0; padding: 0; z-index: auto;
+    background: none; box-shadow: none; min-width: 0;
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  .m-nav-drawer .dropdown-item { border-bottom: none; }
+  .m-nav-drawer .dropdown-item::before { content: none; }   /* 无符号（参考 elevenreader） */
+
+  /* ---- 2. 排序下拉框（mobile.js 注入）---- */
+  .mobile-sort-select {
+    display: block; width: 100%;
+    margin: 0 0 10px; padding: 10px 30px 10px 12px;
+    font-size: var(--fs-base); color: #000000;
+    background: #fff; border: none; border-radius: 0;
+    -webkit-appearance: none; appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, #767676 50%),
+      linear-gradient(135deg, #767676 50%, transparent 50%);
+    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+    background-size: 5px 5px; background-repeat: no-repeat;
+  }
+
+  /* ---- 3. 通用卡片骨架（所有 .index-table 系列表）---- */
+  .index-table-wrap { overflow: visible; }
+  .index-table thead { display: none; }
+  .index-table tbody { display: block; }
+  .index-table tr {
+    display: block;
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--line-soft);
+    border-radius: 0;
+    padding: var(--pad-row) 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .index-table tr:last-child { margin-bottom: 0; }
+  .index-table td { display: inline; border: none; padding: 0; white-space: normal; }
+  .index-table .col-code { display: inline-block; font-size: var(--fs-xs); color: #767676; margin-right: 6px; }
+  .index-table .col-name { display: block; font-size: var(--fs-lg); font-weight: 700; color: #000000; padding-right: 64px; }
+
+  /* ---- 3a. 红利指数浏览器（9 列：代码/名称/日期/市场/成分/币种/股息率/当日/本年）---- */
+  #indexListContainer .index-table .col-yield {
+    position: absolute; top: 12px; right: 14px;
+    font-size: var(--fs-xl); font-weight: 700; color: #4680FD;
+  }
+  #indexListContainer .index-table td:nth-child(3),
+  #indexListContainer .index-table td:nth-child(4),
+  #indexListContainer .index-table td:nth-child(5),
+  #indexListContainer .index-table td:nth-child(6) {
+    display: inline-block; font-size: var(--fs-xs); color: #767676; margin-top: 4px;
+  }
+  #indexListContainer .index-table td:nth-child(3)::after,
+  #indexListContainer .index-table td:nth-child(4)::after,
+  #indexListContainer .index-table td:nth-child(5)::after {
+    content: "\00b7"; color: #dcdcdc; margin: 0 3px;
+  }
+  #indexListContainer .index-table .col-pct {
+    display: inline-block; margin: 6px 6px 0 0;
+    padding: 2px 8px; font-size: var(--fs-xs); font-weight: 600;
+    border-radius: 0;
+  }
+  #indexListContainer .index-table .col-pct.up   { background: #fee2e2; color: #dc2626; }
+  #indexListContainer .index-table .col-pct.down { background: #d1fae3; color: #059661; }
+  #indexListContainer .index-table .col-pct.na   { background: #f5f5f5; color: #949494; }
+
+  /* ---- 3b. 月月分红 ETF / 场外（7 列：代码/名称/跟踪/费率/年度/月均/最近分红）---- */
+  #monthlyEtfContainer .index-table .col-name,
+  #monthlyFundContainer .index-table .col-name { padding-right: 84px; }
+  #monthlyEtfContainer .index-table td:nth-child(6),
+  #monthlyFundContainer .index-table td:nth-child(6) {
+    position: absolute; top: 12px; right: 14px;
+    font-size: var(--fs-lg); font-weight: 700; color: #4680FD;
+  }
+  #monthlyEtfContainer .index-table td:nth-child(3),
+  #monthlyFundContainer .index-table td:nth-child(3) {
+    display: block; font-size: var(--fs-sm); color: #525252; margin-top: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #monthlyEtfContainer .index-table td:nth-child(4),
+  #monthlyFundContainer .index-table td:nth-child(4),
+  #monthlyEtfContainer .index-table td:nth-child(5),
+  #monthlyFundContainer .index-table td:nth-child(5),
+  #monthlyEtfContainer .index-table td:nth-child(7),
+  #monthlyFundContainer .index-table td:nth-child(7) {
+    display: inline-block; font-size: var(--fs-xs); color: #767676; margin-top: 4px;
+  }
+  #monthlyEtfContainer .index-table td:nth-child(4)::after,
+  #monthlyFundContainer .index-table td:nth-child(4)::after,
+  #monthlyEtfContainer .index-table td:nth-child(5)::after,
+  #monthlyFundContainer .index-table td:nth-child(5)::after {
+    content: "\00b7"; color: #dcdcdc; margin: 0 3px;
+  }
+  #monthlyEtfContainer .index-table td:nth-child(7),
+  #monthlyFundContainer .index-table td:nth-child(7) { color: #525252; }
+
+  /* ---- 3c. 境内 / 港交所红利 ETF（5 列：代码/名称/跟踪/成立日/费率）---- */
+  #cnEtfListContainer .index-table .col-name,
+  #hketfListContainer .index-table .col-name { padding-right: 0; }
+  #cnEtfListContainer .index-table td:nth-child(3),
+  #hketfListContainer .index-table td:nth-child(3) {
+    display: block; font-size: var(--fs-sm); color: #525252; margin-top: 4px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #cnEtfListContainer .index-table td:nth-child(4),
+  #cnEtfListContainer .index-table td:nth-child(5),
+  #hketfListContainer .index-table td:nth-child(4),
+  #hketfListContainer .index-table td:nth-child(5) {
+    display: inline-block; font-size: var(--fs-xs); color: #767676; margin-top: 4px;
+  }
+  #cnEtfListContainer .index-table td:nth-child(4)::after,
+  #hketfListContainer .index-table td:nth-child(4)::after {
+    content: "\00b7"; color: #dcdcdc; margin: 0 3px;
+  }
+  #cnEtfListContainer .index-table td:nth-child(5),
+  #hketfListContainer .index-table td:nth-child(5) { color: #4680FD; font-weight: 600; }
+
+  /* ---- 4. 主流资产食息率表（7 列）→ 卡片两行式 ---- */
+  /* 「食息提示」折叠面板（2026-09-20）：折叠态下标题是唯一可点区域，补足 36px 最小触控高度 */
+  .intro-toggle { min-height: 36px; }
+  .asset-table { overflow: visible; border: none; background: transparent; }
+  .asset-table-header { display: none; }
+  .asset-table { display: flex; flex-direction: column; gap: 10px; }
+  .asset-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "type type yield"
+      "name name yield"
+      "date note src"
+      "fav  fav  fav";
+    gap: 2px 8px;
+    padding: var(--pad-row) 14px;
+    background: #fff;
+    width: 100%;
+  }
+  .asset-type-cell  { grid-area: type;  font-size: var(--fs-xs); font-weight: 600; }
+  .asset-name-cell  { grid-area: name;  font-size: var(--fs-lg); font-weight: 700; color: #000000; }
+  .asset-yield-cell { grid-area: yield; font-size: var(--fs-xl); font-weight: 700; text-align: right; align-self: center; }
+  .asset-date-cell  { grid-area: date;  font-size: var(--fs-xs); color: #767676; white-space: nowrap; }
+  .asset-note-cell  { grid-area: note;  font-size: var(--fs-xs); color: #767676; min-width: 0;
+                      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .asset-source-cell{ grid-area: src;   font-size: var(--fs-xs); color: #767676; white-space: nowrap; }
+  .asset-note-cell::before, .asset-source-cell::before {
+    content: "\00b7"; margin: 0 5px; color: #dcdcdc;
+  }
+  .asset-fav-cell { grid-area: fav; text-align: right; }
+  .asset-fav-cell .fav-btn {
+    min-width: 36px; min-height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* ---- 5. 详情页 ---- */
+  .detail-info-row { flex-direction: column; align-items: flex-start; gap: 3px; }
+  .detail-info-row .value { text-align: left; font-size: var(--fs-base); }
+  .detail-info-row .value.yield { font-size: var(--fs-xl); }
+  .detail-chart-canvas { height: 300px !important; width: 100% !important; }  /* 图表高度 240→300（2026-10-04 用户要求：图显小/版面挤）*/
+  /* 图表顶到卡片两端（2026-09-20 用户要求）：抵消 .detail-main-card 的 16px 内边距 + 去掉 .detail-chart-area 自身 20px 横向内边距，
+     canvas 宽度 290px → 约 362px。右侧线尾数值由 canvas 内部 pad.right(62px) 预留空间，不会被裁 */
+  .detail-chart-area { margin-left: -16px; margin-right: -16px; padding-left: 0; padding-right: 0; padding-top: 20px; padding-bottom: 20px; }
+  /* 图表卡片头部：手机端图例与区间分段按钮上下两行 */
+  .detail-chart-legend { flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 14px; }
+  .detail-legend-items { gap: 12px; }
+  /* 区间分段按钮（2026-10-04 用户要求）：铺满整行、左右两端顶格、5 段等宽（原 flex-start + 横向滚动，右侧留 30px 空格）*/
+  .detail-chart-range { align-self: stretch; width: 100%; max-width: none; overflow: visible; }
+  .detail-range-btn { flex: 1 1 0; min-width: 0; padding: 0 4px; }
+  .detail-slider { height: 44px; }
+  .detail-slider-handle { width: 22px; height: 22px; }
+  .detail-slider-track { height: 4px; }  /* 与已选区间条/手柄描边统一为 4px（2026-10-04 用户要求：粗细一致；原手机端 5px，与区间条 4px 不符）*/
+  .detail-footer { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .site-footer { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+
+  /* ---- 6. 触控区 36px 下限 ---- */
+  .index-tag {
+    min-height: 36px;
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--line-soft);   /* 极浅灰外框：与 header 下沿同色（2026-10-03 由 #e5e5e5 改）；border-box 下不撑高（min-height 仍 36px） */
+  }
+  #pageWeekly .df-btn, #pageWeekly .df-chip, #pageWeekly .df-reset {
+    min-height: 36px;
+    display: inline-flex; align-items: center;
+  }
+  .dropdown-item { min-height: 40px; display: flex; align-items: center; }
+  .index-tag-reset { min-height: 36px; display: inline-flex; align-items: center; }
+
+
+
+  /* ---- 9. 筛选器：标题固定 + 标签独立横向滑动（2026-08-17 用户要求；结构性分离，不依赖 sticky，兼容 Safari）---- */
+  /* 筛选器白底面板：手机端收窄内边距（12px + .page 12px = 24px，与食息资讯工具栏一致；2026-09-20） */
+  .index-tagbar { padding: var(--pad-row) 0; margin-bottom: 10px; }   /* 2026-10-03：左右内边距 12px→0，标签行顶到内容区两端 */
+  .index-tagbar-row {
+    display: flex; align-items: center;
+    gap: 10px;                  /* 标题与滚动区间距 */
+    padding: 5px 0;
+  }
+  .index-tagbar-group {
+    display: flex; align-items: center;
+    width: 72px; min-width: 72px; box-sizing: border-box;   /* 固定宽度：4 组筛选标签严格左对齐（2026-08-17） */
+    flex-shrink: 0; white-space: nowrap;
+    font-size: var(--fs-sm); color: #767676; font-weight: 600;
+  }
+  .index-tagbar-scroll {
+    display: flex; flex-wrap: nowrap; align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex: 1; min-width: 0;
+    padding-bottom: 4px;
+  }
+  .index-tagbar-scroll::-webkit-scrollbar { display: none; }
+  .index-tag, .index-tag-reset { flex-shrink: 0; white-space: nowrap; }
+
+  /* ---- 9.1 基金公司 A–Z 下拉（2026-09-20）----
+     ① 该行改为换行排布：父级 overflow-x:auto 会把绝对定位的下拉菜单一起裁剪，必须放开 overflow
+     ② 标题独占一行，字母占满面板宽度（16 个字母约 2 行：8 + 8） */
+  .index-tagbar-row--alpha { flex-wrap: wrap; }
+  .index-tagbar-row--alpha .index-tagbar-group { flex-basis: 100%; }
+  .index-tagbar-scroll--alpha { flex-wrap: wrap; overflow: visible; padding-bottom: 0; gap: 6px; }
+  .index-tagbar-scroll--alpha .index-tag { padding: 4px 10px; }   /* 单字母标签收窄：16 个字母压到 2 行 */
+  .index-dd-menu { padding: 6px; gap: 4px; }
+
+  /* ---- 8.5 港交所/月月分红列表：卡片间隙浅灰背景（2026-08-17 用户要求）---- */
+  #hketfListContainer, #monthlyEtfContainer, #monthlyFundContainer {
+    background: #ffffff;   /* 与网页整体背景一致的浅灰 */
+    padding: 10px 0 0;
+  }
+  /* 关键：卡片之间的间隙在表格内部（.index-table 默认白底），必须把表格底色改为页面浅灰，
+     否则 tr 卡片的 margin 间隙仍显示白色（2026-08-17 用户二次反馈） */
+  #hketfListContainer .index-table,
+  #monthlyEtfContainer .index-table,
+  #monthlyFundContainer .index-table {
+    background: #ffffff;
+  }
+
+  /* ---- 8. 移动端独立渲染层卡片（2026-08-17 中间态，renderXxxMobile 直接生成）---- */
+  /* 2026-10-04 用户要求：手机端所有表格页，条目之间加一条横杠，样式同「食息资讯」两条资讯之间的分隔线
+     （= `#pageWeekly ul.df-items li` 的 `border-top:1px solid var(--line-soft)`）。
+     原 `gap:10px` 在纯白底上不可见（卡片与背景均为 #fff）→ 改为 gap:0 + 每条 `border-top` 做分隔。
+     2026-10-04 追加：首条也加同款 `border-top`，即在**列表最上方**也有一条浅灰分隔线（用户要求）。 */
+  .m-list { display: flex; flex-direction: column; gap: 0; }
+  .m-list > .m-card { border-top: 1px solid var(--line-soft); }
+  .m-card {
+    position: relative; background: #fff;
+    padding: var(--pad-row) 14px; cursor: pointer;
+  }
+  .m-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  /* 卡片右上角「大数字」块（Tier1-④，2026-09-27）：关键数字（食息率/股息率）放大 + 指标名小字在下 */
+  .m-card-top .m-stat { display: flex; flex-direction: column; align-items: flex-end; text-align: right; flex-shrink: 0; line-height: var(--lh-1); }
+  .m-card-top .m-stat-num { font-size: var(--fs-lg); font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }  /* 右上角关键数字：2026-10-04 用户要求「太大」→ 26px(var(--fs-2xl)) 收小到 20px(var(--fs-lg))，仍为卡片内最大字号 */
+  .m-card-top .m-stat-lb { font-size: var(--fs-2xs); color: #767676; font-style: normal; margin-top: 2px; white-space: nowrap; }
+  .m-card-top .m-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .m-name  { font-size: 18px; font-weight: 700; color: #000000; min-width: 0; }  /* 列表页主要字段（ETF/指数/基金 简称等）字号 2026-10-04 用户要求 20px → 18px（原为 var(--fs-lg)）；仅手机端（桌面 .col-name 仍 14px）*/
+  .m-type  { font-size: var(--fs-xs); font-weight: 600; }
+  .m-yield { font-size: var(--fs-xl); font-weight: 700; text-align: right; white-space: nowrap; }
+  .m-fee   { font-size: var(--fs-md); font-weight: 600; color: #4680FD; white-space: nowrap; }
+  .m-card-name { font-size: 18px; font-weight: 700; color: #000000; margin-top: 2px; }  /* 首页资产卡名称：2026-10-04 用户要求 20px → 18px，与列表页主字段(.m-name)统一 */
+  .m-card-meta { font-size: var(--fs-xs); color: #767676; margin-top: 4px; padding-right: 26px;
+                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .m-card-pcts { margin-top: 6px; }
+  .m-pct { display: inline-block; padding: 2px 8px; font-size: var(--fs-xs); font-weight: 600;
+           border-radius: 0; margin-right: 6px; }
+  .m-pct.up   { background: #fee2e2; color: #dc2626; }
+  .m-pct.down { background: #d1fae3; color: #059661; }
+  .m-pct.na   { background: #f5f5f5; color: #949494; }
+  .m-pct.blue { background: rgba(70,128,253,0.08); color: #4680FD; }  /* 股息率蓝胶囊（2026-08-17 用户要求） */
+  .m-tag-connect { display: inline-block; background: #4680FD; color: #fff; font-size: var(--fs-2xs); line-height: var(--lh-snug); padding: 1px 5px; border-radius: 0; margin-left: 6px; vertical-align: 2px; }  /* 互联互通蓝底白字标签（2026-08-18） */
+  .m-track { font-size: var(--fs-sm); color: #525252; margin-top: 4px;
+             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .m-card-fav { position: absolute; bottom: 6px; right: 8px; }
+  .m-card-fav .fav-btn {
+    min-width: 36px; min-height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* ---- 7.0 菜单项 hover：2026-10-04 用户要求「汉堡菜单里不出现蓝底白字」→ 删除原先桌面缩窗的蓝底 hover（悬停不再变色，
+       由上方 :hover{background:none;color:#000} 规则接管）---- */
+  /* ---- 7.1 选中态：2026-10-04 用户要求改为「加粗 + 蓝字」，不再蓝底白字。
+       ⚠ 仅 `.index-tag.active`（列表筛选标签，非汉堡菜单）保留蓝底白字。 ---- */
+  .index-tag.active { background: #4680FD; border-color: #4680FD; color: #fff; }
+
+  /* ---- 7. 取消触屏 hover 残留（仅无鼠标设备；桌面鼠标不受影响）---- */
+  /* 触屏（无鼠标）：hover 保持默认外观，避免轻点后残留高亮（2026-08-17 用户要求）
+     规则：菜单项 hover 保持黑字无底色；选中态见 7.1（加粗+蓝字，非蓝底白字） */
+  @media (hover: none) {
+    .index-tag:hover { background: #fff; color: #525252; border-color: var(--line-soft); }   /* border-color 一并复位：标签已有外框，否则轻点后蓝色描边会残留（2026-09-20） */
+    .index-tag-reset:hover { background: none; color: #767676; }
+    .main-nav-item:hover { background: transparent; color: #000000; }
+    .dropdown-item:hover { background: transparent; color: #000000; }
+    .index-table tr:hover td { background: transparent; }
+    .index-table th:hover, .asset-table-header > span:hover { background: var(--th-bg); }  /* 触屏复位：与首页表头「只预选中所在字段」口径一致（2026-10-04）*/
+  }
+
+  /* ---- 10. 食息资讯（日报）手机端优化（2026-09-20）----
+     目标：① 首屏更快看到资讯正文 ② 控件规整不折行 ③ 触控热区达标 ④ 正文可读性提升
+     全部规则限定在 ≤767px，桌面/平板零影响 ---- */
+
+  /* 10.1 标题区与卡片留白统一为 12px（与 .page 内边距对齐） */
+  #pageWeekly .section-sub { margin-bottom: 12px; }
+  #pageWeekly .df-toolbar { padding: var(--pad-row) 0; margin-bottom: 10px; }
+  #pageWeekly .df-row { gap: 8px; margin-bottom: 8px; }
+  #pageWeekly .df-day { padding: var(--pad-row) 12px; margin-bottom: 10px; }
+  #pageWeekly .df-layout { gap: 10px; }
+  #pageWeekly .df-meta { line-height: var(--lh-body); }
+
+  /* 10.2 标签：收紧横向留白，保持 36px 触控高；「内容标签」标题在手机端独占一行（否则标签会被挤成三行） */
+  #pageWeekly .df-lb { flex-basis: 100%; }
+  #pageWeekly .df-chip { padding: 4px 10px; }
+
+  /* 10.3 日历（唯一日期模块，日期操作行已整合在内）：手机端默认折叠，展开后压缩行高 */
+  #pageWeekly .df-cal { padding: var(--pad-row) 12px var(--pad-row) 0; }   /* 2026-10-04 用户要求：日历左侧贴内容区左沿（左内边距 12→0） */
+  #pageWeekly .df-cal-toggle {
+    display: flex; align-items: center; gap: 4px; width: 100%; min-height: 32px;
+    font: inherit; font-size: var(--fs-sm); font-weight: 600; text-align: left;
+    color: #4680FD; background: none; border: none; padding: 2px 0; cursor: pointer;
+  }
+  /* 箭头复用 PC 版一级菜单 svg（.main-nav-item .arrow 同款线条/尺寸），展开时上下翻转 */
+  #pageWeekly .df-cal-toggle .arrow { display: inline-flex; align-items: center; transition: transform .2s; }
+  #pageWeekly .df-cal-toggle .arrow svg { width: 14px; height: 14px; }
+  #pageWeekly .df-cal.cal-open .df-cal-toggle .arrow { transform: rotate(180deg); }
+  /* 折叠时：月份导航、日期网格、日期操作行一起收起（只留开关本身） */
+  #pageWeekly .df-cal:not(.cal-open) .df-cal-hd,
+  #pageWeekly .df-cal:not(.cal-open) .df-cal-grid,
+  #pageWeekly .df-cal:not(.cal-open) .df-cal-acts { display: none; }
+  #pageWeekly .df-cal.cal-open .df-cal-toggle { border-bottom: 1px solid var(--line-soft); margin-bottom: 8px; }
+  #pageWeekly .df-cal-hd span { font-size: var(--fs-sm); }
+  #pageWeekly .df-cal-grid { gap: 1px; }
+  #pageWeekly .df-cal-grid .wd { font-size: var(--fs-2xs); }
+  #pageWeekly .df-cal-grid .d { padding: 4px 0; font-size: var(--fs-sm); }
+  /* 日期操作行：手机端 2×2 等宽，36px 触控高 */
+  #pageWeekly .df-cal-acts { gap: 8px; margin-top: 10px; padding-top: 10px; }
+  #pageWeekly .df-cal-acts .df-btn { padding: 6px 4px; justify-content: center; }
+
+  /* 10.4 列表：正文放大到 14px、来源行 12px；复制按钮扩大点击热区（视觉尺寸不变） */
+  #pageWeekly ul.df-items li { padding: var(--pad-row) 0; }
+  /* 2026-10-04：有日期分隔条 .df-day-h 时首条取消上边框（避免双线）；但保留正常上内边距，
+     避免标签顶着分隔条的下边线（用户反馈） */
+  #pageWeekly .df-day-h + ul.df-items li:first-child { padding-top: var(--pad-row); }
+  #pageWeekly .df-tags { margin-bottom: 6px; }
+  #pageWeekly .df-tag { font-size: var(--fs-xs); padding: 2px 7px; }
+  #pageWeekly .df-copy { position: relative; font-size: var(--fs-xs); padding: 1px 8px; }
+  #pageWeekly .df-copy::after { content: ''; position: absolute; top: -9px; bottom: -9px; left: -6px; right: -6px; }
+  #pageWeekly .df-txt { font-size: var(--fs-base); line-height: var(--lh-loose); margin-bottom: 8px; }
+  /* 资讯条目区字号统一 10.5px（与桌面一致：标签 / 复制按钮 / 日期+来源+原文链接；2026-09-20 用户要求） */
+  #pageWeekly .df-src, #pageWeekly .df-lnk { font-size: var(--fs-xs); }
+  #pageWeekly .df-src { line-height: var(--lh-body); }
+  #pageWeekly .df-empty { padding: 40px 0; }
+  #pageWeekly { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+}
+
+/* ============ 手机端筛选器：漏斗按钮 + 底部弹出面板（2026-10-04 用户要求，参考豆瓣 App）============
+   仅 ≤767px 生效；桌面端 .mf-bar/.mf-mask/.mf-sheet 保持 display:none（见 index.html 基础样式）。
+   折叠态 = 右上角「漏斗 + 筛选器」按钮；展开态 = 底部面板（区块标题 + 胶囊标签(带数量) + 固定 取消/确定）。
+   接入页面：红利指数浏览器（#indexListContainer）、境内红利ETF（#cnEtfListContainer）。
+   注：食息资讯的「内容标签」是单维筛选（类比豆瓣顶部「想看/在看」标签），保持常驻不收起。 */
+@media (max-width: 767px) {
+
+  /* 常驻筛选器收起（交由弹层承载）；列表自身的计数行也并入工具条 */
+  .index-tagbar { display: none; }
+  .cn-etf-count { display: none; }
+
+  /* ---- 折叠态工具条 ---- */
+  .mf-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 2px 0 12px; margin-bottom: 10px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .mf-count { font-size: var(--fs-sm); color: #767676; }
+  .mf-count b { color: #000; font-weight: 700; }
+  .mf-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line-soft); background: #fff; color: #525252;
+    font-size: var(--fs-sm); font-weight: 600; padding: 0 12px; min-height: 36px;
+    font-family: inherit; cursor: pointer;
+  }
+  .mf-btn svg { width: 16px; height: 16px; display: block; }
+  .mf-btn.active { border-color: #4680FD; color: #4680FD; }
+  .mf-badge {
+    display: none; min-width: 16px; height: 16px; padding: 0 4px;
+    background: #4680FD; color: #fff; font-size: var(--fs-2xs); font-weight: 700;
+    line-height: 16px; text-align: center;
+  }
+  .mf-btn.active .mf-badge { display: inline-block; }
+
+  /* ---- 遮罩 ---- */
+  .mf-mask {
+    display: block; position: fixed; inset: 0; background: rgba(0,0,0,.35);
+    opacity: 0; visibility: hidden; transition: opacity .25s ease; z-index: 70;
+  }
+  .mf-mask.open { opacity: 1; visibility: visible; }
+
+  /* ---- 底部弹出面板 ---- */
+  .mf-sheet {
+    display: flex; flex-direction: column;
+    position: fixed; left: 0; right: 0; bottom: 0;
+    max-height: 86vh;      /* 兜底：不支持 dvh 的旧浏览器 */
+    max-height: 86dvh;     /* iOS Safari（2026-10-04 用户反馈）：vh 基于「大视口」，工具条展开时 86vh 超出可视区 → 面板顶部的「筛选/清除筛选/✕」被浏览器顶部栏遮住；dvh 跟随当前可视高度 */
+    background: #fff; z-index: 71;
+    transform: translateY(101%); transition: transform .28s cubic-bezier(.22,.61,.36,1);
+    box-shadow: 0 -8px 30px rgba(0,0,0,.12);
+  }
+  .mf-sheet.open { transform: translateY(0); }
+  .mf-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 6px; }
+  .mf-title { margin: 0; font-size: var(--fs-md); font-weight: 700; }
+  /* 「清除筛选」文字按钮：置于标题右侧、✕ 左侧（2026-10-04 用户要求；无筛选时置灰禁用） */
+  .mf-head-actions { display: flex; align-items: center; gap: 14px; }
+  .mf-clear { border: 0; background: none; font-size: var(--fs-sm); color: #4680FD; font-family: inherit; cursor: pointer; padding: 4px 2px; }
+  .mf-clear:disabled { color: #c4c4c4; cursor: default; }
+  /* ✕ 与汉堡抽屉的关闭叉号完全一致（2026-10-04 用户要求）：40×40 热区、纯黑 currentColor、内联 SVG 22×22、stroke-width 1.5 */
+  .mf-close { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: none; color: #000000; cursor: pointer; padding: 0; font-family: inherit; }
+  .mf-close svg { width: 22px; height: 22px; }
+  .mf-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 2px 16px 10px; }
+  .mf-group { padding: 14px 0; }
+  /* 分组之间的浅灰分隔线已移除（2026-10-04 用户要求）：靠组标题黑色文字（主题 / 市场 / 管理费率…）区分即可 */
+  .mf-group-title { font-size: var(--fs-md); font-weight: 600; color: #000; margin-bottom: 10px; }
+  .mf-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .mf-chip {
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--line-soft); background: #fff; color: #525252;
+    font-size: var(--fs-sm); font-family: inherit; padding: 0 12px; min-height: 36px;
+    cursor: pointer;
+  }
+  .mf-chip i { font-style: normal; font-size: var(--fs-2xs); color: #949494; margin-left: 5px; }
+  .mf-chip.active { background: #4680FD; border-color: #4680FD; color: #fff; font-weight: 600; }
+  .mf-chip.active i { color: rgba(255,255,255,.85); }
+
+  /* ---- 固定底栏：取消 / 确定 ---- */
+  .mf-foot { display: flex; border-top: 1px solid var(--line-soft); padding-bottom: env(safe-area-inset-bottom); }
+  .mf-foot button { flex: 1; height: 52px; border: 0; background: #fff; font-size: var(--fs-md); font-family: inherit; cursor: pointer; }
+  .mf-cancel { color: #525252; }
+  .mf-ok { color: #4680FD; font-weight: 700; border-left: 1px solid var(--line-soft); }
+}
