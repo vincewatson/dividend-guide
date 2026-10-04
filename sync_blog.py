@@ -10,10 +10,10 @@
 说明（2026-10-04 用户上传「全部历史文章」后重写）：
   - 该表为公众号全部历史文章的权威清单（289 篇，2024-01-23 ~ 2026-09-19），
     含「所属栏目」字段；
-  - 「内容标签」（direction）与「相关指数」（indexes）本表暂缺 → 一律留空，
-    待日后接入后台再逐条补录；
-  - 「付费文章」为作者标注的所属栏目之一（2 篇）→ paid=true，
-    且「所属栏目」筛选中不再重复展示「付费文章」（改由「文章属性」承载）。
+  - 「内容标签」（direction）与「相关指数」（indexes）本表暂缺 → 由
+    data/blogAnnotations.json 逐条补录（保留用户此前给出的标注），未标注的留空，
+    待日后接入后台再补；
+  - 「付费文章」为作者标注的所属栏目之一（2 篇）→ paid=true。
   - 按链接去重、按发表日期倒序；应用全站空格规范。
 
 用法：python3 sync_blog.py   （生成后需 python3 embed_data.py 刷新内嵌兜底）
@@ -24,6 +24,7 @@ import openpyxl
 BASE = os.path.dirname(os.path.abspath(__file__))
 SRC = sorted(glob.glob(os.path.join(BASE, "user_upload/公众号历史文章*.xlsx")))[-1]
 OUT = os.path.join(BASE, "data/blogData.json")
+ANNOT_PATH = os.path.join(BASE, "data/blogAnnotations.json")   # url -> {direction, indexes}（内容标签/相关指数，逐条补录）
 
 # 「付费文章」作为所属栏目值时，同时标记 paid（前端「文章属性」筛选承载）
 PAID_COL = "付费文章"
@@ -74,6 +75,19 @@ def main():
                 a["title"] = r["title"]
             if r["date"] and (not a["date"] or r["date"] > a["date"]):
                 a["date"] = r["date"]
+
+    # 补录：内容标签（direction）/ 相关指数（indexes）——由 data/blogAnnotations.json 按 url 合并
+    annot = {}
+    if os.path.exists(ANNOT_PATH):
+        with io.open(ANNOT_PATH, encoding="utf-8") as f:
+            annot = json.load(f)
+    for r in by_url.values():
+        a = annot.get(r["url"])
+        if a:
+            if a.get("direction"):
+                r["direction"] = norm(a["direction"])
+            if a.get("indexes"):
+                r["indexes"] = [norm(x) for x in a["indexes"]]
 
     out = sorted(by_url.values(), key=lambda x: x["date"], reverse=True)
     for r in out:
