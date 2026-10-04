@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.86">
+<meta name="app-version" content="v0.1.87">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -2527,6 +2527,7 @@ function renderHkEtf() {
 
 function showHkEtfDetail(code) {
   var etf = hkEtfData.find(function(e){return e.code===code;}); if(!etf) return;
+  setDetailDocTitle(etf.name);              // 浏览器标签随详情变化（2026-10-04）
   document.getElementById('hkEtfDetailName').textContent = etf.name;
   document.getElementById('hkEtfDetailCode').textContent = etf.code;
   document.getElementById('hkEtfDetailShortName').textContent = etf.name;
@@ -2830,6 +2831,7 @@ function renderCnEtf() {
 
 function showCnEtfDetail(code) {
   var etf = cnEtfData.find(function(e){return e.code===code;}); if(!etf) return;
+  setDetailDocTitle(etf.name);              // 浏览器标签随详情变化（2026-10-04）
   document.getElementById('cnEtfDetailName').textContent = etf.name;
   document.getElementById('cnEtfDetailCode').textContent = etf.code;
   document.getElementById('cnEtfDetailShortName').textContent = etf.name;
@@ -2881,6 +2883,7 @@ function showCnEtfDetail(code) {
 
 function showIndexDetail(code) {
   var idx=indexData.find(function(i){return i.code===code;});if(!idx)return;
+  setDetailDocTitle(idx.name);              // 浏览器标签随详情变化（2026-10-04）
   var ad=document.getElementById('assetDetail'); if(ad) ad.classList.remove('open');
   document.getElementById('detailName').textContent=idx.fullname;document.getElementById('detailCode').textContent=idx.code;
   document.getElementById('detailShortName').textContent=idx.name;document.getElementById('detailPublisher').textContent=idx.publisher||'—';document.getElementById('detailCurrency').textContent=idx.currency||'—';document.getElementById('detailComponents').textContent=idx.components||'—';
@@ -3022,6 +3025,7 @@ function findIndexForTrack(trackCode, trackName) {
 }
 function showMonthlyEtfDetail(code) {
   var etf = etfData.find(function(e){return e.code===code;}); if(!etf) return;
+  setDetailDocTitle(etf.name);              // 浏览器标签随详情变化（2026-10-04）
   document.getElementById('monthlyEtfDetailName').textContent = etf.name;
   document.getElementById('monthlyEtfDetailCode').textContent = etf.code;
   document.getElementById('monthlyEtfDetailShortName').textContent = etf.name;
@@ -3078,6 +3082,7 @@ function showMonthlyEtfDetail(code) {
 
 function showMonthlyFundDetail(code) {
   var fund = fundData.find(function(e){return e.code===code;}); if(!fund) return;
+  setDetailDocTitle(fund.name);             // 浏览器标签随详情变化（2026-10-04）
   document.getElementById('monthlyFundDetailName').textContent = fund.name;
   document.getElementById('monthlyFundDetailCode').textContent = fund.code;
   document.getElementById('monthlyFundDetailShortName').textContent = fund.name;
@@ -3178,6 +3183,24 @@ function resolveSub(pageId, subKey) {
   return null;
 }
 
+// ===== 文档标题（浏览器标签）随页面变化（2026-10-04 用户要求）=====
+//   规则（常规网站约定）：首页 = 站名 - 标语；列表/功能页 = 页面名 - 站名；详情页 = 标的名称 - 站名。
+var SITE_NAME = '食息指南';
+var SITE_SLOGAN = '低利率时代的理财之道';
+var PAGE_DOC_TITLES = { pageData: '', pageWeekly: '食息资讯', pageBlog: '子弹列车', pageProfile: '我的收藏' };
+var SUB_DOC_TITLES = {
+  subBrowser: '红利指数浏览器', subEtf: '境内红利ETF', subHkEtf: '港交所红利ETF',
+  subEtfList: 'ETF月月分红', subFundList: '指数基金月月分红'
+};
+function setPageDocTitle(pageId, subId) {
+  if (!pageId || pageId === 'pageData') { document.title = SITE_NAME + ' - ' + SITE_SLOGAN; return; }
+  var t = (subId && SUB_DOC_TITLES[subId]) || PAGE_DOC_TITLES[pageId] || '';
+  document.title = t ? (t + ' - ' + SITE_NAME) : (SITE_NAME + ' - ' + SITE_SLOGAN);
+}
+function setDetailDocTitle(name) {
+  document.title = name ? (name + ' - ' + SITE_NAME) : (SITE_NAME + ' - ' + SITE_SLOGAN);
+}
+
 // ===== 详情页路由（2026-10-03 新增）=====
 //   地址：/detail/<type>/<key>（hash 形式 #/detail/…）——可直达、可分享、刷新保持、支持前进后退。
 //   type 取值见 DETAIL_ROUTE；key = 指数/ETF 代码，或资产名称（asset，中文做 URL 编码）。
@@ -3260,6 +3283,7 @@ function applyRoute(route) {
   // home / 空 / 未知代号 → 首页
   switchPage(pageId);
   var subId = resolveSub(pageId, subKey);
+  setPageDocTitle(pageId, subId);            // 浏览器标签随页面变化（2026-10-04）
   if (subId) {
     document.querySelectorAll('#' + pageId + ' .sub-page').forEach(function (p) { p.classList.remove('active'); });
     document.getElementById(subId).classList.add('active');
@@ -3635,6 +3659,7 @@ function showAssetDetail(name) {
     return;
   }
   // 非指数资产 → 打开食息详情页（基本信息 + 历史曲线）
+  setDetailDocTitle(item.name);             // 浏览器标签随详情变化（2026-10-04）
   document.getElementById('assetDetailName').textContent = item.name;
   document.getElementById('assetDetailType').textContent = item.type + ' · ' + (item.date || '');
   document.getElementById('assetDetailTypeRow').textContent = item.type;
