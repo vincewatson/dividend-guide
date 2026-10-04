@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.89">
+<meta name="app-version" content="v0.1.90">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -304,7 +304,7 @@
   .index-tag:hover { border-color: #4680FD; color: #4680FD; }
   .index-tag.active { background: #4680FD; border-color: #4680FD; color: #fff; font-weight: 600; }
   .index-tag-reset { border: none; background: none; color: #767676; font-size: var(--fs-sm); cursor: pointer; padding: 4px 2px; }
-  .index-tag-reset:hover { color: #4680FD; text-decoration: underline; }
+  .index-tag-reset:hover { color: #4680FD; }   /* 2026-10-04 用户要求：全站取消下划线（原 hover 加下划线） */
   /* ===== 基金公司 A–Z 下拉（参考 am-lens「管理人」筛选做法，2026-09-20 用户要求）=====
      字母按钮 hover（触屏轻点 / 键盘聚焦）时在正下方弹出该公司列表；菜单为白底面板。
      列数由 JS 按「该字母下的公司数」内联设定（1–3 列）——空网格列会残留 column-gap 造成
@@ -394,7 +394,7 @@
   #pageWeekly .df-chip.df-act { background:#4680FD; border-color:#4680FD; color:#fff; font-weight:600; }
   #pageWeekly .df-chip.df-act .n { color:rgba(255,255,255,.8); }
   #pageWeekly .df-reset { border:none; background:none; color:#767676; font-size:var(--fs-sm); cursor:pointer; padding:4px 2px; }
-  #pageWeekly .df-reset:hover { color:#4680FD; text-decoration:underline; }
+  #pageWeekly .df-reset:hover { color:#4680FD; }   /* 2026-10-04 用户要求：取消下划线 */
   /* #pageWeekly .df-meta 已废弃（2026-09-20）：说明行移入页头 .section-sub，样式由 .section-sub 提供 */
   #pageWeekly .df-layout { display:grid; grid-template-columns:260px 1fr; gap:12px; align-items:start; }
   /* 注意：Chrome 的 sticky 偏移 = top + 滚动容器的 padding-top。.main-content 现有 padding-top:var(--topbar-h)，
@@ -428,8 +428,8 @@
   #pageWeekly .df-src { display:flex; flex-wrap:wrap; align-items:center; gap:0 6px; font-size:var(--fs-xs); color:#767676; }
   #pageWeekly .df-dot { color:#dcdcdc; }
   #pageWeekly .df-tag { display:inline-block; font-size:var(--fs-xs); font-weight:600; padding:1px 7px; border-radius:0; white-space:nowrap; }
-  #pageWeekly .df-lnk { color:#4680FD; text-decoration:none; border-bottom:1px solid rgba(70,128,253,.3); }
-  #pageWeekly .df-lnk:hover { border-bottom-color:#4680FD; }
+  #pageWeekly .df-lnk { color:#4680FD; text-decoration:none; }   /* 2026-10-04 用户要求：全站取消下划线（原 border-bottom 伪下划线一并去掉） */
+  #pageWeekly .df-lnk:hover { color:#2f66d8; }
   /* 复制按钮去掉外框（2026-09-20 用户要求）：改为纯文字按钮，交互反馈只留颜色变化 */
   #pageWeekly .df-copy { font:inherit; font-size:var(--fs-xs); line-height:var(--lh-snug); cursor:pointer; background:none; color:#767676; border:none; border-radius:0; padding:0 7px; white-space:nowrap; transition:color .15s; }
   #pageWeekly .df-copy:hover { color:#4680FD; }
@@ -661,7 +661,7 @@
   .blog-overlay-body table { width: 100%; border-collapse: collapse; font-size: var(--fs-md); margin: 16px 0; }
   .blog-overlay-body th, .blog-overlay-body td { padding: var(--pad-row) 10px; border: 1px solid var(--line-soft); text-align: left; }
   .blog-overlay-body th { background: var(--th-bg); font-weight: 600; color: var(--th-fg); border-bottom: 1px solid var(--th-line); }   /* 浅灰分隔线（2026-10-03 由纯黑改）*/
-  .blog-overlay-body a { color: #4680FD; text-decoration: underline; }
+  .blog-overlay-body a { color: #4680FD; text-decoration: none; }   /* 2026-10-04 用户要求：全站取消下划线 */
   .blog-overlay-body code { font-family: 'SF Mono', Menlo, monospace; font-size: var(--fs-base); background: #f5f5f5; padding: 2px 6px; }
   .blog-overlay-body img { max-width: 100%; height: auto; margin: 16px 0; }
 
@@ -851,12 +851,12 @@
       </div>
       <div class="sub-page" id="subEtf">
         <div class="section-title">境内红利ETF</div>
-        <div class="section-sub">共 82 只境内上市红利ETF</div>
+        <div class="section-sub" id="cnEtfSubInfo">共 82 只境内上市红利ETF</div>
         <div class="cn-list-container" id="cnEtfListContainer"></div>
       </div>
       <div class="sub-page" id="subHkEtf">
         <div class="section-title">港交所红利ETF</div>
-        <div class="section-sub">共 12 只港交所上市红利ETF</div>
+        <div class="section-sub" id="hkEtfSubInfo">共 12 只港交所上市红利ETF</div>
         <div class="hketf-list-container" id="hketfListContainer"></div>
       </div>
     </div>
@@ -865,12 +865,12 @@
     <div class="page" id="pageMonthly">
       <div class="sub-page active" id="subEtfList">
         <div class="section-title">ETF月月分红</div>
-        <div class="section-sub">每月评估分红的ETF · 不保证纳入全部符合条件的产品，请仔细甄别</div>
+        <div class="section-sub" id="monthlyEtfSubInfo">每月评估分红的ETF · 不保证纳入全部符合条件的产品，请仔细甄别</div>
         <div class="monthly-list-container" id="monthlyEtfContainer"></div>
       </div>
       <div class="sub-page" id="subFundList">
         <div class="section-title">指数基金月月分红</div>
-        <div class="section-sub">每月评估分红的指数基金 · 不保证纳入全部符合条件的产品，请仔细甄别</div>
+        <div class="section-sub" id="monthlyFundSubInfo">每月评估分红的指数基金 · 不保证纳入全部符合条件的产品，请仔细甄别</div>
         <div class="monthly-list-container" id="monthlyFundContainer"></div>
       </div>
     </div>
@@ -2147,6 +2147,28 @@ function renderIndices() {
     }
     sub.textContent = '本表仅展示有挂钩产品发行的' + total + '个指数 · 数据更新至' + d;
   }
+}
+
+// 其余四个列表页（境内/港交所红利ETF、ETF月月分红、指数基金月月分红）的副标题：
+// 数量（动态）+「数据更新至 yyyy-mm-dd」（与红利指数浏览器同口径，2026-10-04 用户要求）
+function listDataDate() {
+  if (dailyDateLabel) return dailyDateLabel;
+  for (var i = 0; i < indexData.length; i++) { if (indexData[i].dailyDate) return indexData[i].dailyDate; }
+  for (var j = 0; j < indexData.length; j++) { var h = indexData[j].divHistory || []; if (h.length) return h[h.length - 1].date; }
+  return '';
+}
+function renderListSubtitles() {
+  var d = listDataDate();
+  var sfx = d ? ' · 数据更新至' + d : '';
+  var el;
+  el = document.getElementById('cnEtfSubInfo');
+  if (el) el.textContent = '共 ' + cnEtfData.length + ' 只境内上市红利ETF' + sfx;
+  el = document.getElementById('hkEtfSubInfo');
+  if (el) el.textContent = '共 ' + hkEtfData.length + ' 只港交所上市红利ETF' + sfx;
+  el = document.getElementById('monthlyEtfSubInfo');
+  if (el) el.textContent = '每月评估分红的ETF · 不保证纳入全部符合条件的产品，请仔细甄别' + sfx;
+  el = document.getElementById('monthlyFundSubInfo');
+  if (el) el.textContent = '每月评估分红的指数基金 · 不保证纳入全部符合条件的产品，请仔细甄别' + sfx;
 }
 
 function toggleSort(key) {
@@ -4179,7 +4201,7 @@ mfRegister('cnetf', {
   var loaded = 0, total = DATA_FILES.length;
   function finishIfDone(){
     if (loaded >= total) {
-      renderAssetTable();renderIndices();renderFavorites();renderHkEtf();renderCnEtf();renderMonthlyEtf();renderMonthlyFund();renderDaily();renderBlogList();
+      renderAssetTable();renderIndices();renderFavorites();renderHkEtf();renderCnEtf();renderMonthlyEtf();renderMonthlyFund();renderDaily();renderBlogList();renderListSubtitles();
       // 数据就绪：若有待打开的详情（经 #/detail/… 深链进入），此刻打开
       _dataReady = true;
       if (_pendingDetail) { var _pd = _pendingDetail; _pendingDetail = null; var _pdDef = DETAIL_ROUTE[_pd.type]; if (_pdDef) _pdDef.open(_pd.key); }
