@@ -268,11 +268,12 @@ ASSET_DESC = {
 
 
 # 国债条目覆盖：Excel 里是旧的「储蓄国债」票息（财政部），
-# 网站已改用 iFind 中债国债到期收益率（每日更新）。同步时用 assetHistory.json 最新值覆盖，
-# 避免 Excel 旧数据回退覆盖。
+# 网站改用 Wind（万得）债券发行记录的储蓄国债票面利率（sync_asset_macro.py fetch_bond_savings，周频）。
+# 同步时用 assetHistory.json 最新值覆盖，避免 Excel 旧数据回退覆盖。
+# 来源统一标注 Wind（2026-10-04 用户要求：数据每次只从一个源取，不再写「Wind/iFind」）。
 BOND_OVERRIDE = {
-    '3年期储蓄国债': ('3年期国债', '1.28%', '2026-08-04', '中债国债到期收益率', 'iFind'),
-    '5年期储蓄国债': ('5年期国债', '1.41%', '2026-08-04', '中债国债到期收益率', 'iFind'),
+    '3年期储蓄国债': ('3年期国债', '1.28%', '2026-08-04', '中债国债到期收益率', 'Wind'),
+    '5年期储蓄国债': ('5年期国债', '1.41%', '2026-08-04', '中债国债到期收益率', 'Wind'),
 }
 
 
@@ -429,13 +430,14 @@ def build_asset_data():
             })
             continue
         # 通用覆盖：整存整取/LPR/预定利率/同业存单 取 assetHistory 最新（2026-08-15 用户确认）
+        # 来源统一 Wind（2026-10-04 用户要求：这些序列均由 sync_asset_macro.py 经 Wind MCP 取得，原「Wind/iFind」有误）
         if name in hist_latest:
             _d, _y = hist_latest[name]
             _note = NOTE_OVERRIDE.get(name) or clean_str(r[4]) or ''
             rows.append({
                 'type': t, 'name': name, 'yield': '{:.2f}%'.format(_y),
                 'date': _d, 'note': _note,
-                'source': 'Wind/iFind', 'desc': ASSET_DESC.get(name, '')
+                'source': 'Wind', 'desc': ASSET_DESC.get(name, '')
             })
             continue
         rows.append({

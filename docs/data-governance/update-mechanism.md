@@ -36,7 +36,7 @@
 | indexData · dailyChange / yrChange | Wind 涨跌幅 | sync_daily_change | **每次** | 步骤 6 |
 | moneyFundData · 头部 7 日年化 | Wind 实时 | sync_money_fund | **每次** | 步骤 7 |
 | yuebaoHistory | Wind 日频 | sync_yuebao_history | **每次**（动态 180 天）| 步骤 8 |
-| assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单）| Wind EDB / iFind EDB | sync_asset_macro | **每次** | 步骤 9 |
+| assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单）| Wind EDB（国债=Wind 债券发行记录）| sync_asset_macro | **每次** | 步骤 9 |
 | assetHistory · REITs 两类日频 | Wind 日频中位数 | sync_reits_daily | **每次**（增量；**2026-09-26 起覆盖 reitsData.json 全量**，分组由 projectType 推导）| 步骤 10 |
 | cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData / assetData | **用户 Excel 快照**（`data/user/*.xlsx`）| sync_excel（跑两次）| **每周**（`data/user/` 出现新快照时才变化）| 步骤 4 / 11 |
 | cnEtfData · 新 ETF、indexData · 新指数 | Wind 自动发现 | sync_new_etf | **每次**（检索近 30 天）| 步骤 12 |
@@ -84,7 +84,7 @@
 ### 防回退机制（在线口径取代 Excel 旧值）
 - **divDate**：sync_excel 之后必须重跑 `sync_fund_divdate.py all --force`。
 - **余额宝 7 日年化**：build_asset_data 从 moneyFundData（含 yieldDate）覆盖；sync_money_fund 必须早于 sync_excel(2)。
-- **国债**：`BOND_OVERRIDE` 从 assetHistory（iFind 中债收益率）取最新，Excel 储蓄国债旧值不覆盖。
+- **国债**：`BOND_OVERRIDE` 从 assetHistory（Wind 债券发行记录的储蓄国债票面利率）取最新，Excel 储蓄国债旧值不覆盖。
 - **REITs 两类**：sync_excel 特判从 assetHistory 最新日频中位数覆盖。
 - **红利指数**：yield/date 从 divHistory 最新值覆盖（sync_excel 跑两次的顺序约束）。
 - 通用原则：任何"Excel 旧口径 vs 在线新口径"冲突字段，加 `XXX_OVERRIDE` 优先在线。
