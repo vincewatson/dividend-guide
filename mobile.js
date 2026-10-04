@@ -538,7 +538,7 @@ function renderCnEtfMobile() {
   }
   /* 移动卡片：三行结构（简称/代码·挂钩指数/对应指数股息率蓝胶囊 + 本年涨跌胶囊），右上角无数字
      （2026-10-04 用户要求：对应指数股息率由「右上角大数字」改为浅蓝底/蓝字胶囊，与红利指数浏览器同一逻辑） */
-  var h = '<div class="cn-etf-count" style="font-size:12px;color:#767676;margin:2px 0 8px">共' + items.length + '/' + (cnEtfData || []).length + '只</div>'';
+  var h = '<div class="cn-etf-count" style="font-size:12px;color:#767676;margin:2px 0 8px">共' + items.length + '/' + (cnEtfData || []).length + '只</div>';
   h += '<div class="m-list">';
   items.forEach(function (e) {
     var tx = _trackIdx(e.trackCode);
