@@ -614,6 +614,9 @@
   .mf-chip i { font-style: normal; font-size: var(--fs-2xs); color: #949494; margin-left: 5px; }
   .mf-chip.active { background: #4680FD; border-color: #4680FD; color: #fff; font-weight: 600; }
   .mf-chip.active i { color: rgba(255,255,255,.85); }
+  /* 付费文章标签：常态后缀 ✦ 金色（.paid-star 全局色）；选中 → 黄底白字（含 ✦ 变白）（2026-10-04 用户要求）*/
+  .mf-chip.mf-chip--paid.active { background: #f2a90c; border-color: #f2a90c; color: #fff; }
+  .mf-chip.mf-chip--paid.active .paid-star { color: #fff; }
 
   /* ---- 固定底栏：取消 / 确定 ---- */
   .mf-foot { display: flex; border-top: 1px solid var(--line-soft); padding-bottom: env(safe-area-inset-bottom); }

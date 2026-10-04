@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.110">
+<meta name="app-version" content="v0.1.111">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -624,7 +624,12 @@
   /* 博客 · 子弹列车公众号文章目录（2026-10-04 用户提供标题+链接） */
   .blog-title-link { color: #4680FD; text-decoration: none; font-weight: 700; }   /* 2026-10-04 用户要求：文章标题加粗 */
   .blog-title-link:hover { color: #2f6ae0; }
-  .paid-mark { color: #D4AF37; font-weight: 700; margin-left: 4px; }   /* 付费文章标记「✦」金色 */
+  .paid-mark { color: #f2a90c; font-weight: 700; margin-left: 4px; }   /* 付费文章标记「✦」金色（2026-10-04 用户指定色 #f2a90c）*/
+  /* 筛选器「付费文章✦」标签：常态同普通标签，仅后缀 ✦ 用金色；选中 → 黄底白字（含 ✦ 变白）*/
+  .paid-star { color: #f2a90c; margin-left: 4px; }
+  .index-tag.index-tag--paid.active { background: #f2a90c; border-color: #f2a90c; color: #fff; }
+  .index-tag.index-tag--paid.active:hover { border-color: #f2a90c; color: #fff; }
+  .index-tag.index-tag--paid.active .paid-star { color: #fff; }
   /* 表格列宽：最优且固定（table-layout:fixed + colgroup；2026-10-04 用户要求）*/
   .blog-table { table-layout: fixed; }
   .blog-table td { white-space: normal; }                  /* 固定列宽下允许换行（相关指数可能较长） */
@@ -741,7 +746,7 @@
   .mf-bar, .mf-mask, .mf-sheet { display: none; }
 </style>
   <!-- 移动端适配（2026-08-17）：仅 max-width:767px / 平板区间生效，桌面零影响 -->
-  <link rel="stylesheet" href="mobile.css?v=79">
+  <link rel="stylesheet" href="mobile.css?v=80">
 </head>
 <body>
 
@@ -4062,9 +4067,9 @@ var BLOG_PAGE_SIZE = 30;    // 每页最多 30 条
 var blogDirFilter = '';     // 内容标签（空 = 全部）
 var blogColFilter = '';     // 所属栏目（空 = 全部）
 var blogYearFilter = '';    // 发布年份（空 = 全部）
-var blogPaidFilter = false; // 文章属性：付费文章（false = 全部）
 var blogSearch = '';        // 搜索词（标题 / 投资方向 / 指数）
 var blogPage = 1;           // 当前页
+var BLOG_PAID_COL = '付费文章';   // 「付费文章」栏目名（在所属栏目组中前置高亮展示）
 
 function blogEsc(s){
   return String(s == null ? '' : s)
@@ -4075,15 +4080,14 @@ function blogIsMobile(){ return window.innerWidth <= 767; }
 function blogSetYear(y){ blogYearFilter = y || ''; blogPage = 1; renderBlogList(); }
 function blogSetDir(d){ blogDirFilter = d || ''; blogPage = 1; renderBlogList(); }
 function blogSetCol(c){ blogColFilter = c || ''; blogPage = 1; renderBlogList(); }
-function blogSetPaid(p){ blogPaidFilter = !!p; blogPage = 1; renderBlogList(); }
 function blogOnSearch(v){ blogSearch = v || ''; blogPage = 1; renderBlogList(); }
 function blogSetPage(p){ blogPage = p || 1; renderBlogList(); var el = document.getElementById('blogList'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'start' }); }
 function blogResetFilters(){
-  blogDirFilter = ''; blogColFilter = ''; blogYearFilter = ''; blogPaidFilter = false; blogSearch = ''; blogPage = 1;
+  blogDirFilter = ''; blogColFilter = ''; blogYearFilter = ''; blogSearch = ''; blogPage = 1;
   var i = document.getElementById('blogSearch'); if (i) i.value = '';
   renderBlogList();
 }
-function blogHasFilter(){ return !!(blogDirFilter || blogColFilter || blogYearFilter || blogPaidFilter || blogSearch); }
+function blogHasFilter(){ return !!(blogDirFilter || blogColFilter || blogYearFilter || blogSearch); }
 
 function blogFiltered(data){
   var q = (blogSearch || '').trim().toLowerCase();
@@ -4091,7 +4095,6 @@ function blogFiltered(data){
     if (blogDirFilter && (x.direction || '未分类') !== blogDirFilter) return false;
     if (blogColFilter && (x.column || '') !== blogColFilter) return false;
     if (blogYearFilter && (x.date || '').slice(0, 4) !== blogYearFilter) return false;
-    if (blogPaidFilter && !x.paid) return false;
     if (q) {
       var hay = ((x.title || '') + ' ' + (x.direction || '') + ' ' + (x.indexes || []).join(' ')).toLowerCase();
       if (hay.indexOf(q) < 0) return false;
@@ -4138,10 +4141,15 @@ function blogFiltersHtml(data){
     h += '</div></div>';
   }
   // ② 所属栏目（数据驱动；暂无数据则整组不显示）
+  //    「付费文章」置于「全部」之后第一位：常态同普通标签 + 金色后缀 ✦，选中为黄底白字（2026-10-04 用户要求）
   if (cols.length){
     h += '<div class="index-tagbar-row"><span class="index-tagbar-group">所属栏目</span><div class="index-tagbar-scroll">';
     h += '<button class="index-tag' + (blogColFilter ? '' : ' active') + '" onclick="blogSetCol(\'\')">全部</button>';
-    cols.forEach(function(c){ h += '<button class="index-tag' + (blogColFilter === c.id ? ' active' : '') + '" onclick="blogSetCol(\'' + blogEsc(c.id) + '\')">' + blogEsc(c.label) + '</button>'; });
+    h += '<button class="index-tag index-tag--paid' + (blogColFilter === BLOG_PAID_COL ? ' active' : '') + '" onclick="blogSetCol(\'' + blogEsc(BLOG_PAID_COL) + '\')">付费文章<span class="paid-star">✦</span></button>';
+    cols.forEach(function(c){
+      if (c.id === BLOG_PAID_COL) return;   // 「付费文章」已前置渲染
+      h += '<button class="index-tag' + (blogColFilter === c.id ? ' active' : '') + '" onclick="blogSetCol(\'' + blogEsc(c.id) + '\')">' + blogEsc(c.label) + '</button>';
+    });
     h += '</div></div>';
   }
   // ③ 发布年份
@@ -4149,11 +4157,7 @@ function blogFiltersHtml(data){
   h += '<button class="index-tag' + (blogYearFilter ? '' : ' active') + '" onclick="blogSetYear(\'\')">全部</button>';
   ys.forEach(function(y){ h += '<button class="index-tag' + (blogYearFilter === y.id ? ' active' : '') + '" onclick="blogSetYear(\'' + y.id + '\')">' + y.label + '</button>'; });
   h += '</div></div>';
-  // ④ 文章属性
-  h += '<div class="index-tagbar-row"><span class="index-tagbar-group">文章属性</span><div class="index-tagbar-scroll">';
-  h += '<button class="index-tag' + (blogPaidFilter ? '' : ' active') + '" onclick="blogSetPaid(false)">全部</button>';
-  h += '<button class="index-tag' + (blogPaidFilter ? ' active' : '') + '" onclick="blogSetPaid(true)">付费文章</button>';
-  h += '</div></div>';
+  // （原「文章属性」独立分组已移除：付费文章筛选并入「所属栏目」组，2026-10-04 用户要求）
   if (blogHasFilter()) h += '<div class="index-tagbar-row"><button class="index-tag-reset" onclick="blogResetFilters()">✕ 清除筛选</button></div>';
   h += '</div>';
   return h;
@@ -4381,7 +4385,9 @@ function mfRenderBody(){
     h += '<button class="mf-chip' + (!mfDraft[g.key] ? ' active' : '') + '" type="button" data-g="' + mfEsc(g.key) + '" data-t="">全部<i>' + mfCount(cfg, mfDraft, g.key, '') + '</i></button>';
     tags.forEach(function(t){
       var on = mfDraft[g.key] === t.id ? ' active' : '';
-      h += '<button class="mf-chip' + on + '" type="button" data-g="' + mfEsc(g.key) + '" data-t="' + mfEsc(t.id) + '">' + mfEsc(t.label) + '<i>' + mfCount(cfg, mfDraft, g.key, t.id) + '</i></button>';
+      var cls = t.cls ? ' ' + t.cls : '';                       // 可选：标签附加类（如付费文章高亮）
+      var inner = (t.html != null) ? t.html : mfEsc(t.label);   // 可选：自定义标签 HTML（如「付费文章✦」）
+      h += '<button class="mf-chip' + on + cls + '" type="button" data-g="' + mfEsc(g.key) + '" data-t="' + mfEsc(t.id) + '">' + inner + '<i>' + mfCount(cfg, mfDraft, g.key, t.id) + '</i></button>';
     });
     h += '</div></div>';
   });
@@ -4491,25 +4497,33 @@ mfRegister('cnetf', {
   ]
 });
 
-/* ---- 配置 3：博客（内容标签 / 所属栏目 / 发布年份 / 文章属性）----
-   与红利指数列表页同款手机端漏斗筛选器；桌面端仍用常驻标签行（.blog-filters-rows）。 */
+/* ---- 配置 3：博客（内容标签 / 所属栏目 / 发布年份）----
+   与红利指数列表页同款手机端漏斗筛选器；桌面端仍用常驻标签行（.blog-filters-rows）。
+   付费文章筛选并入「所属栏目」组、置于「全部」之后第一位（2026-10-04 用户要求）。 */
 mfRegister('blog', {
   title: '筛选',
   rows: function(){ return (typeof blogData !== 'undefined' && blogData) ? blogData : []; },
-  get: function(){ return { dir: blogDirFilter, col: blogColFilter, year: blogYearFilter, paid: blogPaidFilter ? 'paid' : '' }; },
+  get: function(){ return { dir: blogDirFilter, col: blogColFilter, year: blogYearFilter }; },
   set: function(sel){
     blogDirFilter = sel.dir || '';
     blogColFilter = sel.col || '';
     blogYearFilter = sel.year || '';
-    blogPaidFilter = (sel.paid === 'paid');
     blogPage = 1;
     renderBlogList();
   },
   groups: [
     { key: 'dir',  label: '内容标签', tags: function(){ return blogDirTagList(); }, match: function(r, t){ return (r.direction || '未分类') === t; } },
-    { key: 'col',  label: '所属栏目', tags: function(){ return blogColumnTagList(); }, match: function(r, t){ return (r.column || '') === t; } },
-    { key: 'year', label: '发布年份', tags: function(){ return blogYearTagList(); }, match: function(r, t){ return (r.date || '').slice(0, 4) === t; } },
-    { key: 'paid', label: '文章属性', tags: [{ id: 'paid', label: '付费文章' }], match: function(r, t){ return !!r.paid; } }
+    { key: 'col',  label: '所属栏目',
+      tags: function(){
+        var list = blogColumnTagList(), paid = [], rest = [];
+        list.forEach(function(x){
+          if (x.id === BLOG_PAID_COL) paid.push({ id: x.id, label: x.label, cls: 'mf-chip--paid', html: mfEsc(x.label) + '<span class="paid-star">✦</span>' });
+          else rest.push(x);
+        });
+        return paid.concat(rest);   // 付费文章置前（「全部」之后第一个）
+      },
+      match: function(r, t){ return (r.column || '') === t; } },
+    { key: 'year', label: '发布年份', tags: function(){ return blogYearTagList(); }, match: function(r, t){ return (r.date || '').slice(0, 4) === t; } }
   ]
 });
 
