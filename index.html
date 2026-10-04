@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.84">
+<meta name="app-version" content="v0.1.85">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -3230,7 +3230,9 @@ function closeDetailRoute() {
   _closeAllDetails();
   currentDetailRoute = '';
   detailPushedByApp = false;
-  if (location.hash !== '#/') location.replace('#/'); else applyRoute('');
+  // 回首页：URL 保持干净（去掉 #/），不新增历史（2026-10-04 用户要求）
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  applyRoute('');
 }
 
 function applyRoute(route) {
@@ -3274,16 +3276,33 @@ function applyRoute(route) {
 }
 
 function navigate(route) {
+  if (route === '' || route === 'home') {
+    // 首页：URL 保持干净（https://divlab.net/，不带 #/ 或 #/home）；进入时压入一条历史以支持「后退」（2026-10-04 用户要求）
+    if (location.hash) history.pushState(null, '', location.pathname + location.search);
+    applyRoute('');
+    return;
+  }
   var h = '#/' + route;
   if (location.hash === h) { applyRoute(route); return; }   // 重复点击当前页：无 hashchange，手动应用
   location.hash = h;                                         // 触发 hashchange → applyRoute（产生历史记录，支持前进后退）
 }
 
+// 首页地址归一化：把 #/ 、#/home 、# 一律还原为干净的 https://divlab.net/（2026-10-04 用户要求）
+function normalizeHomeHash() {
+  if (!location.hash) return;
+  var raw = location.hash.replace(/^#\/?/, '');
+  if (raw === '' || raw === 'home') {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+}
+
 window.addEventListener('hashchange', function () {
+  normalizeHomeHash();
   applyRoute((location.hash || '#/').replace(/^#\/?/, ''));
 });
 
 // 首次加载：直达访问代号（如 #/my）或默认首页
+normalizeHomeHash();
 applyRoute((location.hash || '#/').replace(/^#\/?/, ''));
 
 // ===== TAB SWITCHING =====
