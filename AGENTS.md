@@ -1,5 +1,12 @@
 # Agent 规则
 
+## 工作目录约定（2026-10-04 确立）
+
+**本站（食息指南 dividend-guide）的所有网站改动，只能写入本目录：**
+`/Users/vincentwatson/Library/CloudStorage/坚果云-vincent.watson@live.com/Codes/trae/dividend-guide-website`
+
+不得写入微云（`~/Documents/微云/...`，该目录已废弃、即将删除）或任何其他位置。
+
 ## 统一数据库 data_center（2026-09-24 确立）
 
 本项目与食息指南、资管棱镜、Index Analyzer、策略魔方、食息资讯归档共用同一个资本市场数据库 **data_center**。它分成 9 个独立的库（ref 公共参照 / idx 指数 / fund 基金 / rates 利率 / quote 行情 / industry 行业统计 / portfolio 组合 / fundnews 基金行业动态 / yielddaily 食息日报），库之间通过 `hub.*` 视图互相关联：
