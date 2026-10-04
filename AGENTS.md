@@ -7,6 +7,14 @@
 
 不得写入微云（`~/Documents/微云/...`，该目录已废弃、即将删除）或任何其他位置。
 
+## Git 提交约定（2026-10-04 确立）
+
+本仓库有远端 `origin`（GitHub 公开仓 `vincewatson/dividend-guide`）。**每次改动完成后，直接 `git commit` 并 `git push origin main`，不要逐个询问用户**（用户明确要求：不要把提交/推送做成一轮对话）。
+
+- 提交信息用 `feat:` / `fix:` / `docs:` 前缀 + 简述；版本类改动带上版本号（如 `v0.1.84`）。
+- 推送前确认 `.gitignore` 已排除敏感/大文件（`data/user/`、`user_upload/`、`*.xlsx`、`backup/`、`archive/`、`*.bak*`）。
+- 仓库为 **public**：禁止提交/推送用户原始数据与上传文件。
+
 ## 统一数据库 data_center（2026-09-24 确立）
 
 本项目与食息指南、资管棱镜、Index Analyzer、策略魔方、食息资讯归档共用同一个资本市场数据库 **data_center**。它分成 9 个独立的库（ref 公共参照 / idx 指数 / fund 基金 / rates 利率 / quote 行情 / industry 行业统计 / portfolio 组合 / fundnews 基金行业动态 / yielddaily 食息日报），库之间通过 `hub.*` 视图互相关联：
