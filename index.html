@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.91">
+<meta name="app-version" content="v0.1.92">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -501,13 +501,16 @@
   .detail-card-section { min-width: 0; max-width: 100%; }  /* 不设 overflow：detail-body 的 overflow-x:hidden 已兜底防横向溢出；设 overflow 会把 hint 气泡（bottom:130% 向上弹出）裁剪 */
   .detail-index-title { font-size: var(--fs-xl); font-weight: 700; color: #000000; margin-bottom: 4px; letter-spacing: -0.02em; }  /* 2026-10-03 用户要求：详情页指标名称标题字号 = 首页 .section-title（--fs-xl；原 --fs-3xl 30px → 22px） */
   .detail-index-code { font-size: var(--fs-sm); color: #767676; }
-  .detail-info-row { display: flex; justify-content: space-between; align-items: center; padding: var(--pad-row) 0; }
+  .detail-info-row { display: flex; justify-content: space-between; align-items: center; padding: var(--pad-row) 0; gap: 16px; }  /* gap：保证标签与数值永不相贴（2026-10-04） */
   .detail-info-row + .detail-info-row { border-top: none; }
   .detail-info-row .label { font-size: var(--fs-md); color: #767676; flex-shrink: 0; }
   .detail-info-row .value { min-width: 0; word-break: break-word; overflow-wrap: break-word; }
   .detail-info-row .value { font-size: var(--fs-md); color: #000000; font-weight: 500; text-align: right; }
   .detail-info-row .value a { text-decoration: none; color: #4680FD; }  /* 官方详情页链接：取消下划线 */
   .detail-info-row .value.yield { color: #4680FD; font-size: var(--fs-lg); font-weight: 700; }
+  /* 长文本行（如「指标详情」说明）改上下堆叠、左对齐，避免 web 端标签与长内容相贴（2026-10-04） */
+  .detail-info-row--desc { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .detail-info-row--desc .value { text-align: left; }
   /* 详情页图表卡片头部：两行结构（2026-09-20 版式调整）—— 第一行 标题 + 更新日期，第二行 图例 + 区间分段按钮 */
   .detail-chart-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
   .detail-chart-title { display: flex; align-items: center; gap: 6px; font-size: var(--fs-lg); font-weight: 600; color: #171717; }
@@ -517,7 +520,13 @@
   .detail-chart-title .hint .hint-tip::after, .detail-info-row .hint .hint-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(0,0,0,0.92); }
   .detail-chart-title .hint:hover .hint-tip, .detail-info-row .hint:hover .hint-tip { display: block; }
   /* 特许经营权红字提醒 */
-  .detail-warning { font-size: var(--fs-md); font-weight: 600; color: #dc2626; background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.25); padding: var(--pad-row) 14px; line-height: var(--lh-body); border-radius: 0; }
+  /* 资产详情·红色提示条（2026-10-04 用户要求：参考首页 reminder 的观感做「红色版」，纯展示、不折叠）
+     构造与首页 .reminder 一致：圆角 + 极浅双径向光晕 + 135° 渐变打底，仅色相由品牌蓝改为警示红。 */
+  .reminder-warn { position: relative; overflow: hidden; background: #FFFBFB; padding: 18px 20px; border: 1px solid #F7DADC; border-radius: var(--r-ctl); }
+  .reminder-warn::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(circle at 12% 0%, rgba(220,38,38,0.10), rgba(220,38,38,0) 42%), radial-gradient(circle at 88% 100%, rgba(220,38,38,0.08), rgba(220,38,38,0) 46%), linear-gradient(135deg, #FFFBFB 0%, #FEF1F2 100%); }
+  .reminder-warn > * { position: relative; z-index: 1; }
+  .reminder-warn-title { font-size: var(--fs-base); font-weight: 700; color: #dc2626; margin-bottom: 8px; }
+  .reminder-warn-body { font-size: var(--fs-md); line-height: var(--lh-body); color: #b42318; }
   .detail-chart-update { font-size: var(--fs-sm); color: #737373; text-align: right; flex-shrink: 0; }
   .detail-chart-legend { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
   .detail-legend-items { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; min-width: 0; }
@@ -1019,10 +1028,13 @@
           <div class="detail-info-row"><span class="label">更新日期</span><span class="value" id="assetDetailDate"></span></div>
           <div class="detail-info-row"><span class="label">利率说明</span><span class="value" id="assetDetailNote"></span></div>
           <div class="detail-info-row"><span class="label">数据来源</span><span class="value" id="assetDetailSource"></span></div>
-          <div class="detail-info-row"><span class="label">指标详情</span><span class="value" id="assetDetailDesc"></span></div>
+          <div class="detail-info-row detail-info-row--desc"><span class="label">指标详情</span><span class="value" id="assetDetailDesc"></span></div>
         </div>
         <div class="detail-card-section" id="assetDetailWarnSection" style="display:none">
-          <div class="detail-warning" id="assetDetailWarn">特别提示：特许经营权类REITs的名义派息率，包含资产摊销对应的本金返还部分，该指标会高估实际投资收益率，需要结合IRR综合判断真实回报水平。</div>
+          <div class="reminder-warn" role="note">
+            <div class="reminder-warn-title">⚠️ 特别提示</div>
+            <div class="reminder-warn-body">特许经营权类REITs的名义派息率，包含资产摊销对应的本金返还部分，该指标会高估实际投资收益率，需要结合IRR综合判断真实回报水平。</div>
+          </div>
         </div>
         <div class="detail-card-section" id="assetDetailChartSection" style="display:none">
           <div class="detail-chart-header">
