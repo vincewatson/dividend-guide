@@ -21,36 +21,36 @@
       host: 'indexListContainer', label: '指数排序',
       keyVar: 'sortKey', descVar: 'sortDesc',
       render: 'renderIndices',
-      def: { key: 'name', desc: false },   // 默认按指数简称（A-Z）（2026-08-18 用户修正）
-      opts: [['name','按指数简称（A-Z）','asc'],['yieldNum','按指数股息率（从高到低）','desc']]
+      def: { key: 'listedDate', desc: true },   // 默认按指数发布日期（新→旧）（2026-10-04 用户要求）
+      opts: [['listedDate','按发布日期（新→旧）','desc'],['name','按指数简称（A-Z）','asc'],['yieldNum','按指数股息率（从高到低）','desc']]
     },
     {
       host: 'cnEtfListContainer', label: 'ETF 排序',
       keyVar: 'cnSortKey', descVar: 'cnSortDesc',
       render: 'renderCnEtf',
-      def: { key: 'name', desc: false },   // 默认按 ETF 简称（A-Z）（2026-08-18 简化）
-      opts: [['name','按ETF简称（A-Z）','asc'],['yieldNum','按挂钩指数股息率（从高到低）','desc'],['feeNum','按管理费（从低到高）','asc']]
+      def: { key: 'listedDate', desc: true },   // 默认按基金成立日期（新→旧）（2026-10-04 用户要求）
+      opts: [['listedDate','按成立日期（新→旧）','desc'],['name','按ETF简称（A-Z）','asc'],['yieldNum','按挂钩指数股息率（从高到低）','desc'],['feeNum','按管理费（从低到高）','asc']]
     },
     {
       host: 'hketfListContainer', label: 'ETF 排序',
       keyVar: 'hkSortKey', descVar: 'hkSortDesc',
       render: 'renderHkEtf',
-      def: { key: 'name', desc: false },   // 默认按 ETF 简称（A-Z）（2026-08-18 简化）
-      opts: [['name','按ETF简称（A-Z）','asc'],['feeNum','按管理费（从低到高）','asc']]
+      def: { key: 'listedDate', desc: true },   // 默认按基金成立日期（新→旧）（2026-10-04 用户要求）
+      opts: [['listedDate','按成立日期（新→旧）','desc'],['name','按ETF简称（A-Z）','asc'],['feeNum','按管理费（从低到高）','asc']]
     },
     {
       host: 'monthlyEtfContainer', label: 'ETF 排序',
       keyVar: 'monthlyEtfSortKey', descVar: 'monthlyEtfSortDesc',
       render: 'renderMonthlyEtf',
-      def: { key: 'name', desc: false },   // 默认按 ETF 简称（A-Z）（2026-08-18 简化）
-      opts: [['name','按ETF简称（A-Z）','asc'],['yieldNum','按挂钩指数股息率（从高到低）','desc'],['feeNum','按管理费（从低到高）','asc']]
+      def: { key: 'divDate', desc: true },   // 默认按最近分红日期（新→旧）（2026-10-04 用户要求）
+      opts: [['divDate','按最近分红日期（新→旧）','desc'],['name','按ETF简称（A-Z）','asc'],['yieldNum','按挂钩指数股息率（从高到低）','desc'],['feeNum','按管理费（从低到高）','asc']]
     },
     {
       host: 'monthlyFundContainer', label: '基金排序',
       keyVar: 'monthlyFundSortKey', descVar: 'monthlyFundSortDesc',
       render: 'renderMonthlyFund',
-      def: { key: 'name', desc: false },   // 默认按基金简称（A-Z）（2026-08-18 简化）
-      opts: [['name','按基金简称（A-Z）','asc'],['yieldNum','按挂钩指数股息率（从高到低）','desc'],['feeNum','按管理费（从低到高）','asc']]
+      def: { key: 'divDate', desc: true },   // 默认按最近分红日期（新→旧）（2026-10-04 用户要求）
+      opts: [['divDate','按最近分红日期（新→旧）','desc'],['name','按基金简称（A-Z）','asc'],['yieldNum','按挂钩指数股息率（从高到低）','desc'],['feeNum','按管理费（从低到高）','asc']]
     }
   ];
 
@@ -123,7 +123,7 @@
       var s = buildSelect(cfg);
       if (s) sels[cfg.host] = s;
     });
-    // 应用各列表默认排序（2026-08-18 简化：指数默认股息率↓，其余默认简称 A-Z；食息保持现有）
+    // 应用各列表默认排序（2026-10-04 用户要求：指数/ETF 默认按日期降序，月月分红默认按最近分红日期降序；食息保持现有）
     // 注意：初次加载时数据 fetch 可能未完成，render 抛异常不能中断其余列表（2026-08-18 修复）
     CFG.forEach(function (cfg) {
       if (!cfg.def || window[cfg.keyVar] != null) return;
@@ -663,11 +663,11 @@ function renderMonthlyFundMobile() {
 
 /* ---------- 覆写：移动端走独立渲染，桌面走原函数 ---------- */
 window.renderAssetTable = function () { if (_mIsMobile()) { renderAssetTableMobile(); return; } _origRenderAssetTable(); };
-window.renderIndices   = function () { if (_mIsMobile()) { _ensureDef('sortKey', 'sortDesc', { key: 'name', desc: false }); renderIndicesMobile();   return; } _origRenderIndices(); };
-window.renderCnEtf     = function () { if (_mIsMobile()) { _ensureDef('cnSortKey', 'cnSortDesc', { key: 'name', desc: false }); renderCnEtfMobile();     return; } _origRenderCnEtf(); };
-window.renderHkEtf     = function () { if (_mIsMobile()) { _ensureDef('hkSortKey', 'hkSortDesc', { key: 'name', desc: false }); renderHkEtfMobile();     return; } _origRenderHkEtf(); };
-window.renderMonthlyEtf = function () { if (_mIsMobile()) { _ensureDef('monthlyEtfSortKey', 'monthlyEtfSortDesc', { key: 'name', desc: false }); renderMonthlyEtfMobile(); return; } _origRenderMonthlyEtf(); };
-window.renderMonthlyFund = function () { if (_mIsMobile()) { _ensureDef('monthlyFundSortKey', 'monthlyFundSortDesc', { key: 'name', desc: false }); renderMonthlyFundMobile(); return; } _origRenderMonthlyFund(); };
+window.renderIndices   = function () { if (_mIsMobile()) { _ensureDef('sortKey', 'sortDesc', { key: 'listedDate', desc: true }); renderIndicesMobile();   return; } _origRenderIndices(); };
+window.renderCnEtf     = function () { if (_mIsMobile()) { _ensureDef('cnSortKey', 'cnSortDesc', { key: 'listedDate', desc: true }); renderCnEtfMobile();     return; } _origRenderCnEtf(); };
+window.renderHkEtf     = function () { if (_mIsMobile()) { _ensureDef('hkSortKey', 'hkSortDesc', { key: 'listedDate', desc: true }); renderHkEtfMobile();     return; } _origRenderHkEtf(); };
+window.renderMonthlyEtf = function () { if (_mIsMobile()) { _ensureDef('monthlyEtfSortKey', 'monthlyEtfSortDesc', { key: 'divDate', desc: true }); renderMonthlyEtfMobile(); return; } _origRenderMonthlyEtf(); };
+window.renderMonthlyFund = function () { if (_mIsMobile()) { _ensureDef('monthlyFundSortKey', 'monthlyFundSortDesc', { key: 'divDate', desc: true }); renderMonthlyFundMobile(); return; } _origRenderMonthlyFund(); };
 
 // 覆写后立即按移动端重渲染（覆写前的初始渲染是桌面表格）
 if (_mIsMobile()) {

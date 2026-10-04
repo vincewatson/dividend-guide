@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.83">
+<meta name="app-version" content="v0.1.84">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -1753,31 +1753,31 @@ window.DataCenter = {
       label: '红利指数浏览器', ref: function(){return indexData;},
       needsUpdate: true, frequency: '交易日', fields: 'code,name,fullname,publisher,listedDate,market,components,currency,weight,fundCount,yield,yieldNum,yrChange,fullReturn'.split(','),
       mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_index_block_finance_data'] },
-      reRender: function(){sortKey=null;renderIndices();}
+      reRender: function(){sortKey='listedDate';sortDesc=true;renderIndices();}
     },
     cnEtfData: {
       label: '境内红利ETF列表', ref: function(){return cnEtfData;},
       needsUpdate: true, frequency: '每周', fields: 'code,name,trackCode,trackName,manager,listedDate,listedMarketDate,fee,feeNum,divCount,size'.split(','),
       mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_fund_finance_data'] },
-      reRender: function(){cnSortKey=null;renderCnEtf();}
+      reRender: function(){cnSortKey='listedDate';cnSortDesc=true;renderCnEtf();}
     },
     hkEtfData: {
       label: '港交所红利ETF列表', ref: function(){return hkEtfData;},
       needsUpdate: true, frequency: '每周', fields: 'code,name,fullname,connect,trackCode,trackName,manager,listedDate,fee,feeNum'.split(','),
       mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_hk_finance_data'] },
-      reRender: function(){hkSortKey=null;renderHkEtf();}
+      reRender: function(){hkSortKey='listedDate';hkSortDesc=true;renderHkEtf();}
     },
     etfData: {
       label: '月月分红ETF', ref: function(){return etfData;},
       needsUpdate: true, frequency: '交易日', fields: 'code,name,fundCompany,listedDate,fee,feeNum,totalDiv,annualDiv,annualDivAmt,monthlyDivAmt,price,cumDiv,trackCode,trackName,divTotalAmt,yield,yieldNum,taxRate,investMonthly'.split(','),
       mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_fund_finance_data'] },
-      reRender: function(){monthlyEtfSortKey=null;renderMonthlyEtf();}
+      reRender: function(){monthlyEtfSortKey='divDate';monthlyEtfSortDesc=true;renderMonthlyEtf();}
     },
     fundData: {
       label: '月月分红指数基金', ref: function(){return fundData;},
       needsUpdate: true, frequency: '交易日', fields: 'code,name,fundCompany,establishDate,fee,feeNum,annualDiv,annualDivAmt,monthlyDivAmt,nav,trackCode,trackName,fundSize,divTotalAmt,yield,yieldNum,taxRate,investMonthly'.split(','),
       mcp: { server: 'mcp_mx-ds-mcp', tools: ['mx_fund_finance_data'] },
-      reRender: function(){monthlyFundSortKey=null;renderMonthlyFund();}
+      reRender: function(){monthlyFundSortKey='divDate';monthlyFundSortDesc=true;renderMonthlyFund();}
     },
     dailyData: {
       label: '食息资讯（日报）', ref: function(){return dailyData;},
@@ -1829,8 +1829,8 @@ window.DataCenter = {
 console.log('[DataCenter] 初始化完成，共 '+Object.keys(DataCenter.registry).length+' 个注册表');
 
 // ===== SORT STATE =====
-var sortKey = null;        // 'listedDate' | 'components' | 'yieldNum' | 'dailyChange' | 'yrChange'
-var sortDesc = false;
+var sortKey = 'listedDate';   // 默认按指数发布日期（新→旧）；'listedDate' | 'components' | 'yieldNum' | 'dailyChange' | 'yrChange'
+var sortDesc = true;
 
 // 当日涨跌幅使用最近交易日真实收盘数据（来自 indexData.json 的 dailyChange/dailyDate 字段，
 // 由 sync 脚本从 Wind 拉取；无数据时显示 "-"）
@@ -2485,8 +2485,8 @@ function bindChartHover(prefix){
 }
 
 // ===== HK ETF SORT =====
-var hkSortKey = null;
-var hkSortDesc = false;
+var hkSortKey = 'listedDate';   // 默认按基金成立日期（新→旧）
+var hkSortDesc = true;
 
 function hkToggleSort(key) {
   if (hkSortKey === key) { hkSortDesc = !hkSortDesc; }
@@ -2592,8 +2592,8 @@ function showHkEtfDetail(code) {
 }
 
 // ===== CN ETF SORT & RENDER =====
-var cnSortKey = null;
-var cnSortDesc = false;
+var cnSortKey = 'listedDate';   // 默认按基金成立日期（新→旧）
+var cnSortDesc = true;
 
 // ===== 境内红利ETF 筛选（2026-08-15）=====
 var cnEtfTagFilter = { theme: '', market: '', fee: '', company: '' };   // '' = 全部
@@ -2915,10 +2915,10 @@ function showIndexDetail(code) {
 }
 
 // ===== MONTHLY ETF SORT & RENDER =====
-var monthlyEtfSortKey = null;
-var monthlyEtfSortDesc = false;
-var monthlyFundSortKey = null;
-var monthlyFundSortDesc = false;
+var monthlyEtfSortKey = 'divDate';    // 默认按最近分红日期（新→旧）
+var monthlyEtfSortDesc = true;
+var monthlyFundSortKey = 'divDate';   // 默认按最近分红日期（新→旧）
+var monthlyFundSortDesc = true;
 // 月月分红详情页图表状态
 var monthlyEtfSliderState = { hist: [], idx: null, rangePct: [0, 100] };
 var monthlyFundSliderState = { hist: [], idx: null, rangePct: [0, 100] };
@@ -4308,6 +4308,6 @@ window.addEventListener('orientationchange', syncHeaderHeights, {passive:true});
 window.__mainReady = true;   // 主脚本完整执行标志（interaction-fix 兜底判断用，2026-08-17）
 </script>
   <!-- 移动端排序下拉框（2026-08-17）：视口 ≤767px 时注入 -->
-  <script src="mobile.js?v=44"></script>
+  <script src="mobile.js?v=45"></script>
 </body>
 </html>
