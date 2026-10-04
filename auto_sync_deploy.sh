@@ -68,6 +68,24 @@ run_py() {
   return $rc
 }
 
+# ------------------------------------------------------------
+# [预检] 更新前体检（2026-10-04 新增）
+#   判断今天 A股/港股是否开盘、哪些数据域已覆盖到最新交易日、建议跑/跳过哪些步骤。
+#   只读，不修改数据。默认仅报告。按建议跳过步骤有两种方式：
+#     ① 显式指定：SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh
+#     ② 自动采纳：PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh
+#   （保守：仅跳过纯 Wind 日频 + 资讯步骤；sync_excel/校验/部署等一律保留）
+# ------------------------------------------------------------
+echo "===== [预检] 更新前体检（preflight.py）====="
+if [ -z "$SKIP_STEPS" ] && [ "$PREFLIGHT_AUTO" = "1" ]; then
+  SKIP_STEPS="$(python3 preflight.py --emit-skip 2>/dev/null || true)"
+fi
+python3 preflight.py || echo "（预检失败，忽略，继续执行完整流水线）"
+if [ -n "$SKIP_STEPS" ]; then
+  echo "⏭ 本次将跳过步骤：$SKIP_STEPS （如非预期，请检查 SKIP_STEPS / PREFLIGHT_AUTO）"
+fi
+should_skip() { case " $SKIP_STEPS " in *" $1 "*) return 0 ;; esac; return 1; }
+
 echo "===== [3/21] 脚本语法预检（全部 .py；步骤 1–2 修订文档/确认逻辑由任务层完成）====="
 for f in *.py; do
   python3 -c "import ast; ast.parse(open('$f', encoding='utf-8').read())" || { echo "[ERROR] $f 语法错误"; exit 1; }
@@ -78,29 +96,41 @@ echo "===== [4/21] 同步 Excel 数据（第一次）====="
 run_py "sync_excel.py（第一次）" sync_excel.py
 
 echo ""
+if should_skip 5; then echo "===== [5/21] 同步股息率历史（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
 echo "===== [5/21] 同步股息率历史（Wind）====="
 run_py "sync_div_history.py" sync_div_history.py
 run_py "fix_laggard_indexes.py" fix_laggard_indexes.py
+fi
 
 echo ""
+if should_skip 6; then echo "===== [6/21] 同步每日涨跌幅（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
 echo "===== [6/21] 同步每日涨跌幅（Wind）====="
 run_py "sync_daily_change.py" sync_daily_change.py
+fi
 
 echo ""
+if should_skip 7; then echo "===== [7/21] 同步货币基金实时收益率（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
 echo "===== [7/21] 同步货币基金实时收益率（Wind）====="
 run_py "sync_money_fund.py" sync_money_fund.py
+fi
 
 echo ""
+if should_skip 8; then echo "===== [8/21] 同步余额宝7日年化历史（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
 echo "===== [8/21] 同步余额宝7日年化历史（Wind）====="
 run_py "sync_yuebao_history.py" sync_yuebao_history.py
+fi
 
 echo ""
+if should_skip 9; then echo "===== [9/21] 同步宏观资产历史（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
 echo "===== [9/21] 同步宏观资产历史（Wind）====="
 run_py "sync_asset_macro.py" sync_asset_macro.py
+fi
 
 echo ""
+if should_skip 10; then echo "===== [10/21] 同步 REITs 日频增量 — ⏭ 跳过（预检：已是最新交易日）====="; else
 echo "===== [10/21] 同步 REITs 日频增量（asset_macro 不覆盖 REITs）====="
 run_py "sync_reits_daily.py" sync_reits_daily.py
+fi
 
 echo ""
 echo "===== [11/21] 同步 Excel 数据（第二次！assetData 取最新 divHistory/yieldDate）====="
@@ -123,8 +153,10 @@ echo "===== [15/21] 字段级 Wind 化（fundCount/ETF字段/月月分红字段�
 run_py "sync_wind_fields.py all" sync_wind_fields.py all
 
 echo ""
+if should_skip 16; then echo "===== [16/21] 同步食息资讯（日报）— ⏭ 跳过（预检：digest 源无新日期）====="; else
 echo "===== [16/21] 同步食息资讯（日报；只读 digest-db.json）====="
 run_py "sync_daily.py" sync_daily.py
+fi
 
 echo ""
 echo "===== [17/21] 备份本地数据库（离线保障）====="

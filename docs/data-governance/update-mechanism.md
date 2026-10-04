@@ -16,12 +16,15 @@
 站点同时覆盖 **A股与港股**指数，两市场交易日历可不同（如 A股中秋休市、港股照常开市），此时「最新交易日」**分市场**——港股指数领先 A股/REITs/余额宝 1 天属正常，非数据滞后。
 - `check_data.py` 的 `divHistory 全覆盖` / `dailyChange 全覆盖` / `reitsDaily 全覆盖` **一律按「允许滞后 ≤2 天」容差**判定（**禁止**用单一 `latest ==` 判等），各指数/REITs 以各自市场的最新交易日推进。
 - `sync_daily_change.py` 对 Wind 截面缺失的指数（「最新交易日」返回 `0` / 涨跌幅为空）自动**单只重查 + K 线兜底**；解析前校验日期为 8 位数字，**绝不写入畸形日期**。
+- 交易日历以根目录 `market_calendar.json` 为准（CN/HK 各年『工作日休市』清单；周末由脚本自动排除），`preflight.py` 据此计算各市场「最近交易日」；每年官方发布次年休市安排后更新该文件（沪深北交易所公告 / 港交所通告）。
 
 ## 标准流程（21 步：步骤 1–2 任务准备 + 步骤 3–21 脚本流水线）
 
 > 编号自 2026-09-19 起统一为**连续 1..20**（原 `0`/`0.1`/`6.5`/`7.5` 与 `0a/0b/0c` 已废除）；**2026-09-26 起新增步骤 13（sync_new_reits 新 REITs 自动发现），编号顺延为连续 1..21**（原 13–20 步整体 +1）。`auto_sync_deploy.sh` 从**步骤 3** 开始打印（步骤 1–2 由任务层在上游完成）。
 
 1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 4 sync_excel(1) → 5 div_history+fix_laggard → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → 11 sync_excel(2)（assetData 取最新）→ 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → 14 fund_divdate（恢复 divDate）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。
+
+> **更新前体检（preflight，2026-10-04 新增；不计入 21 步编号）**：`python3 preflight.py` 读取交易日历（根目录 `market_calendar.json`）与本地各 JSON 最新日期，判断 **A股/港股今天是否开盘、各数据域是否已覆盖到最新交易日、建议跑/跳过哪些步骤**，并给出耗时粗估。`auto_sync_deploy.sh` 在步骤 3 前自动执行并打印；按建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`（保守：仅跳过纯 Wind 日频 5–10 + 资讯 16，`sync_excel`/校验/部署一律保留）。目的：假期/休市日不空跑全量（如国庆 A股多日休市，多数日频域无新点，可省去一半步骤）。
 
 ## 更新频次总表（数据 → 来源 → 脚本 → 频次）
 
@@ -110,7 +113,7 @@
 - 上传后标准流程：放文件 → 检查字段映射 → 跑流水线 → 备份/embed/部署。
 
 ### 目录结构规范
-运行必需留根目录（index.html/package.json/auto_sync_deploy.sh/**deploy_cloudflare.sh**/**functions/**（Pages Functions）/**\_redirects**/**\_headers**/api/studio/blog/data/sync_*.py/backup_db.py/embed_data.py/extract_digests.js）；数据 JSON 在 data/；用户 Excel 在 data/user/；备份产物进 backup/；历史演示进 archive/；勿删脚本间互相引用（archive/weekly-feed-2026-09/ 内的 extract_digests.js 被 sync_weekly.py 引用，属归档件；现行日报链路为 sync_daily.py）。
+运行必需留根目录（index.html/package.json/auto_sync_deploy.sh/**deploy_cloudflare.sh**/**preflight.py**/**market_calendar.json**/**functions/**（Pages Functions）/**\_redirects**/**\_headers**/api/studio/blog/data/sync_*.py/backup_db.py/embed_data.py/extract_digests.js）；数据 JSON 在 data/；用户 Excel 在 data/user/；备份产物进 backup/；历史演示进 archive/；勿删脚本间互相引用（archive/weekly-feed-2026-09/ 内的 extract_digests.js 被 sync_weekly.py 引用，属归档件；现行日报链路为 sync_daily.py）。
 
 ### 部署（2026-10-03 起：Cloudflare Pages，取代 Vercel）
 
