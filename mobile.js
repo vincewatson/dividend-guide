@@ -25,21 +25,21 @@
       opts: [['listedDate','按发布日期（新→旧）','desc'],['name','按指数简称（A-Z）','asc'],['yieldNum','按指数股息率（从高到低）','desc']]
     },
     {
-      host: 'cnEtfListContainer', label: 'ETF 排序',
+      host: 'cnEtfListContainer', label: 'ETF排序',
       keyVar: 'cnSortKey', descVar: 'cnSortDesc',
       render: 'renderCnEtf',
       def: { key: 'listedDate', desc: true },   // 默认按基金成立日期（新→旧）（2026-10-04 用户要求）
       opts: [['listedDate','按成立日期（新→旧）','desc'],['name','按ETF简称（A-Z）','asc'],['yieldNum','按挂钩指数股息率（从高到低）','desc'],['feeNum','按管理费（从低到高）','asc']]
     },
     {
-      host: 'hketfListContainer', label: 'ETF 排序',
+      host: 'hketfListContainer', label: 'ETF排序',
       keyVar: 'hkSortKey', descVar: 'hkSortDesc',
       render: 'renderHkEtf',
       def: { key: 'listedDate', desc: true },   // 默认按基金成立日期（新→旧）（2026-10-04 用户要求）
       opts: [['listedDate','按成立日期（新→旧）','desc'],['name','按ETF简称（A-Z）','asc'],['feeNum','按管理费（从低到高）','asc']]
     },
     {
-      host: 'monthlyEtfContainer', label: 'ETF 排序',
+      host: 'monthlyEtfContainer', label: 'ETF排序',
       keyVar: 'monthlyEtfSortKey', descVar: 'monthlyEtfSortDesc',
       render: 'renderMonthlyEtf',
       def: { key: 'divDate', desc: true },   // 默认按最近分红日期（新→旧）（2026-10-04 用户要求）
@@ -506,7 +506,7 @@ function renderIndicesMobile() {
   });
   h += '</div>';
   var c = document.getElementById('indexListContainer');
-  c.innerHTML = (typeof mfBarHtml === 'function' ? mfBarHtml('idx', '共 <b>' + items.length + '</b> / ' + _allIdx.length + ' 只') : '') +
+  c.innerHTML = (typeof mfBarHtml === 'function' ? mfBarHtml('idx', '共<b>' + items.length + '</b>/' + _allIdx.length + '只') : '') +
                 (idxTagBarHtml ? idxTagBarHtml() : '') + h;
   if (typeof mfSyncBadge === 'function') mfSyncBadge('idx');   /* 同步手机端筛选器徽标（2026-10-04） */
   var sub = document.getElementById('indexSubInfo');
@@ -538,7 +538,7 @@ function renderCnEtfMobile() {
   }
   /* 移动卡片：三行结构（简称/代码·挂钩指数/对应指数股息率蓝胶囊 + 本年涨跌胶囊），右上角无数字
      （2026-10-04 用户要求：对应指数股息率由「右上角大数字」改为浅蓝底/蓝字胶囊，与红利指数浏览器同一逻辑） */
-  var h = '<div class="cn-etf-count" style="font-size:12px;color:#767676;margin:2px 0 8px">共 ' + items.length + ' / ' + (cnEtfData || []).length + ' 只</div>';
+  var h = '<div class="cn-etf-count" style="font-size:12px;color:#767676;margin:2px 0 8px">共' + items.length + '/' + (cnEtfData || []).length + '只</div>'';
   h += '<div class="m-list">';
   items.forEach(function (e) {
     var tx = _trackIdx(e.trackCode);
@@ -554,7 +554,7 @@ function renderCnEtfMobile() {
   });
   h += '</div>';
   var c = document.getElementById('cnEtfListContainer');
-  c.innerHTML = (typeof mfBarHtml === 'function' ? mfBarHtml('cnetf', '共 <b>' + items.length + '</b> / ' + (cnEtfData || []).length + ' 只') : '') +
+  c.innerHTML = (typeof mfBarHtml === 'function' ? mfBarHtml('cnetf', '共<b>' + items.length + '</b>/' + (cnEtfData || []).length + '只') : '') +
                 (cnEtfTagBarHtml ? cnEtfTagBarHtml() : '') + h;
   if (typeof mfSyncBadge === 'function') mfSyncBadge('cnetf');   /* 同步手机端筛选器徽标（2026-10-04） */
 }
