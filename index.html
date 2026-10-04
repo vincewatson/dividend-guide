@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.109">
+<meta name="app-version" content="v0.1.110">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -299,9 +299,11 @@
      筛选器白底面板（2026-09-20 用户要求：所有带筛选器的页面，筛选器部分加纯白背景）：
      白底纯色卡片观感，与食息资讯 .df-toolbar 一致（直角、无边框、白底）。 */
   .index-tagbar { display: block; padding: var(--pad-row) 0; margin-bottom: 12px; background: #fff; }  /* 2026-10-03：左右内边距 20px→0，标签行顶到内容区两端 */
-  .index-tagbar-row { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 5px 0; }
-  /* 标签容器（标题+滚动区 结构性分离后 PC 端必须有同样间距；2026-08-17 修复 PC 标签无间隔） */
-  .index-tagbar-scroll { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .index-tagbar-row { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; padding: 5px 0; }
+  /* 标签容器（标题+滚动区 结构性分离后 PC 端必须有同样间距；2026-08-17 修复 PC 标签无间隔）
+     flex:1 1 0 → 标签区始终与组标题同处一行、占满剩余宽度并在内部换行，实现「悬挂缩进」：
+     折行后的标签与首行标签左对齐，不会回落到组标题文字下方（2026-10-04 用户要求）*/
+  .index-tagbar-scroll { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; flex: 1 1 0; min-width: 0; }
   .index-tagbar-group { font-size: var(--fs-sm); color: #767676; font-weight: 600; margin-right: 2px; min-width: 52px; }
   /* 标签外框：统一为 --line-soft（极浅灰，与 header 下沿 / 表头线同色；2026-10-03 用户要求列表页筛选关键词外框改用与 header 一样很浅的浅灰。注：2026-10-03 起食息资讯 .df-chip 亦同步为本色） */
   .index-tag { border: 1px solid var(--line-soft); background: #fff; color: #525252; font-size: var(--fs-sm); padding: 4px 12px; border-radius: 0; cursor: pointer; transition: all 0.15s; }
