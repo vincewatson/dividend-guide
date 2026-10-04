@@ -38,6 +38,7 @@ MAP = {
     'moneyFundData.json': 'moneyFundData',
     'reitsData.json': 'reitsData',
     'dailyData.json': 'dailyData',
+    'blogData.json': 'blogData',
 }
 
 INDEX_KEEP_FIELDS = [
