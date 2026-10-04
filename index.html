@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.111">
+<meta name="app-version" content="v0.1.112">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -653,14 +653,15 @@
   .blog-pager button { font: inherit; font-size: var(--fs-sm); font-weight: 600; background: #fff; color: #525252; border: 1px solid var(--line-soft); padding: 6px 14px; cursor: pointer; }
   .blog-pager button:hover:not(:disabled) { border-color: #4680FD; color: #4680FD; }
   .blog-pager button:disabled { opacity: .45; cursor: default; }
-  /* 手机端卡片：① 日期 ② 标题 ③ 所属栏目（正常 14px 黑体，非标签）④ 相关指数 */
+  /* 手机端卡片：三行式 ① 日期 · 栏目名 ② 标题 ③ 相关指数（2026-10-04 用户要求）*/
   .mblog-card { background: #fff; padding: var(--pad-row) 0; border-bottom: 1px solid var(--line-soft); }
   .mblog-card:last-child { border-bottom: none; }
-  .mblog-r1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .mblog-r1 { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }   /* ① 日期 · 栏目名（左对齐一行）*/
   .mblog-date { font-size: var(--fs-xs); color: #767676; }
+  .mblog-col-sep { font-size: var(--fs-xs); color: #949494; }
+  .mblog-col { font-size: var(--fs-xs); color: #767676; }
   .mblog-r2 { font-size: 16px; font-weight: 700; line-height: 1.35; margin-bottom: 6px; }   /* 手机卡片标题 18→16px（2026-10-04 用户要求）*/
-  .mblog-r3 { font-size: var(--fs-base); color: #000; margin-bottom: 4px; }   /* 所属栏目行：正常 14px 黑体（非标签）*/
-  .mblog-r4 { font-size: var(--fs-2xs); color: #949494; margin-top: 4px; line-height: 1.5; }   /* 相关指数内容：浅灰 / 12px（2026-10-04 用户要求）*/
+  .mblog-r3 { font-size: var(--fs-2xs); color: #949494; margin-top: 4px; line-height: 1.5; }   /* ③ 相关指数内容：浅灰 / 12px */
   .mblog-ix-label { color: #949494; }
 
   /* ===== Blog Detail Modal (simple standalone) ===== */
@@ -4180,16 +4181,15 @@ function blogTitleCell(x){
   return link + (x.paid ? '<span class="paid-mark" title="付费文章">✦</span>' : '');
 }
 
-// 手机端卡片：① 日期 ② 标题 ③ 所属栏目 ④ 相关指数（右上角不再放角标）
+// 手机端卡片：三行式 ① 日期 · 栏目名 ② 标题 ③ 相关指数（2026-10-04 用户要求）
 function blogCardHtml(x){
   var date = x.date ? blogEsc(x.date) : '—';
-  var col = x.column ? blogEsc(x.column) : '<span class="blog-cell-empty">—</span>';
+  var colMeta = x.column ? '<span class="mblog-col-sep">·</span><span class="mblog-col">' + blogEsc(x.column) + '</span>' : '';
   var ix = (x.indexes && x.indexes.length) ? x.indexes.map(blogEsc).join(', ') : '<span class="blog-cell-empty">—</span>';
   return '<div class="mblog-card">' +
-    '<div class="mblog-r1"><span class="mblog-date">' + date + '</span></div>' +
+    '<div class="mblog-r1"><span class="mblog-date">' + date + '</span>' + colMeta + '</div>' +
     '<div class="mblog-r2">' + blogTitleCell(x) + '</div>' +
-    '<div class="mblog-r3">' + col + '</div>' +
-    '<div class="mblog-r4"><span class="mblog-ix-label">相关指数：</span>' + ix + '</div>' +
+    '<div class="mblog-r3"><span class="mblog-ix-label">相关指数：</span>' + ix + '</div>' +
   '</div>';
 }
 
