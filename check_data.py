@@ -73,7 +73,8 @@ if idx:
         h = x.get('divHistory') or []
         if h:
             dates.append(h[-1].get('date', ''))
-        else:
+        elif not x.get('trackOnly'):
+            # trackOnly（详情页图表补充的跟踪指数，2026-10-04）不进「红利指数浏览器」列表，不参与该计数
             missing.append(x.get('name', '?'))
     latest = max(dates) if dates else ''
     check('divHistory 最新日期', bool(latest), latest or '无数据')
@@ -177,7 +178,8 @@ if idx and dates:
 #     原「== latest」会把 A股指数（09-24）全部误判为滞后；改为与 divHistory 一致的 ≤2 天容差（仍可拦截 932584 类多日停滞）。
 if idx and dates:
     lag_dc = [(x.get('name', '?'), x.get('dailyDate') or '—') for x in idx
-              if x.get('divHistory') and days_between(x.get('dailyDate') or '', latest) > 2]
+              if x.get('divHistory') and not x.get('trackOnly')
+              and days_between(x.get('dailyDate') or '', latest) > 2]
     check('dailyChange 全覆盖(允许滞后≤2天)', len(lag_dc) == 0,
           f'{len(lag_dc)} 个滞后: {lag_dc[:5]}' if lag_dc else f'{len(idx) - len(missing)} 个指数均到 {latest}')
 

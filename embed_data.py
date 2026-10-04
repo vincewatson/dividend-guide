@@ -45,6 +45,7 @@ INDEX_KEEP_FIELDS = [
     'components', 'currency', 'weight', 'weightExtra', 'fundCount',
     'yield', 'yieldNum', 'yrChange', 'dailyChange', 'dailyDate',
     'fullReturn', 'adjustCycle', 'adjustDate',
+    'trackOnly',
 ]
 
 

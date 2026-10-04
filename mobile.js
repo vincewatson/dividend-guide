@@ -473,7 +473,9 @@ function _hexA(hex, a) {  /* 胶囊跟随类型色的辅助（2026-08-18） */
 
 /* ---------- 红利指数浏览器（移动卡片） ---------- */
 function renderIndicesMobile() {
-  var items = (indexData || []).slice();
+  /* 仅展示「有挂钩产品发行」的指数；trackOnly 为详情页图表补充的跟踪指数（2026-10-04），不进列表 */
+  var _allIdx = (indexData || []).filter(function (x) { return !x.trackOnly; });
+  var items = _allIdx.slice();
   var f = idxTagFilter || {};
   if (f.theme || f.market || f.adjust || f.publisher) {
     items = items.filter(function (idx) {
@@ -504,12 +506,12 @@ function renderIndicesMobile() {
   });
   h += '</div>';
   var c = document.getElementById('indexListContainer');
-  c.innerHTML = (typeof mfBarHtml === 'function' ? mfBarHtml('idx', '共 <b>' + items.length + '</b> / ' + (indexData || []).length + ' 只') : '') +
+  c.innerHTML = (typeof mfBarHtml === 'function' ? mfBarHtml('idx', '共 <b>' + items.length + '</b> / ' + _allIdx.length + ' 只') : '') +
                 (idxTagBarHtml ? idxTagBarHtml() : '') + h;
   if (typeof mfSyncBadge === 'function') mfSyncBadge('idx');   /* 同步手机端筛选器徽标（2026-10-04） */
   var sub = document.getElementById('indexSubInfo');
   if (sub) {
-    sub.textContent = '本表仅展示有挂钩产品发行的' + (indexData || []).length + '个指数 · 数据更新至' + (dailyDateLabel || '');
+    sub.textContent = '本表仅展示有挂钩产品发行的' + _allIdx.length + '个指数 · 数据更新至' + (dailyDateLabel || '');
   }
 }
 
