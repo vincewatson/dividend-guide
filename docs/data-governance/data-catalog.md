@@ -23,7 +23,7 @@
 | reitsDaily.json | Wind REITs 日频原始缓存（58 只逐只）| sync_reits_daily.py | **增量缓存**（每只续补新段 → 汇总两类中位数 → 写 assetHistory）| 纯缓存，可从 Wind 重建；断点续传落盘处 |
 | dailyData.json | digest-db.json（坚果云同步，稳定机器接口）| sync_daily.py | 最新一期前置 | 独立 |
 | dailyTagColors.json | digest-db.json → meta.tagColors | sync_daily.py | 10 标签浅底/深字配色，前端直接复用 | 独立 |
-| blogData.json（子弹列车文章目录）| **用户提供**（`user_upload/子弹列车公众号历史内容目录.xlsx`：发布日期 / 文章链接[标题+超链接] / 投资方向 / 涉及指数）| **手动**（按链接去重 → 生成）| 目标 = 公众号历史文章全量目录（当前 **73 篇**）| 独立（不参与自动流水线）|
+| blogData.json（博客 · 子弹列车文章目录）| **用户提供**（`user_upload/子弹列车公众号历史内容目录.xlsx`：发布日期 / 文章链接[标题+超链接] / 投资方向 / 涉及指数；另有补录项）| **手动**（`sync_blog.py`：按链接去重 + 补录 + 付费标记）| 目标 = 公众号历史文章全量目录（当前 **74 篇**，含付费 **2** 篇）| 独立（不参与自动流水线）|
 | etfData/fundData/cnEtfData/hkEtf/indexData（Wind 化字段）| Wind get_fund_financials / get_index_fundamentals | **sync_wind_fields.py** | 步骤 15，在 sync_excel(2)（步骤 11）之后（不被覆盖）| **fundCount/yrChange/divDate/yield=指数股息率 均保护**；N 前缀摘除不恢复（fix_n_prefix + sync_excel 保护）|
 
 ## 数据文件清单（data/）
@@ -44,7 +44,7 @@
 | yuebaoHistory.json | 1022 条 | sync_yuebao_history.py | ③ Wind MCP | 流水线 |
 | dailyData.json | 期数随 digest-db.json 累积 | sync_daily.py | digest-db.json | 流水线 |
 | dailyTagColors.json | 10 标签 | sync_daily.py | digest-db.json → meta.tagColors | 流水线 |
-| blogData.json | 73 篇 | （手动，源自 `user_upload` xlsx）| 用户提供（公众号文章目录）| 手动（随用户补充而更新）|
+| blogData.json | 74 篇 | sync_blog.py（手动）| 用户提供（`user_upload` xlsx + 补录）| 手动（随用户补充而更新）|
 | backup/ + index.html 内嵌 | — | backup_db.py / embed_data.py | 本地 | 同步后自动 |
 
 ## 数据来源明细（按数据域）

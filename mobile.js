@@ -366,7 +366,7 @@
   var _lastIsMobile = window.innerWidth <= 767;
   var _resizeRaf = false;
   function _rerenderListsForMode() {
-    ['renderAssetTable', 'renderIndices', 'renderCnEtf', 'renderHkEtf', 'renderMonthlyEtf', 'renderMonthlyFund']
+    ['renderAssetTable', 'renderIndices', 'renderCnEtf', 'renderHkEtf', 'renderMonthlyEtf', 'renderMonthlyFund', 'renderBlogList']
       .forEach(function (fn) { try { if (typeof window[fn] === 'function') window[fn](); } catch (e) {} });
   }
   window.addEventListener('resize', function () {
