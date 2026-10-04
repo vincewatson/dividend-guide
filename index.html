@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.113">
+<meta name="app-version" content="v0.1.114">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -4396,12 +4396,15 @@ function mfRenderBody(){
   if (cb) cb.disabled = !cfg.groups.some(function(g){ return !!mfDraft[g.key]; });   /* 无任何已选筛选时，「清除筛选」置灰禁用（2026-10-04） */
 }
 
-/* 清除筛选（2026-10-04 用户要求）：仅清空面板草稿里的所有分组；
-   因面板是「草稿 + 确定」模型，需再点「确定」才写回并重渲染列表（与「取消」语义区分：取消=放弃改动）。 */
+/* 清除筛选：清空面板草稿，并**立即写回生效**（无需再点「确定」）。
+   2026-10-04 用户反馈：普通人点「清除筛选」后往往直接关闭面板，不会再去点「确定」，
+   导致筛选实际没被清掉 → 改为点「清除筛选」即刻清空并重渲染列表（面板保持打开）。 */
 function mfClear(){
   var cfg = mfRegistry[mfOpenKey]; if (!cfg) return;
-  cfg.groups.forEach(function(g){ mfDraft[g.key] = ''; });
-  mfRenderBody();
+  var chosen = {};
+  cfg.groups.forEach(function(g){ mfDraft[g.key] = ''; chosen[g.key] = ''; });
+  cfg.set(chosen);          /* 立即生效：写回页面筛选状态 + 重渲染列表（内部会同步徽标） */
+  mfRenderBody();           /* 面板内所有标签回到「全部」 */
 }
 
 /* 手机筛选面板：用 visualViewport 实测「可视高度」约束面板高度（2026-10-04 用户反馈：
