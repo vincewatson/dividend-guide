@@ -356,8 +356,8 @@
   .detail-chart-range { align-self: stretch; width: 100%; max-width: none; overflow: visible; }
   .detail-range-btn { flex: 1 1 0; min-width: 0; padding: 0 4px; }
   .detail-slider { height: 44px; }
-  .detail-slider-handle { width: 22px; height: 22px; }
-  .detail-slider-track { height: 4px; }  /* 与已选区间条/手柄描边统一为 4px（2026-10-04 用户要求：粗细一致；原手机端 5px，与区间条 4px 不符）*/
+  .detail-slider-handle { width: 16px; height: 16px; }  /* 2026-10-04 用户要求：滑块整体缩 1/4（22→16px） */
+  .detail-slider-track { height: 3px; }  /* 2026-10-04 用户要求：整体缩 1/4（4→3px），与区间线/手柄描边一致 */
   .detail-footer { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
   .site-footer { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
 

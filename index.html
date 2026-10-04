@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.88">
+<meta name="app-version" content="v0.1.89">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -537,9 +537,9 @@
   .chart-canvas-wrap { position: relative; }
   .chart-mask { position: absolute; inset: 0; background: rgba(255,255,255,0.72); display: flex; align-items: center; justify-content: center; z-index: 40; font-size: var(--fs-md); color: #949494; letter-spacing: 3px; border-radius: 0; }  /* 数据暂缺遮罩（2026-08-11）*/
   .detail-slider { position: relative; height: 28px; margin: 16px 0 0; cursor: pointer; user-select: none; touch-action: none; min-width: 0; max-width: 100%; overflow: visible; }  /* 2026-09-20：滑块下方的起止日期标签已移除（图表正文已有日期），只保留滑块；2026-10-04 用户要求：overflow hidden → visible（右把手顶到 100% 时不再被裁） */
-  .detail-slider-track { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); height: 4px; background: #e5e5e5; border-radius: 0; }
-  .detail-slider-range { position: absolute; top: 50%; transform: translateY(-50%); height: 4px; background: #525252; border-radius: 0; }  /* 2026-10-03 用户要求：已选区间底色 浅蓝 rgba(70,128,253,.35) → 深灰 #525252 */
-  .detail-slider-handle { position: absolute; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border-radius: 50%; background: #ffffff; border: 4px solid #525252; box-sizing: border-box; cursor: grab; z-index: 2; }  /* 2026-10-03 用户要求：纯圆形、空心（白底 + 描边）；2026-10-04 用户要求：描边色 黑 #000 → 与已选区间条统一的深灰 #525252，且描边宽 3→4px（与区间条 4px 粗细一致，二者观感统一） */
+  .detail-slider-track { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); height: 3px; background: #e5e5e5; border-radius: 0; }  /* 2026-10-04 用户要求：滑块（手柄+区间线）整体缩 1/4，轨道同步 4→3px 保持对齐 */
+  .detail-slider-range { position: absolute; top: 50%; transform: translateY(-50%); height: 3px; background: #767676; border-radius: 0; }  /* 2026-10-03 浅蓝→深灰；2026-10-04 用户要求：粗细 4→3px、颜色 深灰 #525252 → 更浅的灰 #767676 */
+  .detail-slider-handle { position: absolute; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; border-radius: 50%; background: #ffffff; border: 3px solid #767676; box-sizing: border-box; cursor: grab; z-index: 2; }  /* 2026-10-03 纯圆空心；2026-10-04 用户要求：整体缩 1/4（16→12px、描边 4→3px，与区间线 3px 一致）+ 描边色 深灰 #525252 → 更浅的灰 #767676 */
   .detail-slider-handle:active { cursor: grabbing; }
   .detail-slider-handle.left { left: 0; }
   .detail-slider-handle.right { right: auto; }  /* 定位由 JS 以内联 left + translateX(-100%) 完成（与手柄宽度解耦，2026-10-04） */
@@ -689,7 +689,7 @@
   .mf-bar, .mf-mask, .mf-sheet { display: none; }
 </style>
   <!-- 移动端适配（2026-08-17）：仅 max-width:767px / 平板区间生效，桌面零影响 -->
-  <link rel="stylesheet" href="mobile.css?v=78">
+  <link rel="stylesheet" href="mobile.css?v=79">
 </head>
 <body>
 
