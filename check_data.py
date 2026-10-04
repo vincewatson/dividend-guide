@@ -264,6 +264,53 @@ try:
 except ImportError as _e:
     check('指数币种变体已归并(无港币/人民币重复版)', False, 'index_variants.py 缺失: %s' % _e)
 
+# 18. 前端 JS 语法（防「字符串字面替换引入引号错误」类回归）
+#     2026-10-04：v0.1.96 空格治理曾把 mobile.js 的字符串多写一个引号 → mobile.js 解析失败
+#     → 移动层（汉堡/抽屉/卡片）整层不初始化、手机端回退桌面导航。
+#     本项用 node --check 校验 mobile.js 与 index.html 的全部内联 <script>。
+import subprocess, re as _re, tempfile
+
+
+def _js_syntax_ok(code):
+    fd, p = tempfile.mkstemp(suffix='.js')
+    os.close(fd)
+    try:
+        with io.open(p, 'w', encoding='utf-8') as f:
+            f.write(code)
+        r = subprocess.run(['node', '--check', p], capture_output=True, text=True)
+        return (r.returncode == 0), (r.stderr or '').strip()
+    except FileNotFoundError:
+        return True, 'node 不可用，跳过'
+    finally:
+        try:
+            os.remove(p)
+        except OSError:
+            pass
+
+
+_js_errs = []
+try:
+    with io.open(os.path.join(BASE, 'mobile.js'), encoding='utf-8') as _f:
+        _ok, _e = _js_syntax_ok(_f.read())
+        if not _ok:
+            _js_errs.append('mobile.js: ' + (_e.splitlines()[0] if _e else ''))
+except Exception as _e:
+    _js_errs.append('mobile.js 读取失败: %s' % _e)
+try:
+    with io.open(os.path.join(BASE, 'index.html'), encoding='utf-8') as _f:
+        _html = _f.read()
+    for _i, _m in enumerate(_re.finditer(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>', _html, _re.I), 1):
+        _code = _m.group(1)
+        if not _code.strip():
+            continue
+        _ok, _e = _js_syntax_ok(_code)
+        if not _ok:
+            _js_errs.append('index.html inline #%d: %s' % (_i, (_e.splitlines()[0] if _e else '')))
+except Exception as _e:
+    _js_errs.append('index.html 读取失败: %s' % _e)
+check('前端 JS 语法(mobile.js + index.html 内联)', not _js_errs,
+      ' | '.join(_js_errs[:3]) if _js_errs else '全部通过 ✅')
+
 print('\n===== 结果 =====')
 if FAIL:
     print('❌ {} 项未通过：'.format(len(FAIL)))
