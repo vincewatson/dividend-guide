@@ -473,7 +473,7 @@ function _hexA(hex, a) {  /* 胶囊跟随类型色的辅助（2026-08-18） */
 
 /* ---------- 红利指数浏览器（移动卡片） ---------- */
 function renderIndicesMobile() {
-  /* 仅展示「有挂钩产品发行」的指数；trackOnly 为详情页图表补充的跟踪指数（2026-10-04），不进列表 */
+  /* 展示「已发行或正在申报挂钩产品」的指数；trackOnly 为详情页图表补充的跟踪指数（2026-10-04），不进列表 */
   var _allIdx = (indexData || []).filter(function (x) { return !x.trackOnly; });
   var items = _allIdx.slice();
   var f = idxTagFilter || {};
@@ -511,7 +511,7 @@ function renderIndicesMobile() {
   if (typeof mfSyncBadge === 'function') mfSyncBadge('idx');   /* 同步手机端筛选器徽标（2026-10-04） */
   var sub = document.getElementById('indexSubInfo');
   if (sub) {
-    sub.textContent = '本表仅展示有挂钩产品发行的' + _allIdx.length + '个指数 · 数据更新至' + (dailyDateLabel || '');
+    sub.textContent = '本表仅展示已发行或正在申报挂钩产品的' + _allIdx.length + '个指数 · 数据更新至' + (dailyDateLabel || '');
   }
 }
 
