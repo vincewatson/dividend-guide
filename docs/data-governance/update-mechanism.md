@@ -22,7 +22,7 @@
 
 > 编号自 2026-09-19 起统一为**连续 1..20**（原 `0`/`0.1`/`6.5`/`7.5` 与 `0a/0b/0c` 已废除）；**2026-09-26 起新增步骤 13（sync_new_reits 新 REITs 自动发现），编号顺延为连续 1..21**（原 13–20 步整体 +1）。`auto_sync_deploy.sh` 从**步骤 3** 开始打印（步骤 1–2 由任务层在上游完成）。
 
-1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 4 sync_excel(1) → 5 div_history+fix_laggard → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → 11 sync_excel(2)（assetData 取最新）→ 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → 14 fund_divdate（恢复 divDate）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。
+1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 4 sync_excel(1) → 5 div_history+fix_laggard → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → 11 sync_excel(2)（assetData 取最新）→ 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → 14 fund_divdate（恢复 divDate）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。（**2026-10-05 起**在步骤 12 之后插入一个**编号外**步骤 `sync_product_quotes`（产品行情快照入库），不计入 1..21；详见下方「产品行情快照库 productQuotes」。）
 
 > **更新前体检（preflight，2026-10-04 新增；不计入 21 步编号）**：`python3 preflight.py` 读取交易日历（根目录 `market_calendar.json`）与本地各 JSON 最新日期，判断 **A股/港股今天是否开盘、各数据域是否已覆盖到最新交易日、建议跑/跳过哪些步骤**，并给出耗时粗估。`auto_sync_deploy.sh` 在步骤 3 前自动执行并打印；按建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`（保守：仅跳过纯 Wind 日频 5–10 + 资讯 16，`sync_excel`/校验/部署一律保留）。目的：假期/休市日不空跑全量（如国庆 A股多日休市，多数日频域无新点，可省去一半步骤）。
 
@@ -34,6 +34,7 @@
 |---|---|---|---|---|
 | indexData · divHistory | Wind 指数股息率（日频）| sync_div_history + fix_laggard_indexes | **每次**（增量补最新交易日）| 步骤 5 |
 | indexData · dailyChange / yrChange | Wind 涨跌幅 | sync_daily_change | **每次** | 步骤 6 |
+| productQuotes · 产品行情快照（当日涨跌幅/今年以来回报）| Wind `fund_data.get_fund_price_indicators` | sync_product_quotes | **每次**（按日期【追加】，同日仅补空值、绝不覆盖旧值）| 步骤 12 之后（**编号外**步骤）|
 | moneyFundData · 头部 7 日年化 | Wind 实时 | sync_money_fund | **每次** | 步骤 7 |
 | yuebaoHistory | Wind 日频 | sync_yuebao_history | **每次**（动态 180 天）| 步骤 8 |
 | assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单）| Wind EDB（国债=Wind 债券发行记录）| sync_asset_macro | **每次** | 步骤 9 |
@@ -51,6 +52,17 @@
 - **「每次」类**脚本均**增量 + 失败不破坏**（拉不到就保留旧值），可在任意时点安全重跑。
 - **「每周」**指每周六 15:00 定时任务跑一次完整流水线（21 步）；Excel 快照类只有在 `data/user/` 出现新文件时数值才变化。
 - **「季度 / 不定期」**由用户在对应节点手动提供，脚本侧一律「保留现有值不覆盖」。
+
+### 产品行情快照库 productQuotes（2026-10-05 确立·日期标签 + 只追加不覆盖）
+
+**用户约定（原话）**：每次取特定日期的行情，下次更新**不要把之前的数据冲毁掉**——每次取完数据要**给数据打上日期标签**，数据库才能越来越丰富。
+
+- **文件**：`data/productQuotes.json`（结构 `{schema, note, updatedAt, quotes:{ <code>: [ {date, dailyChange, yrChange, source}, ... ] }}`，每码按日期**升序**）。
+- **两条铁律**：① **只追加不覆盖**——新交易日**追加**一条快照，历史快照永久保留；**同一天**再次写入时**只补空值（null→有值），绝不改写已有非空值**。② **产品绝不跨取跟踪指数**——产品回报已扣费且含分红，与指数口径不同；缺数据**从 Wind 补**，取不到写 `null`（前端显「—」，**不臆造、不借用挂钩指数**）。
+- **来源**：Wind `fund_data.get_fund_price_indicators`（`indexes=最新交易日,涨跌幅,年初至今涨跌幅`）；12 只/批、失败重试 4 次 + 单只回退；日期须 8 位数字，**绝不写入畸形日期**。
+- **独立于重建**：`productQuotes.json` **不在** `sync_excel.py` 的整表重建清单内 → 每周重建产品列表**不会**冲掉行情快照（这也是把它做成独立文件、而非写回产品字段的原因）。
+- **前端读取**：`/data/productQuotes.json` 运行时加载 → `productQuoteLatest`（各产品**最新日期**快照）；`embed_data.py` 额外内嵌 `productQuoteLatest` 作离线兜底。详情页「当日涨跌幅 / 今年以来回报」只读它。
+- **脚本**：`sync_product_quotes.py`（`--dry-run` 只打印不写、`--codes a,b` 调试单批）；已挂到 `auto_sync_deploy.sh`（步骤 12 后、**编号外**、失败不阻断）。
 
 ## 新 ETF / 新指数自动发现规则（2026-08-15 固化）
 

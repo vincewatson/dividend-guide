@@ -12,6 +12,7 @@
 |----------|--------|----------|--------------|----------|
 | indexData.json（divHistory）| Wind 指数股息率日频 | sync_div_history.py + fix_laggard | 增量补到最新交易日（2023-01 起全量）；fix_laggard 单查补缺口（**日频查询 + 合并**，2026-09-13 修订）| **绝不删除**（跳过做占位 + 写回兜底）|
 | indexData.json（dailyChange）| Wind 涨跌幅 | sync_daily_change.py | 每日最新交易日 | 仅更新两字段；**存小数**（-0.0204=-2.04%）|
+| productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 sync_excel 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）|
 | indexData.json（新指数）| Wind（自动发现）| sync_new_etf.py | 新 ETF 跟踪指数缺失时补入 | 自动纳入，含 divHistory |
 | cnEtfData/hkEtf/etf/fundData | Excel 快照 | sync_excel.py | 快照全量重建 | divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的** |
 | cnEtfData（新 ETF）| Wind（自动发现）| sync_new_etf.py | 近 30 天成立红利类 ETF 自动补入 | 与 Excel 重建合并去重 |
@@ -42,6 +43,7 @@
 | assetHistory.json | 12 序列 | sync_asset_macro.py + sync_reits_daily.py | ③ Wind MCP（REITs 日频独立脚本；重点50城租金率=中指季度报告）| 流水线 |
 | reitsDaily.json | 58 只日频缓存 | sync_reits_daily.py | ③ Wind MCP | 流水线（缓存，可重建）|
 | yuebaoHistory.json | 1022 条 | sync_yuebao_history.py | ③ Wind MCP | 流水线 |
+| productQuotes.json | 135 产品 / 135 条快照（逐日累积）| **sync_product_quotes.py** | ③ Wind MCP（`get_fund_price_indicators`）| 流水线（步骤 12 后·编号外；只追加不覆盖）|
 | dailyData.json | 期数随 digest-db.json 累积 | sync_daily.py | digest-db.json | 流水线 |
 | dailyTagColors.json | 10 标签 | sync_daily.py | digest-db.json → meta.tagColors | 流水线 |
 | blogData.json | 289 篇 | sync_blog.py（手动）| 用户提供（`user_upload/公众号历史文章*.xlsx`）+ 标注表 `user_upload/博客文章标注表*.xlsx`（兜底 `data/blogAnnotations.json`）| 手动（随用户补充而更新）|

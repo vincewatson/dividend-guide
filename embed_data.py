@@ -134,6 +134,38 @@ def main():
             html = html[:start] + new_text + html[end:]
             changes += 1
 
+    # ---- 产品行情最新快照（嵌套对象，需单独处理）→ var productQuoteLatest = {...} ----
+    # productQuotes.json 是「日期标签 + 只追加不覆盖」的快照库；离线兜底只内嵌每个产品【最新日期】的一条。
+    pq = load_json('productQuotes.json')
+    if pq is None:
+        skipped.append(('productQuotes.json', '数据文件缺失'))
+    elif not (isinstance(pq, dict) and isinstance(pq.get('quotes'), dict)):
+        skipped.append(('productQuotes.json', '非 {quotes:{...}} 结构，跳过'))
+    else:
+        latest = {}
+        for code, hist in pq['quotes'].items():
+            best = None
+            for s in (hist or []):
+                if isinstance(s, dict) and s.get('date') and (best is None or s['date'] > best.get('date', '')):
+                    best = s
+            if best:
+                latest[code] = best
+        new_js = json.dumps(latest, ensure_ascii=False)
+        m = re.search(r'^var productQuoteLatest = \{.*\};$', html, flags=re.M)
+        if not m:
+            skipped.append(('productQuotes.json', 'index.html 中未找到 var productQuoteLatest 占位'))
+        else:
+            old_text = m.group(0)
+            new_text = 'var productQuoteLatest = ' + new_js + ';'
+            report['productQuoteLatest'] = {'old_chars': len(old_text), 'new_chars': len(new_text), 'records': len(latest)}
+            if args.preview:
+                flag = ' [有变化]' if old_text != new_text else ' [无变化]'
+                print('productQuoteLatest: {}字符 -> {}字符 ({}条){}'.format(
+                    len(old_text), len(new_text), len(latest), flag))
+            elif old_text != new_text:
+                html = html[:m.start()] + new_text + html[m.end():]
+                changes += 1
+
     if args.preview:
         print('\n预览完成。{} 个数组有变化，跳过 {} 个'.format(changes, len(skipped)))
         return

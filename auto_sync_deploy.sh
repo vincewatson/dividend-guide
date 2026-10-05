@@ -141,6 +141,12 @@ echo "===== [12/21] 新 ETF/新指数自动发现（Wind）====="
 run_py "sync_new_etf.py" sync_new_etf.py
 
 echo ""
+echo "===== [产品行情] 快照入库（Wind；2026-10-05 新增·编号外，不影响 1..21 计数）====="
+# 拉取各 ETF/基金【当日涨跌幅】【今年以来回报】，按日期打标签【追加】到 data/productQuotes.json
+# （只追加不覆盖：历史快照永久保留；产品回报绝不跨取跟踪指数）。Wind 抖动失败不阻断后续步骤。
+run_py "sync_product_quotes.py" sync_product_quotes.py || echo "  ⚠ 产品行情快照失败（Wind 抖动），保留已有快照，下次重试"
+
+echo ""
 echo "===== [13/21] 新 REITs 自动发现（Wind；2026-09-26 新增）====="
 run_py "sync_new_reits.py" sync_new_reits.py
 
