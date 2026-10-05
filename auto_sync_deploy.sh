@@ -151,6 +151,13 @@ echo "===== [13/21] 新 REITs 自动发现（Wind；2026-09-26 新增）====="
 run_py "sync_new_reits.py" sync_new_reits.py
 
 echo ""
+echo "===== [月月名单] 自动补入（Wind；2026-10-06 新增·编号外，不影响 1..21 计数）====="
+# 全市场检索「近1年分红次数 ≥ 11」的指数产品（A 类去重）→ 自动补入月月分红名单（etfData/fundData）。
+# 位置关键：必须在 step 11 sync_excel(2) 之后（产出的是 Excel 表外行，靠 sync_excel 表外行护栏保留）、
+#           且在 step 14 之前（同轮紧接刷 divDate + prune_stale_monthly 剔除超期成员）。Wind 抖动失败不阻断。
+run_py "sync_new_monthly.py" sync_new_monthly.py || echo "  ⚠ 月月名单自动补入失败（Wind 抖动），保留现有名单，下次重试"
+
+echo ""
 echo "===== [14/21] 恢复基金最近分红日期（Wind，覆盖被 Excel 覆盖的 divDate）====="
 run_py "sync_fund_divdate.py all --force" sync_fund_divdate.py all --force
 

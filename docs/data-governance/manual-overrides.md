@@ -39,6 +39,7 @@
 | 历史 | `indexData.json` `995082.SSI` | components | → 50 | 用户/官方核对 | B | ✅ |
 | 2026-10-06 | `assetData.json` **新增**「红利低波」 | 整条记录（`type=红利`；`yield`/`date` 取 `indexData` `H30269.CSI` divHistory 最新 = `4.39%` / `2026-09-30`；`note=近12个月股息率`；`source=Wind`） | 无 → 新增（红利组末尾第 6 条） | 用户要求「首页『主流资产食息率』加一个红利低波指数」 | B（`sync_excel.py` 新增常量 `EXTRA_ASSETS`，`build_asset_data` 重建时按 `type` 追加到红利组末尾）+ A（同步改 `data/assetData.json`）；另 `index.html` `ASSET_TO_INDEX_CODE` 增 `'红利低波':'H30269.CSI'` 使点击进入指数详情页 | ✅ |
 | 2026-10-06 | `fundData.json` **移出**「022097.OF 长城中证红利低波100ETF联接A」| 整条记录（从「月月分红场外」名单删除）| 在名单（最近分红 2026-07-28）→ 移出 | 用户要求：月月分红名单应只含「每月连续分红」产品；该基金 8、9 月均无分红，Wind 核实最近一次分红 2026-07-28，已非月月 | **C（新增规则护栏）**：`sync_fund_divdate.py` 增 `prune_stale_monthly`（步骤 14 自动移出「最近分红早于上一个月」的 etfData/fundData 成员；Excel 仍会带回，恢复月月分红则自动回归）+ 已同步删 JSON；`check_data.py` 增 7b 硬校验 | ✅ |
+| 2026-10-06 | `data/etfData.json` / `fundData.json` **新增**「月月名单」3 只 | 整条记录：`021583.OF 中欧中证港股通央企红利指数A`、`022325.OF 长城中证港股通高股息投资指数A`、`021375.OF 中欧中证红利低波动100指数A` | 无 → 新增（fundData 25 → 28） | 用户口径「**≥11 次 / 全市场口径 / 直接自动加**」：月月名单**新增**成员改为自动（近 1 年分红次数 ≥ 11，A 类去重，限指数产品；主动管理产品不纳入）| **C（新增规则护栏 + 新脚本）**：新建 `sync_new_monthly.py`（编号外步骤，位于 step 13 后、step 14 前）；`sync_excel.py` 增 etfData/fundData **表外行保留护栏**（防每周整表重建冲掉）；`check_data.py` 增 7c 行结构完整性校验 | ✅ |
 
 > 上表"历史"行 = 代码 `sync_excel.py · AUTHORITATIVE_MANUAL` 中既有的权威硬编码值（补登记，非本次新增）。
 > 后续新增手工修订请**追加行**，勿覆盖历史行。

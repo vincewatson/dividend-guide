@@ -14,14 +14,15 @@
 | indexData.json（dailyChange）| Wind 涨跌幅 | sync_daily_change.py | 每日最新交易日 | 仅更新两字段；**存小数**（-0.0204=-2.04%）|
 | productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 sync_excel 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）|
 | indexData.json（新指数）| Wind（自动发现）| sync_new_etf.py | 新 ETF 跟踪指数缺失时补入 | 自动纳入，含 divHistory |
-| cnEtfData/hkEtf/etf/fundData | Excel 快照 | sync_excel.py | 快照全量重建 | divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的**；**hkEtf 保留表外标的 + `active`/`shares` 字段（2026-10-05，如主动管理ETF 3555.HK）** |
+| cnEtfData/hkEtf/etf/fundData | Excel 快照 | sync_excel.py | 快照全量重建 | divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的**；**hkEtf 保留表外标的 + `active`/`shares` 字段（2026-10-05，如主动管理ETF 3555.HK）**；**etf/fund 保留表外标的（月月名单自动补入，2026-10-06）** |
 | cnEtfData（新 ETF）| Wind（自动发现）| sync_new_etf.py | 近 30 天成立红利类 ETF 自动补入 | 与 Excel 重建合并去重 |
 | reitsData.json（新 REITs）| Wind（自动发现）| sync_new_reits.py | 全部已上市公募 REITs（508xxx.SH / 180xxx.SZ）对照补入；明细字段本次取不到**留空不填 0**（数值 null / 字符串 ''）| 与 Excel 重建合并去重（sync_excel 保留 Wind 自动发现标的，2026-09-26 起）|
+| etfData/fundData（月月名单**新增**成员）| Wind `search_funds` 全市场检索（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly.py** | 每次自动补入（2026-10-06 起；编号外步骤，位于 step 13 后）| 与 Excel 重建合并去重（sync_excel 保留表外行，2026-10-06 起）|
 | divDate | Wind 最近分红 | sync_fund_divdate.py | 全量重拉 | 无数据保留原值；**必须在 sync_excel 之后**；措辞**多路兜底**（最近分红情况→最近分红发放日期→基金分红 分红发放日）|
 | moneyFundData（yield7d/yieldDate）| Wind 实时 | sync_money_fund.py | 最新交易日 | 重建时保留 yieldDate；**必须早于 sync_excel(2)** |
 | yuebaoHistory.json | Wind 日频 | sync_yuebao_history.py | **动态：divHistory 最早日期向前 180 天** | 每段重试 3 次 + 写回前与现有文件**合并**兜底（2026-09-13 加固，防瞬时失败丢段）|
 | assetHistory.json | Wind EDB + 中指季度报告 | sync_asset_macro.py + sync_reits_daily.py | 各序列全量；REITs 两类为**日频增量**；重点50城租金率为**中指季度时点序列**（用户/季度报告更新，asset_macro 保留现有值）| safe_fetch：拉取空保留旧值；asset_macro 不覆盖 REITs 与重点50城租金率 |
-| reitsDaily.json | Wind REITs 日频原始缓存（58 只逐只）| sync_reits_daily.py | **增量缓存**（每只续补新段 → 汇总两类中位数 → 写 assetHistory）| 纯缓存，可从 Wind 重建；断点续传落盘处 |
+| reitsDaily.json | Wind REITs 日频原始缓存（89 只逐只）| sync_reits_daily.py | **增量缓存**（每只续补新段 → 汇总两类中位数 → 写 assetHistory）| 纯缓存，可从 Wind 重建；断点续传落盘处 |
 | dailyData.json | digest-db.json（坚果云同步，稳定机器接口）| sync_daily.py | 最新一期前置 | 独立 |
 | dailyTagColors.json | digest-db.json → meta.tagColors | sync_daily.py | 10 标签浅底/深字配色，前端直接复用 | 独立 |
 | blogData.json（博客 · 子弹列车文章目录）| **用户提供**（`user_upload/公众号历史文章(20240123-20260919).xlsx`：发表日期 / 标题 / 文章链接 / 所属栏目）+ **标注表** `user_upload/博客文章标注表*.xlsx`（取最新一份；内容标签 / 相关指数，按 url 合并）+ 兜底 `data/blogAnnotations.json` | **手动**（`sync_blog.py`：xlsx + 标注表合并 + 按链接去重 + 空格规范）| 目标 = 公众号历史文章全量目录（当前 **289 篇**，含付费 **2** 篇；已标注内容标签 **114** 篇 / 相关指数 **86** 篇，其余留空待补；相关指数为 Wind 指数简称，前端按站点 `indexData` 匹配，命中者标蓝并可跳转其指数代码）| 独立（不参与自动流水线）|
@@ -31,17 +32,17 @@
 
 | 文件 | 当前数量 | 生成脚本 | 主来源 | 更新方式 |
 |------|---------|---------|--------|---------|
-| indexData.json | 49 指数 | sync_excel.py + sync_new_etf | ②+① 混合 | 流水线 |
-| cnEtfData.json | 93 ETF | sync_excel.py + sync_new_etf + sync_fund_divdate | ② Wind 快照（divDate/新 ETF 由 ③）| 流水线 |
+| indexData.json | 57 指数 | sync_excel.py + sync_new_etf | ②+① 混合 | 流水线 |
+| cnEtfData.json | 95 ETF | sync_excel.py + sync_new_etf + sync_fund_divdate | ② Wind 快照（divDate/新 ETF 由 ③）| 流水线 |
 | hkEtfData.json | 13 | sync_excel.py（表外行保留）| ① 用户表优先；人工补充（3555.HK 主动管理ETF，2026-10-05）| 流水线 |
 | etfData.json | 15 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
-| fundData.json | 25 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
+| fundData.json | 28 | sync_excel.py + sync_new_monthly + sync_fund_divdate | ② Wind 快照 + 全市场自动补入（2026-10-06）| 流水线 |
 | moneyFundData.json | 43 | sync_excel.py + sync_money_fund | ② Wind 快照 | 流水线 |
-| reitsData.json | 58（新上市自动补入）| sync_excel.py + sync_new_reits | ② Wind 快照（新 REITs 由 ③ 自动发现）| 流水线 |
+| reitsData.json | 89（新上市自动补入）| sync_excel.py + sync_new_reits | ② Wind 快照（新 REITs 由 ③ 自动发现）| 流水线 |
 | assetData.json | 17 | sync_excel.py（+ `EXTRA_ASSETS` 手工补加）| ① 用户表（总表）+ 手工补加行（「红利低波」，2026-10-06）| 流水线 |
 | （Wind 化字段）| — | **sync_wind_fields.py** | Wind get_fund_financials / get_index_fundamentals | 周流水线 步骤 15 |
 | assetHistory.json | 12 序列 | sync_asset_macro.py + sync_reits_daily.py | ③ Wind MCP（REITs 日频独立脚本；重点50城租金率=中指季度报告）| 流水线 |
-| reitsDaily.json | 58 只日频缓存 | sync_reits_daily.py | ③ Wind MCP | 流水线（缓存，可重建）|
+| reitsDaily.json | 89 只日频缓存 | sync_reits_daily.py | ③ Wind MCP | 流水线（缓存，可重建）|
 | yuebaoHistory.json | 1022 条 | sync_yuebao_history.py | ③ Wind MCP | 流水线 |
 | productQuotes.json | 135 产品 / 135 条快照（逐日累积）| **sync_product_quotes.py** | ③ Wind MCP（`get_fund_price_indicators`）| 流水线（步骤 12 后·编号外；只追加不覆盖）|
 | dailyData.json | 期数随 digest-db.json 累积 | sync_daily.py | digest-db.json | 流水线 |
@@ -67,9 +68,10 @@
 
 ### 月月分红 ETF/场外基金（etfData/fundData.json）
 
-**股息率口径（2026-08-16 用户确认）**：`yield/yieldNum` = **跟踪指数股息率**（trackCode → indexData.yieldNum 映射；trackCode 不在 49 指数时由 `_extend_yield_map` 从 Wind 查指数股息率兜底）；Wind「近12月分红收益率」（ETF 实际派息口径，≠指数股息率）另存 `divYieldNum` 备用，**禁止写入 yield**。
+**股息率口径（2026-08-16 用户确认）**：`yield/yieldNum` = **跟踪指数股息率**（trackCode → indexData.yieldNum 映射；trackCode 不在 57 指数时由 `_extend_yield_map` 从 Wind 查指数股息率兜底）；Wind「近12月分红收益率」（ETF 实际派息口径，≠指数股息率）另存 `divYieldNum` 备用，**禁止写入 yield**。
 - 全部字段：② 快照「月月可分红ETF/月月可分红（场外）」。
-- **名单成员（月月分红）**：**新增**成员由 ② Excel 快照决定（用户业务判断）；**移出**已停止月月分红的成员**自动化**——步骤 14 `sync_fund_divdate.prune_stale_monthly`：最近一次分红早于「上一个月」（如 10 月运行要求 ≥ 9/1）即移出（2026-10-06 起）。当前 etfData **15** 只 / fundData **25** 只（2026-10-06 由 26 移出 `022097.OF 长城中证红利低波100ETF联接A`：其最近分红 2026-07-28，8/9 月均无分红，已非月月）。
+- **名单成员（月月分红）**：**新增**成员**自动化**——全市场检索「近 1 年分红次数 ≥ 11」的指数产品（A 类去重），由 `sync_new_monthly.py` 自动补入（2026-10-06 起；完整口径见 `update-mechanism.md`「月月分红名单『自动补入 + 自动移出』规则」）；**移出**已停止月月分红的成员**自动化**——步骤 14 `sync_fund_divdate.prune_stale_monthly`：最近一次分红早于「上一个月」（如 10 月运行要求 ≥ 9/1）即移出（2026-10-06 起）。
+  - 当前 etfData **15** 只 / fundData **28** 只。fundData 演变：2026-10-06 由 26 移出 `022097.OF 长城中证红利低波100ETF联接A`（最近分红 2026-07-28，8/9 月均无分红，已非月月）→ 25；同日再自动补入 `021583.OF 中欧中证港股通央企红利指数A`、`022325.OF 长城中证港股通高股息投资指数A`、`021375.OF 中欧中证红利低波动100指数A` → 28。
 - `name`（ETF 简称）：**统一 = Wind「基金扩位场内简称」**（快照「月月可分红ETF」表头 2026-09-20 由「ETF简称」更名为「ETF扩位场内简称」；取值本就是扩位简称，实测 15/15 与 Wind 一致）。**场外基金表「月月可分红（场外）」无场内概念，`fundData.name` 仍是基金简称，不受此规则约束**。
 - `divDate`：③ Wind（sync_fund_divdate，**多措辞兜底**，2026-09-13 起「最近分红情况」为主）。
 - `taxRate`（港股红利税系数）：① 用户（名称智能识别 0.8/1.0）。
@@ -89,7 +91,7 @@
 
 ### 货币基金 / REITs / 食息资讯（日报）
 - 货币基金（moneyFundData）：② 快照「货币基金」+ sync_money_fund ③ 实时更新头部（含 yieldDate）。
-- REITs（reitsData）：② 快照「REITs（产权类）/REITs（经营权类）」58 只。
+- REITs（reitsData）：② 快照「REITs（产权类）/REITs（经营权类）」89 只。
 - 食息资讯（dailyData）：**只读 `digest-db.json`**（坚果云同步目录内的稳定机器接口，schema 见同目录 `DATA-SCHEMA.md`）→ sync_daily.py 提取。
   - 产出 `dailyData.json`（= `db["digests"]` 按期倒序，item 含 `id/tags/time/source/text/url`）与
     `dailyTagColors.json`（= `db["meta"]["tagColors"]`，前端运行时覆盖内嵌兜底，实现「配色复用」）。
@@ -115,7 +117,7 @@ Wind 对同一只 ETF 提供三个简称，**只用第三个**：
 | 2 | 场内简称 | 交易所短简称 | ❌ 不用 |
 | 3 | **基金扩位场内简称** | 如「红利低波100ETF嘉实」 | ✅ **唯一口径** |
 
-覆盖范围：`cnEtfData.json`（93 只）、`etfData.json`（15 只）。
+覆盖范围：`cnEtfData.json`（95 只）、`etfData.json`（15 只）。
 **例外**：`hkEtfData.json`（港交所 ETF）——Wind 的「基金扩位场内简称」**对港股返回空字符串**（该字段仅 A 股适用），故保留 `name` = 场内简称（= 证券简称），表头沿用「ETF简称」。
 **不受约束**：`fundData.json`（月月可分红场外，非 ETF）、`moneyFundData.json`（货币基金）仍为「基金简称」。
 

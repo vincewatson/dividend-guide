@@ -138,6 +138,22 @@ for fn in ('etfData.json', 'fundData.json'):
     check(f'{fn} 月月名单无超期成员(最近分红≥{_cutoff.isoformat()})', not bad,
           ('超期: %s' % bad) if bad else '全部达标')
 
+# 7c. 月月名单行结构完整性（2026-10-06 新增）：etfData/fundData 每行必须含站点 schema 全部字段。
+#     目的：自动补入（sync_new_monthly）/ 表外行护栏写入时若漏字段，前端渲染会异常；此处兜底拦截。
+_MONTHLY_KEYS = {
+    'etfData.json': ['code', 'name', 'fundCompany', 'listedDate', 'divDate', 'fee', 'feeNum', 'totalDiv',
+                     'annualDiv', 'annualDivAmt', 'monthlyDivAmt', 'price', 'cumDiv', 'trackCode',
+                     'trackName', 'divTotalAmt', 'yield', 'yieldNum', 'taxRate', 'investMonthly'],
+    'fundData.json': ['code', 'name', 'fundCompany', 'establishDate', 'divDate', 'fee', 'feeNum', 'annualDiv',
+                      'annualDivAmt', 'monthlyDivAmt', 'nav', 'trackCode', 'trackName', 'fundSize',
+                      'divTotalAmt', 'yield', 'yieldNum', 'taxRate', 'investMonthly'],
+}
+for fn, keys in _MONTHLY_KEYS.items():
+    d = jload(fn) or []
+    miss = [(x.get('code'), [k for k in keys if k not in x]) for x in d if any(k not in x for k in keys)]
+    check(f'{fn} 行结构完整', not miss,
+          ('缺字段: %s' % miss[:3]) if miss else f'{len(d)} 行齐备')
+
 # 8. dailyChange 日期
 if idx:
     dc_dates = [x.get('dailyDate', '') for x in idx if x.get('dailyDate')]

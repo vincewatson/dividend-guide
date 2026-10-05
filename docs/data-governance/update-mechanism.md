@@ -22,7 +22,7 @@
 
 > 编号自 2026-09-19 起统一为**连续 1..20**（原 `0`/`0.1`/`6.5`/`7.5` 与 `0a/0b/0c` 已废除）；**2026-09-26 起新增步骤 13（sync_new_reits 新 REITs 自动发现），编号顺延为连续 1..21**（原 13–20 步整体 +1）。`auto_sync_deploy.sh` 从**步骤 3** 开始打印（步骤 1–2 由任务层在上游完成）。
 
-1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 4 sync_excel(1) → 5 div_history+fix_laggard → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → 11 sync_excel(2)（assetData 取最新）→ 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → 14 fund_divdate（恢复 divDate + 月月名单剔除超期成员）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。（**2026-10-05 起**在步骤 12 之后插入一个**编号外**步骤 `sync_product_quotes`（产品行情快照入库），不计入 1..21；详见下方「产品行情快照库 productQuotes」。）
+1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 4 sync_excel(1) → 5 div_history+fix_laggard → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → 11 sync_excel(2)（assetData 取最新）→ 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → **（2026-10-06 起）步骤 13 之后插入一个编号外步骤 `sync_new_monthly`（月月分红名单自动补入：全市场「近 1 年分红次数 ≥ 11」的指数产品，A 类去重）** → 14 fund_divdate（恢复 divDate + 月月名单剔除超期成员）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。（**2026-10-05 起**在步骤 12 之后插入一个**编号外**步骤 `sync_product_quotes`（产品行情快照入库），不计入 1..21；详见下方「产品行情快照库 productQuotes」。**2026-10-06 起**在步骤 13 之后插入编号外步骤 `sync_new_monthly`，详见「月月分红名单『自动补入 + 自动移出』规则」。）
 
 > **更新前体检（preflight，2026-10-04 新增；不计入 21 步编号）**：`python3 preflight.py` 读取交易日历（根目录 `market_calendar.json`）与本地各 JSON 最新日期，判断 **A股/港股今天是否开盘、各数据域是否已覆盖到最新交易日、建议跑/跳过哪些步骤**，并给出耗时粗估。`auto_sync_deploy.sh` 在步骤 3 前自动执行并打印；按建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`（保守：仅跳过纯 Wind 日频 5–10 + 资讯 16，`sync_excel`/校验/部署一律保留）。目的：假期/休市日不空跑全量（如国庆 A股多日休市，多数日频域无新点，可省去一半步骤）。
 
@@ -46,7 +46,8 @@
 | ETF 成立/上市/费率/规模/份额/持有人/分红次数、fundCount、N 前缀 | Wind | sync_wind_fields | **每次** | 步骤 15 |
 | dailyData / dailyTagColors | `digest-db.json`（生成端）| sync_daily | **每次**（数据源每日更新）| 步骤 16 |
 | assetHistory · 重点50城租金率 | 中指研究院季度报告 | 用户手动给值 + sync_asset_macro **保留** | **季度**（4/7/10/12 月下旬）| B2（`runbooks/quarterly-rent-sop.md`）|
-| 月月分红清单**新增**成员 / 港交所互联互通·跟踪指数 / 租金率列表值 | 用户业务判断 | 手动 | **不定期** | B3 |
+| 月月分红清单**新增**成员（etfData/fundData）| Wind 全市场检索`search_funds`（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly** | **每次** | 步骤 13 之后（**编号外**）|
+| 港交所互联互通·跟踪指数 / 租金率列表值 | 用户业务判断 | 手动 | **不定期** | B3 |
 | 月月分红清单**移出**已停止月月分红的成员 | 自动（最近分红 < 上月初）| sync_fund_divdate（步骤 14）| **每次** | 步骤 14 |
 
 **说明**：
@@ -85,6 +86,22 @@
 5. **先跑 --dry-run**：`python3 sync_new_reits.py --dry-run` 只打印不写入，核对无误后再正式运行。
 6. **日频覆盖 + 空字段补齐（2026-09-26）**：`sync_reits_daily.py` 的日频覆盖以 `reitsData.json` **全量**为准（分组由 `projectType` 推导，新标的从上市日做基线拉取、之后增量）；`sync_new_reits.py` 会对**字段为空**的 REITs 用 Wind 补齐 累计分红次数 / 年化分红次数 / 单位累计分红 / 单位年化分红 / 年化派息率 / 前收盘价——**只补空值、绝不覆盖；取不到继续留空、不写 0**。`sync_excel.py` 已加 reitsData 非 Excel 行保留（同 cnEtfData），避免 Excel 重建清掉自动发现标的。
 
+## 月月分红名单「自动补入 + 自动移出」规则（2026-10-06 固化）
+
+**这是「月月分红」两个板块（ETF 月月分红 `etfData` / 指数基金月月分红 `fundData`）成员进出的官方机制**（脚本 `sync_new_monthly.py` + `sync_fund_divdate.prune_stale_monthly`；用户 2026-10-06 确认）：
+
+1. **进入（自动补入）** —— 用户口径 **「≥11 次 / 全市场口径 / 直接自动加」**：
+   - **范围**：Wind `search_funds` **全市场**检索（不预设「红利主题」白名单）。
+   - **阈值**：Wind「近 1 年分红次数」**≥ 11 次**。
+   - **份额去重**：同一产品的多个份额类别（A/C/E/I/Y）**只保留 A 类**（无 A 类则保留检出的一个）。
+   - **限指数产品**：仅纳入 ETF（Wind 代码 .SH/.SZ）与指数基金（Wind 返回「跟踪指数代码」）；主动管理产品（超短债、量化选股等无跟踪指数者）**不纳入** —— 名单两板块固有语义为「ETF / 指数基金 月月分红」。
+   - **写入**：ETF → `etfData.json`；场外 → `fundData.json`；`code` 一律 `base + '.OF'`。仅写身份/结构字段，数值与跟踪指数规范名由步骤 15 `sync_wind_fields` 补齐，`divDate` 由步骤 14 刷新。
+   - **无人工确认**（用户 2026-10-06：「直接自动加吧，不要人工确认了」）；`python3 sync_new_monthly.py --dry-run` 可先只读核对。
+   - **首轮落地（2026-10-06）**：补入 `021583.OF 中欧中证港股通央企红利指数A`、`022325.OF 长城中证港股通高股息投资指数A`、`021375.OF 中欧中证红利低波动100指数A`（fundData 25 → 28）；同轮排除 `012773.OF 嘉实超短债A`、`021814.OF 华泰柏瑞红利量化选股A`（非指数产品）。
+2. **调出（自动移出）**：`sync_fund_divdate.prune_stale_monthly`（步骤 14）—— 最近一次分红**早于「上一个月」**（如 2026-10 运行要求 ≥ 2026-09-01）即移出 etfData/fundData；`divDate` 为空者不动（防误删）。Excel 仍会带回，若恢复月月分红则自动回归。
+3. **防回退**：`sync_excel.py` 重建 etfData/fundData 时**保留 Excel/用户表外的行**（新增表外行护栏，2026-10-06）—— 否则每周整表重建会冲掉自动补入成员；`check_data.py` 第 7b（无超期成员）/ 7c（行结构完整）为部署硬门槛。
+4. **顺序不可调**：`sync_new_monthly` 必须在 step 11 `sync_excel(2)` **之后**（产物是表外行，靠护栏保留）、step 14 之前（同轮紧接刷 divDate 并做连续性剔除）。
+
 ## 数据更新机制
 
 ### 增量优先（2026-08-04 确立）
@@ -105,7 +122,7 @@
 ### 重建型写入的「保留白名单 + 表外行护栏」（2026-09-27 审计固化）
 `sync_excel.py` 对 8 个文件（`assetData/indexData/cnEtfData/hkEtfData/etfData/fundData/moneyFundData/reitsData`）是**整表重建**（从 Excel/用户表 builder 重新生成），因此任何「先前脚本/人工写入、但不属于 Excel」的内容都必须显式保留，否则每周被冲掉。既有护栏：
 
-- **表外行（不在 Excel/用户表里的条目）**：`cnEtfData`（新 ETF）、`reitsData`（新 REITs）、`indexData`（新指数，2026-09-27 补）、`hkEtfData`（人工补充的港股 ETF，如主动管理ETF `3555.HK`，2026-10-05 补）、`assetData`（手工补加资产，如「红利低波」，2026-10-06 补，见 `EXTRA_ASSETS`）→ 重建后按 code 追加保留。
+- **表外行（不在 Excel/用户表里的条目）**：`cnEtfData`（新 ETF）、`reitsData`（新 REITs）、`indexData`（新指数，2026-09-27 补）、`hkEtfData`（人工补充的港股 ETF，如主动管理ETF `3555.HK`，2026-10-05 补）、`assetData`（手工补加资产，如「红利低波」，2026-10-06 补，见 `EXTRA_ASSETS`）、`etfData`/`fundData`（月月名单自动补入的成员，2026-10-06 补，见 `sync_new_monthly.py`）→ 重建后按 code 追加保留。
 - **字段级**：
   - `indexData`：`divHistory`/`dailyChange`/`dailyDate`/`yrChange` + `MANUAL_FIELDS`（publisher/listedDate/weight/weightExtra/yield/yieldNum/components/market/currency/fullReturn）+ `AUTHORITATIVE_MANUAL`。
   - `moneyFundData`：**有 `yieldDate` 即整组保留 Wind 实时值**（`yield7d/yield7dNum/dailyWan/yieldDate`，2026-09-27 修复——此前只保日期、值被 Excel 覆盖）。

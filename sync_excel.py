@@ -1051,6 +1051,24 @@ def main():
                 elif 0 < yn < 1:
                     it['yieldNum'] = round(yn * 100, 4)
                     it['yield'] = pct_str(it['yieldNum'] / 100.0)
+        if key in ('etfData', 'fundData'):
+            # 保留「月月名单」自动补入的表外行（sync_new_monthly.py，2026-10-06 新增）：
+            #   Excel 整表重建不得删除不在 Excel 表内的自动发现成员（与 cnEtfData 新 ETF / reitsData 新 REITs 同理）。
+            #   ⚠️ 成员「移出」由步骤 14 sync_fund_divdate.prune_stale_monthly 负责（真正从 json 删除）——
+            #   此处只保留「当前 json 里存在、但 Excel 表没有」的行，故已被移出的成员不会被复活。
+            try:
+                _old_m_path = os.path.join(DATA_DIR, fname)
+                if os.path.exists(_old_m_path):
+                    with io.open(_old_m_path, 'r', encoding='utf-8') as _f:
+                        _old_m = json.load(_f)
+                    _exist_m = {x.get('code') for x in data}
+                    _kept_m = [x for x in _old_m
+                               if isinstance(x, dict) and x.get('code') and x['code'] not in _exist_m]
+                    if _kept_m:
+                        data.extend(_kept_m)
+                        print('  [合并] {} 保留 Excel/用户表外的月月成员 {} 只'.format(key, len(_kept_m)))
+            except Exception:
+                pass
         # 合并而不是覆盖（2026-09-26）：Excel 快照是手动导出的，往往比 Wind 取到的数据旧。
         #   ① reitsData：保留 sync_new_reits.py 补入、Excel 里没有的新 REITs（与 cnEtfData 的新 ETF 保护同理）
         #   ② 规模：旧文件里 Wind 取到的规模若比 Excel 快照新（sizeDate 更晚），保留 Wind 的规模与日期
