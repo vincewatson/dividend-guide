@@ -284,7 +284,7 @@
 
 > 用户要求：给详情页加路由，地址为 `/detail`。
 
-- **地址形式**：hash 路由 **`#/detail/<type>/<key>`**。`type` ∈ `index` / `asset` / `hketf` / `cnetf` / `monthlyetf` / `monthlyfund`；`key` = 指数/ETF 代码（如 `930955.CSI`、`3070.HK`、`158023.OF`）或资产名（`asset` 类型，中文做 URL 编码，如 `5年期国债` → `5%E5%B9%B4%E6%9C%9F%E5%9B%BD%E5%80%BA`）。可直达、可分享、刷新保持、支持前进后退。
+- **地址形式**：hash 路由 **`#/detail/<type>/<key>`**。`type` ∈ `index` / `asset` / `hketf` / `cnetf` / `monthlyetf` / `monthlyfund`；`key` = 指数/ETF 代码（如 `930955.CSI`、`3070.HK`、`158023.OF`）或资产名（`asset` 类型，中文做 URL 编码，如 `5年期储蓄国债` → `5%E5%B9%B4%E6%9C%9F%E5%82%A8%E8%93%84%E5%9B%BD%E5%80%BA`）。可直达、可分享、刷新保持、支持前进后退。
 - **实现**：`applyRoute()` 首部新增 `detail` 分支（调 `DETAIL_ROUTE[type].open(key)`）；各 `showXxxDetail()` 末尾调 `pushDetailRoute(type, key)` 写地址栏——站内点击推送一条历史；若当前已在某详情 URL（深链进入 / `asset`→`index` 归一化）则**只记录、不重复推送**。
 - **延迟打开**：详情深链在首屏执行时数据尚未就绪，`_openDetail()` 将其挂起到 `_pendingDetail`，待 `finishIfDone()`（数据加载完成）再打开。
 - **「返回」**：统一走 `closeDetailRoute()`——站内进入（`detailPushedByApp=true`）→ `history.back()` 回上一页；深链直接进入 → 关闭浮层并 `location.replace('#/')` 回首页（**不退出站点**）。

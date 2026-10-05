@@ -10,8 +10,10 @@
    5年期LPR                 → EDB: 中国:贷款市场报价利率(LPR):5年
    3年期整存整取            → EDB: 中国工商银行:定期存款利率(整存整取):3年
    1年期整存整取            → EDB: 中国工商银行:定期存款利率(整存整取):1年
-   3年期国债                → iFind EDB: 中债国债到期收益率:3年（中国债券信息网，2026-08-04 起启用）
-   5年期国债                → iFind EDB: 中债国债到期收益率:5年
+   3年期储蓄国债            → Wind 债券发行记录: 储蓄国债票面利率（3年期，周频采样）
+   5年期储蓄国债            → Wind 债券发行记录: 储蓄国债票面利率（5年期）
+                             （原注释写「iFind EDB: 中债国债到期收益率」，但 Wind 账号对该 EDB 指标无权限，
+                              2026-10-05 用户确认对外展示即用「储蓄国债票面利率」）
    人身保险产品预定利率研究值 → EDB: 中国:预定利率研究值:普通型人身保险
    中证同业存单AAA指数      → index: 931059.CSI 每月年化收益率（2026-08-15 用户确认标的）
    重点50城租金率           → 用户/季度报告维护（中指研究院季度口径，2026-08-16 起）；中原口径→重点城市租金率(中原6城均值) 备用
@@ -414,8 +416,8 @@ def main():
     result['1年期整存整取'] = step(3, 10, '1年期整存整取', lambda: expand_to_weekly(fetch_deposit(1)))
     result['人身保险产品预定利率研究值'] = step(4, 10, '人身保险产品预定利率研究值', lambda: expand_to_weekly(fetch_insurance()))
     result['重点城市租金率(中原6城均值)'] = step(5, 10, '重点城市租金率(中原{}城均值)'.format(len(RENT_CITIES)), fetch_rent)
-    result['3年期国债'] = step(6, 10, '3年期国债', lambda: expand_to_weekly(fetch_bond_savings(3)))
-    result['5年期国债'] = step(7, 10, '5年期国债', lambda: expand_to_weekly(fetch_bond_savings(5)))
+    result['3年期储蓄国债'] = step(6, 10, '3年期储蓄国债', lambda: expand_to_weekly(fetch_bond_savings(3)))
+    result['5年期储蓄国债'] = step(7, 10, '5年期储蓄国债', lambda: expand_to_weekly(fetch_bond_savings(5)))
     result['中证同业存单AAA指数'] = step(8, 10, '中证同业存单AAA指数', fetch_ncd)
     result['天弘余额宝'] = step(9, 10, '天弘余额宝', load_yuebao)
     # REITs 两类序列由 sync_reits_daily.py 独立维护（日频口径，2026-08-15 起）：

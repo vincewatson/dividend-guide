@@ -243,7 +243,7 @@ def build(today):
     # --- 宏观（REITs 两类 + 余额宝日频 + 国债周频）---
     add("REITs日频 reitsDaily", 10, r_reitsdaily()[0], cn_last, "market",
         "%d 只有序列" % r_reitsdaily()[1])
-    add("宏观·国债(周频)", 9, r_asset("3年期国债"), last_friday(today), "market", "每周五采样")
+    add("宏观·储蓄国债(周频)", 9, r_asset("3年期储蓄国债"), last_friday(today), "market", "每周五采样")
     add("宏观·余额宝(日频)", 9, r_asset("天弘余额宝"), cn_last, "market", "")
     add("宏观·REITs两类(日频)", 10, r_asset("REITs产权类"), cn_last, "market", "")
     add("宏观·低频(存单/LPR/存款/预定利率)", 9, None, None, "exempt", "周/月/不定期")

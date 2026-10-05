@@ -194,7 +194,7 @@ if ah and isinstance(ah, dict):
             return (_dt - datetime.timedelta(days=(_dt.weekday() - 4) % 7)).isoformat()
         except Exception:
             return None
-    for _k in ('3年期国债', '5年期国债', '天弘余额宝', 'REITs产权类', 'REITs特许经营权类'):
+    for _k in ('3年期储蓄国债', '5年期储蓄国债', '天弘余额宝', 'REITs产权类', 'REITs特许经营权类'):
         _v = ah.get(_k)
         if not isinstance(_v, list) or not _v:
             continue
