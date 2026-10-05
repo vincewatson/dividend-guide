@@ -481,6 +481,18 @@ def build_asset_data():
             rows.append(_row)
         else:
             rows.insert(_ins, _row)
+    # 首页「红利」组默认按股息率从高到低排名（2026-10-06 用户要求）：
+    #   站点为静态更新，每次更新数据后红利组须保持「股息率由高到低」的默认顺序。
+    #   仅重排 type=='红利' 的行（按出现位置原地替换），保持各分组位置与其它组内部顺序不变。
+    def _yield_val(_s):
+        try:
+            return float(str(_s).replace('%', '').strip())
+        except (TypeError, ValueError):
+            return -1.0
+    _red = [r for r in rows if r.get('type') == '红利']
+    if _red:
+        _it = iter(sorted(_red, key=lambda x: _yield_val(x.get('yield')), reverse=True))
+        rows = [next(_it) if r.get('type') == '红利' else r for r in rows]
     return rows
 
 
