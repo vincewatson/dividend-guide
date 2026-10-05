@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.130">
+<meta name="app-version" content="v0.1.131">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -2143,9 +2143,10 @@ function marketTag(market) {
 var idxTagFilter = { theme: '', market: '', adjust: '', publisher: '' };   // '' = 全部
 // 主题标签：基于指数全称关键词
 var INDEX_THEME_TAGS = [
-  { id: 'dividend', label: '纯红利',   test: function(fn){ return /红利|股息|高息/.test(fn) && !/低波|低波动|质量|价值|潜力|成长|策略|精选|央企|中央企业|国企|国有企业/.test(fn); } },
+  { id: 'dividend', label: '纯红利',   test: function(fn){ return /红利|股息|高息/.test(fn) && !/低波|低波动|质量|价值|增长|潜力|成长|策略|精选|央企|中央企业|国企|国有企业/.test(fn); } },
   { id: 'lowvol',   label: '红利低波', test: function(fn){ return /低波/.test(fn); } },
   { id: 'quality',  label: '红利质量', test: function(fn){ return /质量/.test(fn); } },
+  { id: 'growth',   label: '红利增长', test: function(fn){ return /增长/.test(fn); } },
   { id: 'value',    label: '红利价值', test: function(fn){ return /价值/.test(fn); } },
   { id: 'central',  label: '央国企',   test: function(fn){ return /央企|中央企业|国企|国有企业/.test(fn); } },
   { id: 'bank',     label: '银行',     test: function(fn){ return /银行/.test(fn); } }
