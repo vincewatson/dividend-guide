@@ -38,7 +38,7 @@
 | fundData.json | 26 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
 | moneyFundData.json | 43 | sync_excel.py + sync_money_fund | ② Wind 快照 | 流水线 |
 | reitsData.json | 58（新上市自动补入）| sync_excel.py + sync_new_reits | ② Wind 快照（新 REITs 由 ③ 自动发现）| 流水线 |
-| assetData.json | 16 | sync_excel.py | ① 用户表（总表）| 流水线 |
+| assetData.json | 17 | sync_excel.py（+ `EXTRA_ASSETS` 手工补加）| ① 用户表（总表）+ 手工补加行（「红利低波」，2026-10-06）| 流水线 |
 | （Wind 化字段）| — | **sync_wind_fields.py** | Wind get_fund_financials / get_index_fundamentals | 周流水线 步骤 15 |
 | assetHistory.json | 12 序列 | sync_asset_macro.py + sync_reits_daily.py | ③ Wind MCP（REITs 日频独立脚本；重点50城租金率=中指季度报告）| 流水线 |
 | reitsDaily.json | 58 只日频缓存 | sync_reits_daily.py | ③ Wind MCP | 流水线（缓存，可重建）|
@@ -76,7 +76,7 @@
 ### 首页食息资产（assetData.json + assetHistory.json）
 | 资产 | 列表快照来源 | 历史曲线来源 |
 |------|-------------|-------------|
-| 红利类（中证红利等 5 个）| ② Wind（divHistory 最新覆盖）| ③ Wind MCP |
+| 红利类（中证红利等 6 个；2026-10-06 增「红利低波」）| ② Wind（divHistory 最新覆盖；「红利低波」由 `EXTRA_ASSETS` 手工补加）| ③ Wind MCP |
 | 5年期LPR | ① 用户（央行）| ③ Wind EDB |
 | REITs 两类 | **③ Wind 日频中位数**（assetHistory 覆盖，Excel 不覆盖）| ③ Wind MCP（日频）|
 | 重点50城租金率 | ① 用户（**中指研究院 50城租金房价比**，2026-08-15 确认权威；用户手动提供列表值）| ① 中指季度报告（**季度时点序列 2023Q1 起 14 点**，08-16 接入；每季度从中指云报告更新）；中原 6 城均值→备用 key「重点城市租金率(中原6城均值)」|

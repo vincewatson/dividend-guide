@@ -104,7 +104,7 @@
 ### 重建型写入的「保留白名单 + 表外行护栏」（2026-09-27 审计固化）
 `sync_excel.py` 对 8 个文件（`assetData/indexData/cnEtfData/hkEtfData/etfData/fundData/moneyFundData/reitsData`）是**整表重建**（从 Excel/用户表 builder 重新生成），因此任何「先前脚本/人工写入、但不属于 Excel」的内容都必须显式保留，否则每周被冲掉。既有护栏：
 
-- **表外行（不在 Excel/用户表里的条目）**：`cnEtfData`（新 ETF）、`reitsData`（新 REITs）、`indexData`（新指数，2026-09-27 补）、`hkEtfData`（人工补充的港股 ETF，如主动管理ETF `3555.HK`，2026-10-05 补）→ 重建后按 code 追加保留。
+- **表外行（不在 Excel/用户表里的条目）**：`cnEtfData`（新 ETF）、`reitsData`（新 REITs）、`indexData`（新指数，2026-09-27 补）、`hkEtfData`（人工补充的港股 ETF，如主动管理ETF `3555.HK`，2026-10-05 补）、`assetData`（手工补加资产，如「红利低波」，2026-10-06 补，见 `EXTRA_ASSETS`）→ 重建后按 code 追加保留。
 - **字段级**：
   - `indexData`：`divHistory`/`dailyChange`/`dailyDate`/`yrChange` + `MANUAL_FIELDS`（publisher/listedDate/weight/weightExtra/yield/yieldNum/components/market/currency/fullReturn）+ `AUTHORITATIVE_MANUAL`。
   - `moneyFundData`：**有 `yieldDate` 即整组保留 Wind 实时值**（`yield7d/yield7dNum/dailyWan/yieldDate`，2026-09-27 修复——此前只保日期、值被 Excel 覆盖）。

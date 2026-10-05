@@ -37,6 +37,7 @@
 | 历史 | `indexData.json` `995128.SSI` | components / market | → 50 / 沪港深 | 用户/官方核对 | B | ✅ |
 | 历史 | `indexData.json` `995127.SSI` | components / market | → 100 / 沪港深 | 用户/官方核对 | B | ✅ |
 | 历史 | `indexData.json` `995082.SSI` | components | → 50 | 用户/官方核对 | B | ✅ |
+| 2026-10-06 | `assetData.json` **新增**「红利低波」 | 整条记录（`type=红利`；`yield`/`date` 取 `indexData` `H30269.CSI` divHistory 最新 = `4.39%` / `2026-09-30`；`note=近12个月股息率`；`source=Wind`） | 无 → 新增（红利组末尾第 6 条） | 用户要求「首页『主流资产食息率』加一个红利低波指数」 | B（`sync_excel.py` 新增常量 `EXTRA_ASSETS`，`build_asset_data` 重建时按 `type` 追加到红利组末尾）+ A（同步改 `data/assetData.json`）；另 `index.html` `ASSET_TO_INDEX_CODE` 增 `'红利低波':'H30269.CSI'` 使点击进入指数详情页 | ✅ |
 
 > 上表"历史"行 = 代码 `sync_excel.py · AUTHORITATIVE_MANUAL` 中既有的权威硬编码值（补登记，非本次新增）。
 > 后续新增手工修订请**追加行**，勿覆盖历史行。

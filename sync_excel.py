@@ -285,6 +285,16 @@ HIST_COVER_NAMES = {'5年期LPR', '3年期整存整取', '1年期整存整取',
 NOTE_OVERRIDE = {'中证同业存单AAA指数': '中证同业存单AAA指数月度年化收益率'}
 
 
+# 手工补加资产（用户在对话中告知，登记于 docs/data-governance/manual-overrides.md）。
+# 这些条目不在 Excel 总表内；重建时按 type 追加到同组末尾，数值取 indexData divHistory 最新值。
+# 落地方式 = B（代码硬编码），保证每周整表重建不被冲掉。
+# 2026-10-06：加「红利低波」（H30269.CSI，中证红利低波动指数），与既有 5 条红利指数并列。
+EXTRA_ASSETS = [
+    {'type': '红利', 'name': '红利低波', 'note': '近12个月股息率'},
+]
+
+
+
 def build_asset_data():
     df = load_sheet(SNAP1, '总表')
     rows = []
@@ -446,6 +456,31 @@ def build_asset_data():
             'source': clean_str(r[5]) or 'Wind',
             'desc': ASSET_DESC.get(name, '')
         })
+    # 手工补加资产（EXTRA_ASSETS，2026-10-06）：不在 Excel 总表内，按 type 追加到同组末尾；
+    # 数值取 indexData divHistory 最新值；已存在则跳过（Excel 若将来收录则不重复）。
+    _names = {r.get('name') for r in rows}
+    for ea in EXTRA_ASSETS:
+        nm = ea['name']
+        if nm in _names:
+            continue
+        latest = index_latest.get(nm)
+        if not latest:
+            print('[WARN] EXTRA_ASSETS 未在 indexData 找到 divHistory: {}'.format(nm))
+            continue
+        _d, _y = latest
+        _row = {
+            'type': ea['type'], 'name': nm, 'yield': '{:.2f}%'.format(_y),
+            'date': _d, 'note': ea.get('note', '') or '',
+            'source': 'Wind', 'desc': ASSET_DESC.get(nm, '')
+        }
+        _ins = None
+        for _i, _r in enumerate(rows):
+            if _r.get('type') == ea['type']:
+                _ins = _i + 1
+        if _ins is None:
+            rows.append(_row)
+        else:
+            rows.insert(_ins, _row)
     return rows
 
 
