@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.117">
+<meta name="app-version" content="v0.1.118">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -1081,6 +1081,9 @@
         <div class="main-nav-item" data-tab="pageWeekly">食息资讯</div>
         <div class="main-nav-item" data-tab="pageBlog">博客</div>
 </nav>
+      <div class="nav-right">
+        <button class="detail-fav-btn" style="font-size:var(--fs-xl)">☆</button>
+      </div>
     </header>
     <div class="detail-body">
       <div class="detail-main-card">
@@ -1166,7 +1169,9 @@
         <div class="main-nav-item" data-tab="pageWeekly">食息资讯</div>
         <div class="main-nav-item" data-tab="pageBlog">博客</div>
 </nav>
-      <div class="nav-right"></div>
+      <div class="nav-right">
+        <button class="detail-fav-btn" style="font-size:var(--fs-xl)">☆</button>
+      </div>
     </header>
     <div class="detail-body">
       <div class="detail-main-card">
@@ -1252,7 +1257,9 @@
         <div class="main-nav-item" data-tab="pageWeekly">食息资讯</div>
         <div class="main-nav-item" data-tab="pageBlog">博客</div>
 </nav>
-      <div class="nav-right"></div>
+      <div class="nav-right">
+        <button class="detail-fav-btn" style="font-size:var(--fs-xl)">☆</button>
+      </div>
     </header>
     <div class="detail-body">
       <div class="detail-main-card">
@@ -1339,7 +1346,9 @@
         <div class="main-nav-item" data-tab="pageWeekly">食息资讯</div>
         <div class="main-nav-item" data-tab="pageBlog">博客</div>
 </nav>
-      <div class="nav-right"></div>
+      <div class="nav-right">
+        <button class="detail-fav-btn" style="font-size:var(--fs-xl)">☆</button>
+      </div>
     </header>
     <div class="detail-body">
       <div class="detail-main-card">
@@ -1430,7 +1439,9 @@
         <div class="main-nav-item" data-tab="pageWeekly">食息资讯</div>
         <div class="main-nav-item" data-tab="pageBlog">博客</div>
 </nav>
-      <div class="nav-right"></div>
+      <div class="nav-right">
+        <button class="detail-fav-btn" style="font-size:var(--fs-xl)">☆</button>
+      </div>
     </header>
     <div class="detail-body">
       <div class="detail-main-card">
@@ -2660,6 +2671,7 @@ function renderHkEtf() {
 function showHkEtfDetail(code) {
   var etf = hkEtfData.find(function(e){return e.code===code;}); if(!etf) return;
   setDetailDocTitle(etf.name);              // 浏览器标签随详情变化（2026-10-04）
+  syncDetailFav('hkEtfDetail', code);       // 右上角收藏按钮状态（2026-10-05）
   document.getElementById('hkEtfDetailName').textContent = etf.name;
   document.getElementById('hkEtfDetailCode').textContent = etf.code;
   document.getElementById('hkEtfDetailShortName').textContent = etf.name;
@@ -2964,6 +2976,7 @@ function renderCnEtf() {
 function showCnEtfDetail(code) {
   var etf = cnEtfData.find(function(e){return e.code===code;}); if(!etf) return;
   setDetailDocTitle(etf.name);              // 浏览器标签随详情变化（2026-10-04）
+  syncDetailFav('cnEtfDetail', code);       // 右上角收藏按钮状态（2026-10-05）
   document.getElementById('cnEtfDetailName').textContent = etf.name;
   document.getElementById('cnEtfDetailCode').textContent = etf.code;
   document.getElementById('cnEtfDetailShortName').textContent = etf.name;
@@ -3171,6 +3184,7 @@ function findIndexForTrack(trackCode, trackName) {
 function showMonthlyEtfDetail(code) {
   var etf = etfData.find(function(e){return e.code===code;}); if(!etf) return;
   setDetailDocTitle(etf.name);              // 浏览器标签随详情变化（2026-10-04）
+  syncDetailFav('monthlyEtfDetail', code);  // 右上角收藏按钮状态（2026-10-05）
   document.getElementById('monthlyEtfDetailName').textContent = etf.name;
   document.getElementById('monthlyEtfDetailCode').textContent = etf.code;
   document.getElementById('monthlyEtfDetailShortName').textContent = etf.name;
@@ -3241,6 +3255,7 @@ function showMonthlyEtfDetail(code) {
 function showMonthlyFundDetail(code) {
   var fund = fundData.find(function(e){return e.code===code;}); if(!fund) return;
   setDetailDocTitle(fund.name);             // 浏览器标签随详情变化（2026-10-04）
+  syncDetailFav('monthlyFundDetail', code); // 右上角收藏按钮状态（2026-10-05）
   document.getElementById('monthlyFundDetailName').textContent = fund.name;
   document.getElementById('monthlyFundDetailCode').textContent = fund.code;
   document.getElementById('monthlyFundDetailShortName').textContent = fund.name;
@@ -3315,9 +3330,15 @@ var items=[];favorites.forEach(function(fav){
   var a=assetData.find(function(x){return x.name===fav;});
   if(a){items.push({name:a.name,yield:a.yield,sub:a.type+' · '+a.source,kind:'asset',key:a.name});return;}
   var e=etfData.find(function(x){return x.code===fav;});
-  if(e){items.push({name:e.name,yield:e.yield,sub:e.code+' · '+e.type,kind:'etf',key:e.code});return;}
+  if(e){items.push({name:e.name,yield:e.yield,sub:e.code+' · '+(e.trackName||'ETF'),kind:'etf',key:e.code});return;}
   var fd=fundData.find(function(x){return x.code===fav;});
-  if(fd){items.push({name:fd.name,yield:fd.yield,sub:fd.code+' · '+fd.type,kind:'fund',key:fd.code});}
+  if(fd){items.push({name:fd.name,yield:fd.yield,sub:fd.code+' · '+(fd.trackName||'指数基金'),kind:'fund',key:fd.code});return;}
+  var ix=indexData.find(function(x){return x.code===fav;});      /* 指数收藏（2026-10-05 详情页 ☆ 恢复后补齐）*/
+  if(ix){items.push({name:ix.name,yield:ix.yield||'—',sub:ix.code+' · 指数',kind:'index',key:ix.code});return;}
+  var ce=cnEtfData.find(function(x){return x.code===fav;});
+  if(ce){items.push({name:ce.name,yield:ce.fee||'—',sub:ce.code+' · 境内ETF',kind:'cnetf',key:ce.code});return;}
+  var he=hkEtfData.find(function(x){return x.code===fav;});
+  if(he){items.push({name:he.name,yield:he.fee||'—',sub:he.code+' · 港交所ETF',kind:'hketf',key:he.code});}
 });
 c.innerHTML=items.map(function(f){return'<div class="fav-item" data-kind="'+f.kind+'" data-key="'+f.key+'"><div class="info"><div class="name">'+f.name+'</div><div class="sub">'+f.sub+'</div></div><div class="yield">'+f.yield+'</div></div>';}).join('');
 c.querySelectorAll('.fav-item').forEach(function(r){
@@ -3326,6 +3347,9 @@ c.querySelectorAll('.fav-item').forEach(function(r){
     if(kind==='asset'){showAssetDetail(key);}
     else if(kind==='etf'){showMonthlyEtfDetail(key);}
     else if(kind==='fund'){showMonthlyFundDetail(key);}
+    else if(kind==='index'){showIndexDetail(key);}
+    else if(kind==='cnetf'){showCnEtfDetail(key);}
+    else if(kind==='hketf'){showHkEtfDetail(key);}
   });
 });}
 
@@ -3630,6 +3654,33 @@ document.getElementById('detailFavBtn').addEventListener('click',function(){
   var isFav=favorites.includes(code);this.textContent=isFav?'⭐':'☆';this.className='detail-fav-btn'+(isFav?' active':'');renderIndices();
 });
 
+// ===== 详情页右上角收藏按钮（2026-10-05 用户要求恢复；桌面 + 手机一致）=====
+// 食息资产 / 港交所ETF / 境内ETF / 月月ETF / 月月基金 5 个详情页 head 右上角的 ☆ 统一由本系统驱动；
+// key = 该详情对应的收藏键（资产 = 名称；其余 = 代码）。指数详情沿用上方 #detailFavBtn 原有逻辑，不重复绑定。
+var DETAIL_FAV_KEY = {};
+function syncDetailFav(pageId, key){
+  DETAIL_FAV_KEY[pageId] = key || '';
+  var pg = document.getElementById(pageId); if (!pg) return;
+  var btn = pg.querySelector('.nav-right .detail-fav-btn'); if (!btn) return;
+  var on = !!key && favorites.indexOf(key) > -1;
+  btn.textContent = on ? '⭐' : '☆';
+  btn.classList.toggle('active', on);
+}
+window.syncDetailFav = syncDetailFav;
+document.addEventListener('click', function(e){
+  var btn = (e.target && e.target.closest) ? e.target.closest('.detail-fav-btn') : null;
+  if (!btn || btn.id === 'detailFavBtn') return;              // 指数详情由其原有监听处理
+  var pg = btn.closest('.index-detail-page'); if (!pg) return;
+  var key = DETAIL_FAV_KEY[pg.id]; if (!key) return;
+  e.preventDefault(); e.stopPropagation();
+  var i = favorites.indexOf(key);
+  if (i > -1) { favorites.splice(i, 1); showToast('已取消收藏'); }
+  else { if (favorites.length >= 20) { showToast('收藏已满'); return; } favorites.push(key); showToast('已收藏 ⭐'); }
+  try { localStorage.setItem('shixi_favs', JSON.stringify(favorites)); } catch (_e) {}
+  syncDetailFav(pg.id, key);
+  renderAssetTable(); renderMonthlyEtf(); renderMonthlyFund(); renderFavorites();
+});
+
 // ===== 详情页滑块（可交互区间选择器）=====
 var detailSliderState = { hist: [], idx: null, rangePct: [0, 100] };
 function sliderPosToPct(px, sliderW){ var pct = (px / sliderW) * 100; return Math.max(0, Math.min(100, pct)); }
@@ -3831,6 +3882,7 @@ function showAssetDetail(name) {
   }
   // 非指数资产 → 打开食息详情页（基本信息 + 历史曲线）
   setDetailDocTitle(item.name);             // 浏览器标签随详情变化（2026-10-04）
+  syncDetailFav('assetDetail', name);       // 右上角收藏按钮状态（2026-10-05）
   document.getElementById('assetDetailName').textContent = item.name;
   document.getElementById('assetDetailType').textContent = item.type + ' · ' + (item.date || '');
   document.getElementById('assetDetailTypeRow').textContent = item.type;
