@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.118">
+<meta name="app-version" content="v0.1.119">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -2697,8 +2697,9 @@ function showHkEtfDetail(code) {
     if (typeof dc !== 'number' && mi) dc = mi.dailyChange;
     if (typeof yc !== 'number' && mi) yc = mi.yrChange;
     var dl = document.getElementById('hkEtfDetailDailyLabel'), yl = document.getElementById('hkEtfDetailYrLabel');
-    if (dl) dl.textContent = '当日涨跌幅（数据截至' + (etf.dailyDate || '—') + '）';
-    if (yl) yl.textContent = '今年以来回报（数据截至' + (etf.dailyDate || '—') + '）';
+    var _dd = etf.dailyDate || (mi && mi.dailyDate) || '';   // 数据日期：产品自身优先，缺则回退跟踪指数（2026-10-05 修复「数据截至」空值）
+    if (dl) dl.textContent = '当日涨跌幅（数据截至' + (_dd || '—') + '）';
+    if (yl) yl.textContent = '今年以来回报（数据截至' + (_dd || '—') + '）';
     if (typeof dc === 'number') {
       dEl.textContent = (dc * 100).toFixed(2) + '%';
       dEl.style.color = dc >= 0 ? '#dc2626' : '#059661';
@@ -2999,8 +3000,9 @@ function showCnEtfDetail(code) {
     var dEl = document.getElementById('cnEtfDetailDaily'), yEl = document.getElementById('cnEtfDetailYr');
     if (!dEl || !yEl) return;
     var dl = document.getElementById('cnEtfDetailDailyLabel'), yl = document.getElementById('cnEtfDetailYrLabel');
-    if (dl) dl.textContent = '当日涨跌幅（数据截至' + (etf.dailyDate || '—') + '）';
-    if (yl) yl.textContent = '今年以来回报（数据截至' + (etf.dailyDate || '—') + '）';
+    var _dd = etf.dailyDate || (mi && mi.dailyDate) || '';   // 数据日期：产品自身优先，缺则回退跟踪指数（2026-10-05 修复「数据截至」空值）
+    if (dl) dl.textContent = '当日涨跌幅（数据截至' + (_dd || '—') + '）';
+    if (yl) yl.textContent = '今年以来回报（数据截至' + (_dd || '—') + '）';
     var dc = etf.dailyChange, yc = etf.yrChange;
     if (typeof dc !== 'number' && mi) dc = mi.dailyChange;
     if (typeof yc !== 'number' && mi) yc = mi.yrChange;
@@ -3212,8 +3214,9 @@ function showMonthlyEtfDetail(code) {
     var dEl = document.getElementById('monthlyEtfDetailDaily'), yEl = document.getElementById('monthlyEtfDetailYr');
     if (!dEl || !yEl) return;
     var dl = document.getElementById('monthlyEtfDetailDailyLabel'), yl = document.getElementById('monthlyEtfDetailYrLabel');
-    if (dl) dl.textContent = '当日涨跌幅（数据截至' + (etf.dailyDate || '—') + '）';
-    if (yl) yl.textContent = '今年以来回报（数据截至' + (etf.dailyDate || '—') + '）';
+    var _dd = etf.dailyDate || (mi && mi.dailyDate) || '';   // 数据日期：产品自身优先，缺则回退跟踪指数（2026-10-05 修复「数据截至」空值）
+    if (dl) dl.textContent = '当日涨跌幅（数据截至' + (_dd || '—') + '）';
+    if (yl) yl.textContent = '今年以来回报（数据截至' + (_dd || '—') + '）';
     var dc = etf.dailyChange, yc = etf.yrChange;
     if (typeof dc !== 'number' && mi) dc = mi.dailyChange;
     if (typeof yc !== 'number' && mi) yc = mi.yrChange;
@@ -3283,8 +3286,9 @@ function showMonthlyFundDetail(code) {
     var dEl = document.getElementById('monthlyFundDetailDaily'), yEl = document.getElementById('monthlyFundDetailYr');
     if (!dEl || !yEl) return;
     var dl = document.getElementById('monthlyFundDetailDailyLabel'), yl = document.getElementById('monthlyFundDetailYrLabel');
-    if (dl) dl.textContent = '当日涨跌幅（数据截至' + (fund.dailyDate || '—') + '）';
-    if (yl) yl.textContent = '今年以来回报（数据截至' + (fund.dailyDate || '—') + '）';
+    var _dd = fund.dailyDate || (mi && mi.dailyDate) || '';   // 数据日期：产品自身优先，缺则回退跟踪指数（2026-10-05 修复「数据截至」空值）
+    if (dl) dl.textContent = '当日涨跌幅（数据截至' + (_dd || '—') + '）';
+    if (yl) yl.textContent = '今年以来回报（数据截至' + (_dd || '—') + '）';
     var dc = fund.dailyChange, yc = fund.yrChange;
     if (typeof dc !== 'number' && mi) dc = mi.dailyChange;
     if (typeof yc !== 'number' && mi) yc = mi.yrChange;
