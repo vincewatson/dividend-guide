@@ -1,7 +1,7 @@
 {
  "schema": 1,
  "note": "产品行情快照库（只追加不覆盖）。键=产品代码，值=按日期升序的快照数组；date=最新交易日，dailyChange=当日涨跌幅(小数)，yrChange=年初至今涨跌幅(小数)，source=来源。",
- "updatedAt": "2026-10-05 11:29:15",
+ "updatedAt": "2026-10-05 21:19:26",
  "quotes": {
   "158023.OF": [
    {
@@ -1080,6 +1080,14 @@
     "date": "2026-09-30",
     "dailyChange": 0.0093,
     "yrChange": -0.0726,
+    "source": "wind"
+   }
+  ],
+  "3555.HK": [
+   {
+    "date": "2026-10-05",
+    "dailyChange": 0.0,
+    "yrChange": null,
     "source": "wind"
    }
   ]

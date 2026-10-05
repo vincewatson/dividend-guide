@@ -104,10 +104,11 @@
 ### 重建型写入的「保留白名单 + 表外行护栏」（2026-09-27 审计固化）
 `sync_excel.py` 对 8 个文件（`assetData/indexData/cnEtfData/hkEtfData/etfData/fundData/moneyFundData/reitsData`）是**整表重建**（从 Excel/用户表 builder 重新生成），因此任何「先前脚本/人工写入、但不属于 Excel」的内容都必须显式保留，否则每周被冲掉。既有护栏：
 
-- **表外行（不在 Excel/用户表里的条目）**：`cnEtfData`（新 ETF）、`reitsData`（新 REITs）、`indexData`（新指数，2026-09-27 补）→ 重建后按 code 追加保留。
+- **表外行（不在 Excel/用户表里的条目）**：`cnEtfData`（新 ETF）、`reitsData`（新 REITs）、`indexData`（新指数，2026-09-27 补）、`hkEtfData`（人工补充的港股 ETF，如主动管理ETF `3555.HK`，2026-10-05 补）→ 重建后按 code 追加保留。
 - **字段级**：
   - `indexData`：`divHistory`/`dailyChange`/`dailyDate`/`yrChange` + `MANUAL_FIELDS`（publisher/listedDate/weight/weightExtra/yield/yieldNum/components/market/currency/fullReturn）+ `AUTHORITATIVE_MANUAL`。
   - `moneyFundData`：**有 `yieldDate` 即整组保留 Wind 实时值**（`yield7d/yield7dNum/dailyWan/yieldDate`，2026-09-27 修复——此前只保日期、值被 Excel 覆盖）。
+    - `hkEtfData`：人工补充字段 `active`（主动管理ETF 标记）/`shares`/`sharesUnit` 旧值非空则保留（Excel 表无此列，2026-10-05）。
   - 规模类（cnEtf/hkEtf 的 `size`、etf/fund 的 `fundSize`、moneyFund 的 `size`）：旧文件 `sizeDate` 比 Excel 快照新 → 保留 Wind 值与日期。
 - **「重建 → 重放」顺序（不可调整）**：`etfData/fundData/cnEtfData/hkEtfData` 的 Wind 字段依赖 step 15 `sync_wind_fields`、`divDate` 依赖 step 14 `sync_fund_divdate`；`reitsData.shortName`（扩位简称）依赖 step 13 `sync_new_reits`——均在 step 11 的第二次 `sync_excel` 之后。
 - **手工修订通道（2026-09-27 用户约定）**：手工修订**在对话里告知 AI**，由 AI 落到 `data/*.json` 并登记到 `manual-overrides.md` 台账，同时确保该项能扛住 rebuild（落到 `MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / 专用护栏）。**不要直接改 JSON 了事**（非白名单字段会被下轮重建覆盖），也**不要走飞书/Excel 表**——该表仅在「做全新表格、一次性批量提交数据」时使用。

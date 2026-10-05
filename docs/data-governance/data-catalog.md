@@ -14,7 +14,7 @@
 | indexData.json（dailyChange）| Wind 涨跌幅 | sync_daily_change.py | 每日最新交易日 | 仅更新两字段；**存小数**（-0.0204=-2.04%）|
 | productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 sync_excel 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）|
 | indexData.json（新指数）| Wind（自动发现）| sync_new_etf.py | 新 ETF 跟踪指数缺失时补入 | 自动纳入，含 divHistory |
-| cnEtfData/hkEtf/etf/fundData | Excel 快照 | sync_excel.py | 快照全量重建 | divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的** |
+| cnEtfData/hkEtf/etf/fundData | Excel 快照 | sync_excel.py | 快照全量重建 | divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的**；**hkEtf 保留表外标的 + `active`/`shares` 字段（2026-10-05，如主动管理ETF 3555.HK）** |
 | cnEtfData（新 ETF）| Wind（自动发现）| sync_new_etf.py | 近 30 天成立红利类 ETF 自动补入 | 与 Excel 重建合并去重 |
 | reitsData.json（新 REITs）| Wind（自动发现）| sync_new_reits.py | 全部已上市公募 REITs（508xxx.SH / 180xxx.SZ）对照补入；明细字段本次取不到**留空不填 0**（数值 null / 字符串 ''）| 与 Excel 重建合并去重（sync_excel 保留 Wind 自动发现标的，2026-09-26 起）|
 | divDate | Wind 最近分红 | sync_fund_divdate.py | 全量重拉 | 无数据保留原值；**必须在 sync_excel 之后**；措辞**多路兜底**（最近分红情况→最近分红发放日期→基金分红 分红发放日）|
@@ -33,7 +33,7 @@
 |------|---------|---------|--------|---------|
 | indexData.json | 49 指数 | sync_excel.py + sync_new_etf | ②+① 混合 | 流水线 |
 | cnEtfData.json | 93 ETF | sync_excel.py + sync_new_etf + sync_fund_divdate | ② Wind 快照（divDate/新 ETF 由 ③）| 流水线 |
-| hkEtfData.json | 12 | sync_excel.py | ① 用户表优先 | 流水线 |
+| hkEtfData.json | 13 | sync_excel.py（表外行保留）| ① 用户表优先；人工补充（3555.HK 主动管理ETF，2026-10-05）| 流水线 |
 | etfData.json | 15 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
 | fundData.json | 26 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
 | moneyFundData.json | 43 | sync_excel.py + sync_money_fund | ② Wind 快照 | 流水线 |

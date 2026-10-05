@@ -190,5 +190,24 @@
   "divDate": null,
   "detailUrl": "https://www.valueetf.com.hk/trad/value-partners-hk-us-dividend-low-volatility-etf-3488.html",
   "sizeDate": "2026-10-01"
+ },
+ {
+  "code": "3555.HK",
+  "name": "AGX恒息增",
+  "fullname": "Global X恒生高股息率增强收益ETF",
+  "connect": false,
+  "active": true,
+  "trackCode": "",
+  "trackName": "",
+  "manager": "未来资产环球投资(香港)有限公司",
+  "listedDate": "2026-08-19",
+  "fee": "0.75%",
+  "feeNum": 0.0075,
+  "size": 1.63,
+  "shares": 2425,
+  "sharesUnit": "万份",
+  "divDate": "2026-10-07",
+  "detailUrl": "https://www.globalxetfs.com.hk/zh-hant/funds/hang-seng-high-dividend-yield-enhanced-income-etf/",
+  "sizeDate": "2026-10-05"
  }
 ]

@@ -932,6 +932,34 @@ def main():
                     data.sort(key=lambda x: x['code'])
             except Exception:
                 pass
+        if key == 'hkEtfData':
+            # 保留人工补充、Excel/用户修订表外的港股 ETF（2026-10-05 新增，与 cnEtfData 新 ETF 护栏同理）：
+            #   Excel 整表重建不得删除不在「港交所红利ETF」表内的标的（如主动管理ETF 3555.HK）。
+            try:
+                _old_hk_path = os.path.join(DATA_DIR, 'hkEtfData.json')
+                if os.path.exists(_old_hk_path):
+                    with io.open(_old_hk_path, 'r', encoding='utf-8') as _f:
+                        _old_hk = json.load(_f)
+                    _exist_hk = {x.get('code') for x in data}
+                    _kept_hk = [x for x in _old_hk if isinstance(x, dict) and x.get('code') and x['code'] not in _exist_hk]
+                    if _kept_hk:
+                        data.extend(_kept_hk)
+                        print('  [合并] hkEtfData 保留 Excel/用户表外的 ETF {} 只'.format(len(_kept_hk)))
+            except Exception:
+                pass
+            # 人工补充字段保护（Excel 表无此列，旧值非空才保留）：active(主动管理ETF 标记)/shares(份额)
+            try:
+                with io.open(os.path.join(DATA_DIR, 'hkEtfData.json'), 'r', encoding='utf-8') as _f:
+                    _prev_hk = {x.get('code'): x for x in json.load(_f) if isinstance(x, dict)}
+            except Exception:
+                _prev_hk = {}
+            for _it in data:
+                _p = _prev_hk.get(_it.get('code'))
+                if not _p:
+                    continue
+                for _k in ('active', 'shares', 'sharesUnit'):
+                    if _p.get(_k) is not None:
+                        _it[_k] = _p[_k]
         if key == 'indexData':
             # 保留 Wind 自动补充的新指数（sync_new_etf.py，2026-09-27 加固）：
             # Excel/用户修订表重建不删除不在表内的自动发现指数（与 cnEtfData 新 ETF 保护同理）。

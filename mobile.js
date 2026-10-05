@@ -601,8 +601,8 @@ function renderHkEtfMobile() {
     var yr = (typeof etf.yrChange === 'number') ? _mPill('本年' + _pct(etf.yrChange), etf.yrChange >= 0 ? 'up' : 'down') : '';  /* 无数据不显示胶囊（2026-08-18） */
     var pills = yd + yr;
     h += '<div class="m-card" onclick="showHkEtfDetail(\'' + _esc(etf.code) + '\')">' +
-      '<div class="m-card-top"><span class="m-name">' + _esc(etf.name) + '</span>' + (etf.connect ? '<span class="m-tag-connect">互联互通</span>' : '') + '</div>' +  /* 互联互通蓝底白字标签（2026-08-18 用户要求） */
-      '<div class="m-card-meta">' + _esc(etf.code) + ' · ' + _esc(etf.trackName || '') + _mFee(etf) + '</div>' +
+      '<div class="m-card-top"><span class="m-name">' + _esc(etf.name) + '</span>' + (etf.connect ? '<span class="m-tag-connect">互联互通</span>' : '') + (etf.active ? '<span class="m-tag-active">主动管理ETF</span>' : '') + '</div>' +  /* 互联互通蓝底白字（2026-08-18）；主动管理ETF 绿底白字（2026-10-05） */
+      '<div class="m-card-meta">' + _esc(etf.code) + ' · ' + _esc(etf.trackName || '—') + _mFee(etf) + '</div>' +
       (pills ? '<div class="m-card-pcts">' + pills + '</div>' : '') +
     '</div>';
   });
