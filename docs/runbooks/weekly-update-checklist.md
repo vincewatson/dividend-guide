@@ -14,7 +14,7 @@
 3. 红利指数浏览器：dailyChange 日期为最新交易日
 4. 余额宝（首页 + 各详情页图例）2 位小数
 5. 详情页：图表可交互（hover/滑块/select），footer 全宽跟随滚动、与卡片 16px 间距、hint 气泡完整
-6. 月月分红 divDate 覆盖率达标（fund ≥25、etf ≥14、cnEtf ≥50）
+6. 月月分红 divDate 覆盖率达标（fund ≥20、etf ≥14、cnEtf ≥50）；且月月名单无超期成员（最近分红 ≥ 上月初，超期者已由步骤 14 自动剔除）
 7. 线上 index.html 与本地一致（md5 对比）或 curl 关键数据抽查
 8. 股息率口径抽查：etfData/fundData 任抽 2-3 只详情，yield=跟踪指数股息率（与指数浏览器一致）；**无负值/无 15%+ 极端值**
 9. 简称 N 前缀：全站无残留「N」开头简称（grep "N红利\|N.*ETF"）
@@ -46,7 +46,7 @@
 | 11 | sync_excel(2) | 重建（assetData 取最新 divHistory）|
 | 12 | sync_new_etf | 新 ETF/新指数自动发现（近 30 天红利类）|
 | 13 | sync_new_reits | 新 REITs 自动发现（全部已上市公募 REITs：508xxx.SH / 180xxx.SZ）|
-| 14 | sync_fund_divdate | 恢复最近分红日期（fund/etf/cnEtf）|
+| 14 | sync_fund_divdate | 恢复最近分红日期（fund/etf/cnEtf）+ **月月名单剔除超期成员**（最近分红早于「上一个月」者移出 etfData/fundData；2026-10-06）|
 | **15** | **sync_wind_fields** | **字段级 Wind 化：fundCount / ETF 成立·上市·费率·规模·份额·持有人·分红次数 / 月月分红全字段 / 股息率=指数股息率 / N 前缀摘除** |
 | 16 | sync_daily | 食息资讯日报（只读 digest-db.json → data/dailyData.json + dailyTagColors.json；原 sync_weekly 已归档 archive/weekly-feed-2026-09/）|
 | 17 | backup_db | 离线备份 |
@@ -59,7 +59,7 @@
 每季度从中指云报告更新「重点50城租金率」季度时点值（最新 2023Q1 起 14 点），assetData 列表值由用户提供。
 
 ## B3. 不定期（用户指令）：
-- 月月分红清单变更（哪些 ETF/场外算"月月分红"——业务判断，用户维护）
+- 月月分红清单变更：**新增**成员属业务判断（哪些 ETF/场外算"月月分红"——用户维护）；**移出**已停止月月分红的成员已**自动化**——步骤 14 `sync_fund_divdate.prune_stale_monthly`：最近一次分红早于「上一个月」（如 10 月运行要求 ≥ 9/1）即移出 etfData/fundData（2026-10-06；Excel 仍会带回，若恢复月月分红则自动回归）
 - 港交所 ETF 互联互通/跟踪指数修订（对话告知 AI，登记 `manual-overrides.md`）
 - 租金率列表新值
 

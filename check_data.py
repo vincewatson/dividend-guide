@@ -110,11 +110,33 @@ if ad and mf_date:
               f"assetData {yb2.get('date')} vs moneyFund {mf_date}")
 
 # 7. divDate 覆盖率
-for fn, th in [('fundData.json', 25), ('etfData.json', 14), ('cnEtfData.json', 50)]:
+for fn, th in [('fundData.json', 20), ('etfData.json', 14), ('cnEtfData.json', 50)]:
     d = jload(fn)
     if d is not None:
         n = len([x for x in d if x.get('divDate')])
         check(f'{fn} divDate 覆盖率', n >= th, f'{n}/{len(d)}')
+
+# 7b. 月月名单连续性（2026-10-06 用户要求）：月月分红产品最近一次分红须在「上一个月」或更近；
+#     超期成员应由 sync_fund_divdate.py prune_stale_monthly 自动剔除。此处为安全网——
+#     若此检查失败，说明未跑 steps 14（剔除）就部署，名单里混入了已停止月月分红的成员。
+_today = datetime.date.today()
+_cutoff = datetime.date(_today.year - 1, 12, 1) if _today.month == 1 else datetime.date(_today.year, _today.month - 1, 1)
+for fn in ('etfData.json', 'fundData.json'):
+    d = jload(fn)
+    if d is None:
+        continue
+    bad = []
+    for x in d:
+        dd = x.get('divDate')
+        if not dd:
+            continue
+        try:
+            if datetime.date.fromisoformat(str(dd)[:10]) < _cutoff:
+                bad.append((x.get('code'), str(dd)[:10]))
+        except ValueError:
+            pass
+    check(f'{fn} 月月名单无超期成员(最近分红≥{_cutoff.isoformat()})', not bad,
+          ('超期: %s' % bad) if bad else '全部达标')
 
 # 8. dailyChange 日期
 if idx:

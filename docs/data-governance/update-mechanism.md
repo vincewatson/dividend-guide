@@ -22,7 +22,7 @@
 
 > 编号自 2026-09-19 起统一为**连续 1..20**（原 `0`/`0.1`/`6.5`/`7.5` 与 `0a/0b/0c` 已废除）；**2026-09-26 起新增步骤 13（sync_new_reits 新 REITs 自动发现），编号顺延为连续 1..21**（原 13–20 步整体 +1）。`auto_sync_deploy.sh` 从**步骤 3** 开始打印（步骤 1–2 由任务层在上游完成）。
 
-1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 4 sync_excel(1) → 5 div_history+fix_laggard → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → 11 sync_excel(2)（assetData 取最新）→ 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → 14 fund_divdate（恢复 divDate）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。（**2026-10-05 起**在步骤 12 之后插入一个**编号外**步骤 `sync_product_quotes`（产品行情快照入库），不计入 1..21；详见下方「产品行情快照库 productQuotes」。）
+1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 4 sync_excel(1) → 5 div_history+fix_laggard → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → 11 sync_excel(2)（assetData 取最新）→ 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → 14 fund_divdate（恢复 divDate + 月月名单剔除超期成员）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。（**2026-10-05 起**在步骤 12 之后插入一个**编号外**步骤 `sync_product_quotes`（产品行情快照入库），不计入 1..21；详见下方「产品行情快照库 productQuotes」。）
 
 > **更新前体检（preflight，2026-10-04 新增；不计入 21 步编号）**：`python3 preflight.py` 读取交易日历（根目录 `market_calendar.json`）与本地各 JSON 最新日期，判断 **A股/港股今天是否开盘、各数据域是否已覆盖到最新交易日、建议跑/跳过哪些步骤**，并给出耗时粗估。`auto_sync_deploy.sh` 在步骤 3 前自动执行并打印；按建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`（保守：仅跳过纯 Wind 日频 5–10 + 资讯 16，`sync_excel`/校验/部署一律保留）。目的：假期/休市日不空跑全量（如国庆 A股多日休市，多数日频域无新点，可省去一半步骤）。
 
@@ -42,11 +42,12 @@
 | cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData / assetData | **用户 Excel 快照**（`data/user/*.xlsx`）| sync_excel（跑两次）| **每周**（`data/user/` 出现新快照时才变化）| 步骤 4 / 11 |
 | cnEtfData · 新 ETF、indexData · 新指数 | Wind 自动发现 | sync_new_etf | **每次**（检索近 30 天）| 步骤 12 |
 | reitsData · 新 REITs + 空字段补齐 | Wind 自动发现 / 补齐 | sync_new_reits | **每次**（全量检索已上市 REITs；并为字段为空的 REITs 补 分红次数·年化派息率·累计/年化派息额·收盘价，取不到留空不写 0；2026-09-26 起）| 步骤 13 |
-| divDate（fund / etf / cnEtf）| Wind 最近分红 | sync_fund_divdate | **每次**（全量重拉）| 步骤 14 |
+| divDate（fund / etf / cnEtf）**＋ 月月名单剔除超期成员** | Wind 最近分红 | sync_fund_divdate | **每次**（全量重拉；顺带把最近分红早于「上一个月」的 etfData/fundData 成员移出，2026-10-06）| 步骤 14 |
 | ETF 成立/上市/费率/规模/份额/持有人/分红次数、fundCount、N 前缀 | Wind | sync_wind_fields | **每次** | 步骤 15 |
 | dailyData / dailyTagColors | `digest-db.json`（生成端）| sync_daily | **每次**（数据源每日更新）| 步骤 16 |
 | assetHistory · 重点50城租金率 | 中指研究院季度报告 | 用户手动给值 + sync_asset_macro **保留** | **季度**（4/7/10/12 月下旬）| B2（`runbooks/quarterly-rent-sop.md`）|
-| 月月分红清单 / 港交所互联互通·跟踪指数 / 租金率列表值 | 用户业务判断 | 手动 | **不定期** | B3 |
+| 月月分红清单**新增**成员 / 港交所互联互通·跟踪指数 / 租金率列表值 | 用户业务判断 | 手动 | **不定期** | B3 |
+| 月月分红清单**移出**已停止月月分红的成员 | 自动（最近分红 < 上月初）| sync_fund_divdate（步骤 14）| **每次** | 步骤 14 |
 
 **说明**：
 - **「每次」类**脚本均**增量 + 失败不破坏**（拉不到就保留旧值），可在任意时点安全重跑。

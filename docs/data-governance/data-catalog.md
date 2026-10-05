@@ -35,7 +35,7 @@
 | cnEtfData.json | 93 ETF | sync_excel.py + sync_new_etf + sync_fund_divdate | ② Wind 快照（divDate/新 ETF 由 ③）| 流水线 |
 | hkEtfData.json | 13 | sync_excel.py（表外行保留）| ① 用户表优先；人工补充（3555.HK 主动管理ETF，2026-10-05）| 流水线 |
 | etfData.json | 15 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
-| fundData.json | 26 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
+| fundData.json | 25 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
 | moneyFundData.json | 43 | sync_excel.py + sync_money_fund | ② Wind 快照 | 流水线 |
 | reitsData.json | 58（新上市自动补入）| sync_excel.py + sync_new_reits | ② Wind 快照（新 REITs 由 ③ 自动发现）| 流水线 |
 | assetData.json | 17 | sync_excel.py（+ `EXTRA_ASSETS` 手工补加）| ① 用户表（总表）+ 手工补加行（「红利低波」，2026-10-06）| 流水线 |
@@ -69,6 +69,7 @@
 
 **股息率口径（2026-08-16 用户确认）**：`yield/yieldNum` = **跟踪指数股息率**（trackCode → indexData.yieldNum 映射；trackCode 不在 49 指数时由 `_extend_yield_map` 从 Wind 查指数股息率兜底）；Wind「近12月分红收益率」（ETF 实际派息口径，≠指数股息率）另存 `divYieldNum` 备用，**禁止写入 yield**。
 - 全部字段：② 快照「月月可分红ETF/月月可分红（场外）」。
+- **名单成员（月月分红）**：**新增**成员由 ② Excel 快照决定（用户业务判断）；**移出**已停止月月分红的成员**自动化**——步骤 14 `sync_fund_divdate.prune_stale_monthly`：最近一次分红早于「上一个月」（如 10 月运行要求 ≥ 9/1）即移出（2026-10-06 起）。当前 etfData **15** 只 / fundData **25** 只（2026-10-06 由 26 移出 `022097.OF 长城中证红利低波100ETF联接A`：其最近分红 2026-07-28，8/9 月均无分红，已非月月）。
 - `name`（ETF 简称）：**统一 = Wind「基金扩位场内简称」**（快照「月月可分红ETF」表头 2026-09-20 由「ETF简称」更名为「ETF扩位场内简称」；取值本就是扩位简称，实测 15/15 与 Wind 一致）。**场外基金表「月月可分红（场外）」无场内概念，`fundData.name` 仍是基金简称，不受此规则约束**。
 - `divDate`：③ Wind（sync_fund_divdate，**多措辞兜底**，2026-09-13 起「最近分红情况」为主）。
 - `taxRate`（港股红利税系数）：① 用户（名称智能识别 0.8/1.0）。

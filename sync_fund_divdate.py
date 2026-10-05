@@ -127,6 +127,42 @@ def resolve(code):
 def ts():
     return time.strftime('%H:%M:%S')
 
+
+# 「月月分红」名单自动剔除（2026-10-06 用户要求）
+# ------------------------------------------------------------------
+# 规则：月月分红产品应「每月连续分红」。若某只的最近一次分红发放日
+#   早于「上一个月」（例：2026-10 运行 → 要求最近分红 ≥ 2026-09-01），
+#   说明它已不再月月分红，从名单中剔除（保底：divDate 为空者不动，避免误删）。
+# 自愈：Excel 快照仍会把它带回来 → 每周重建后本剔除再跑一次；
+#   若该产品恢复月月分红（divDate 变新），下轮自然重新纳入。
+# 仅对月月名单（ALWAYS_FILES：etfData / fundData）生效。
+def _prev_month_first(today=None):
+    t = today or datetime.date.today()
+    return datetime.date(t.year - 1, 12, 1) if t.month == 1 else datetime.date(t.year, t.month - 1, 1)
+
+
+def prune_stale_monthly(d, fn):
+    cutoff = _prev_month_first()
+    kept, removed = [], []
+    for item in d:
+        dd = item.get('divDate')
+        if not dd:
+            kept.append(item); continue          # 无日期（新上市/查询失败）不动
+        try:
+            dt = datetime.date.fromisoformat(str(dd)[:10])
+        except ValueError:
+            kept.append(item); continue
+        if dt < cutoff:
+            removed.append((item.get('code', ''), item.get('name', ''), str(dd)[:10]))
+        else:
+            kept.append(item)
+    if removed:
+        print('  [月月剔除] {}：{} 只最近分红早于 {}（已非月月分红）→ 移出名单：'.format(
+            fn, len(removed), cutoff.isoformat()), flush=True)
+        for c, n, dd in removed:
+            print('    - {} {}（最近分红 {}）'.format(c, n, dd), flush=True)
+    return kept
+
 def process(fn, label, norecord):
     p = os.path.join(BASE, fn)
     d = json.load(io.open(p, encoding='utf-8'))
@@ -192,6 +228,9 @@ def process(fn, label, norecord):
             tag = '无分红记录' if got_final else '查询失败(保留原值)'
             print(f'  [{n}/{len(results)}] {ts()} {name}: {tag}', flush=True)
 
+    # 月月名单自动剔除：最近分红早于「上一个月」的成员移出名单（仅 etfData/fundData；2026-10-06）
+    if always:
+        d = prune_stale_monthly(d, fn)
     fd, tmp = tempfile.mkstemp(dir=BASE, suffix='.tmp')
     with os.fdopen(fd, 'w', encoding='utf-8') as f:
         json.dump(d, f, ensure_ascii=False, indent=1)
