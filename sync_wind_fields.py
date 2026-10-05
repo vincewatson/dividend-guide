@@ -153,6 +153,20 @@ def _index_yield_map():
     return m
 
 
+def _index_name_map():
+    """indexData → {code: name}（跟踪指数名称）。
+    ETF 的 trackName 必须与站内指数库名称一致，以便与指数信息打通（2026-10-05 用户要求）：
+    只要 trackCode 命中指数库，trackName 一律取指数库规范名，不采用 Wind 的措辞变体。"""
+    m = {}
+    try:
+        for x in load_json('indexData.json'):
+            if x.get('code') and x.get('name'):
+                m[x['code']] = x['name']
+    except Exception:
+        pass
+    return m
+
+
 def _extend_yield_map(iy, todo, max_batch=8):
     """对 trackCode 不在 indexData 的，从 Wind 查指数股息率兜底（2026-08-16 排查补漏）"""
     miss = sorted({x.get('trackCode') for x in todo
@@ -223,6 +237,7 @@ def update_cn_etf():
     d = load_json('cnEtfData.json')
     todo = [x for x in d if x.get('code')]
     updated = 0
+    _iname = _index_name_map()   # trackCode → 站内指数规范名（ETF.trackName 须与之对齐，2026-10-05）
     batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
     queries = [' '.join('%s %s' % (x['code'], x['name']) for x in b) +
                ' 这些基金的成立日期 上市日期 管理费率 基金规模合计 基金份额 开放式基金认购户数 2026年分红次数'
@@ -273,6 +288,9 @@ def update_cn_etf():
             v = num(gv('2026年分红次数'))
             if v is not None:
                 upd('divCount', int(v))
+            _canon = _iname.get(x.get('trackCode') or '')
+            if _canon:
+                upd('trackName', _canon)   # 站内指数库优先（ETF 跟踪指数名与指数库打通，2026-10-05）
             if chg:
                 updated += 1
                 print('  [OK] %s (%d 字段)' % (x['code'], chg))
@@ -289,6 +307,7 @@ def update_etf_data():
     todo = [x for x in d if x.get('code')]
     updated = 0
     iy = _extend_yield_map(_index_yield_map(), todo)
+    _iname = _index_name_map()   # trackCode → 站内指数规范名（ETF.trackName 须与之对齐，2026-10-05）
     batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
     # 拆两次查询（字段 ≤7 个，Wind 才返回；2026-08-16 实测）；两批查询一并并发预取
     q1s = [' '.join('%s %s' % (x['code'], x['name']) for x in b) +
@@ -335,7 +354,9 @@ def update_etf_data():
             if v is not None:
                 upd('fundSize', round(v, 2))
                 x['sizeDate'] = datetime.date.today().isoformat()   # 规模取数日期（供 data_center，2026-09-26 新增）
-            upd('trackName', str(gv('跟踪指数名称')).strip() if gv('跟踪指数名称') else None)
+            _tn = str(gv('跟踪指数名称')).strip() if gv('跟踪指数名称') else ''
+            _canon = _iname.get(x.get('trackCode') or '')
+            upd('trackName', (_canon or _tn) or None)   # 站内指数库优先（ETF 跟踪指数名与指数库打通，2026-10-05）
             if row2 is not None:
                 def gv2(c):
                     return row2[cm2[c]] if c in cm2 and len(row2) > cm2[c] else None
@@ -383,6 +404,7 @@ def update_fund_data():
     d = load_json('fundData.json')
     todo = [x for x in d if x.get('code')]
     iy = _index_yield_map()
+    _iname = _index_name_map()   # trackCode → 站内指数规范名（ETF.trackName 须与之对齐，2026-10-05）
     updated = 0
     batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
     queries = [' '.join('%s %s' % (x['code'], x['name']) for x in b) +
@@ -424,7 +446,9 @@ def update_fund_data():
             v = num(gv('近12月分红收益率'))
             if v is not None:
                 upd('divYieldNum', round(v / 100.0, 4))   # ETF 实际分红收益率（备用口径）
-            upd('trackName', str(gv('跟踪指数名称')).strip() if gv('跟踪指数名称') else None)
+            _tn = str(gv('跟踪指数名称')).strip() if gv('跟踪指数名称') else ''
+            _canon = _iname.get(x.get('trackCode') or '')
+            upd('trackName', (_canon or _tn) or None)   # 站内指数库优先（ETF 跟踪指数名与指数库打通，2026-10-05）
             yv = iy.get(x.get('trackCode') or '')
             if yv is not None and x.get('yieldNum') != yv:
                 x['yieldNum'] = round(yv, 4)
@@ -445,6 +469,7 @@ def update_hk_etf():
     d = load_json('hkEtfData.json')
     todo = [x for x in d if x.get('code')]
     updated = 0
+    _iname = _index_name_map()   # trackCode → 站内指数规范名（ETF.trackName 须与之对齐）
     batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
     queries = [' '.join('%s %s' % (x['code'], x['fullname'] or x['name']) for x in b) +
                ' 这些基金的基金成立日 管理费率 基金规模合计 跟踪指数名称' for b in batches]
@@ -486,7 +511,11 @@ def update_hk_etf():
                 upd('size', round(v, 2))
                 x['sizeDate'] = datetime.date.today().isoformat()   # 规模取数日期（供中央数据库 data_center 区分新旧，2026-09-25 新增）
             _tn = gv('跟踪指数名称', '跟踪指数')
-            upd('trackName', str(_tn).strip() if _tn else None)
+            _tn = str(_tn).strip() if _tn else ''
+            _canon = _iname.get(x.get('trackCode') or '')
+            if _canon:
+                _tn = _canon      # 站内指数库为准：ETF 跟踪指数名须与指数库一致（2026-10-05 用户：与指数信息打通）
+            upd('trackName', _tn or None)
             if chg:
                 updated += 1
                 print('  [OK] %s (%d 字段)' % (x['code'], chg))
