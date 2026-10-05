@@ -257,7 +257,7 @@ def update_cn_etf():
             upd('listedDate', dstr(gv('基金成立日')) or None)
             upd('listedMarketDate', dstr(gv('上市日期')) or None)
             v = num(gv('管理费率'))
-            if v is not None:
+            if v is not None and v > 0:   # 费率 ≤0 视为 Wind 缺值/异常，不写入（防 0.00% 覆盖真实费率，2026-10-05）
                 upd('feeNum', round(v / 100.0, 4))
                 upd('fee', '{:.2f}%'.format(v))
             v = num(gv('基金规模合计'))
@@ -328,7 +328,7 @@ def update_etf_data():
             upd('listedDate', dstr(gv('基金成立日')) or None)
             upd('fundCompany', str(gv('基金公司名称')).strip() if gv('基金公司名称') else None)
             v = num(gv('管理费率'))
-            if v is not None:
+            if v is not None and v > 0:   # 费率 ≤0 视为 Wind 缺值/异常，不写入（2026-10-05）
                 upd('feeNum', round(v / 100.0, 4))
                 upd('fee', '{:.2f}%'.format(v))
             v = num(gv('基金规模合计'))
@@ -408,7 +408,7 @@ def update_fund_data():
             upd('establishDate', dstr(gv('基金成立日')) or None)
             upd('fundCompany', str(gv('基金公司名称')).strip() if gv('基金公司名称') else None)
             v = num(gv('管理费率'))
-            if v is not None:
+            if v is not None and v > 0:   # 费率 ≤0 视为 Wind 缺值/异常，不写入（2026-10-05）
                 upd('feeNum', round(v / 100.0, 4))
                 upd('fee', '{:.2f}%'.format(v))
             v = num(gv('2026年分红次数'))
@@ -463,18 +463,30 @@ def update_hk_etf():
                 if v is not None and x.get(k) != v:
                     x[k] = v
                     chg += 1
-            def gv(c):
-                return row[cm[c]] if c in cm and len(row) > cm[c] else None
+            def gv(*cands):
+                # 精确列名优先，否则按子串模糊匹配。
+                # 根因（2026-10-05 修复）：Wind 对同一问法会漂移列名——规模列可能是
+                # 「基金规模合计」，也可能返回「上市基金规模_WIND计算」等；旧代码只认
+                # 精确名 → 取不到就 None → 规模长期漏更新（费率同理，3483 曾写 0.00%）。
+                for c in cands:
+                    if c in cm and len(row) > cm[c]:
+                        return row[cm[c]]
+                for name, idx in cm.items():
+                    for c in cands:
+                        if c and c in name and len(row) > idx:
+                            return row[idx]
+                return None
             upd('listedDate', dstr(gv('基金成立日')) or None)
             v = num(gv('管理费率'))
-            if v is not None:
+            if v is not None and v > 0:   # 费率 ≤0 视为 Wind 缺值/异常，不写入（防 0.00% 覆盖真实费率，2026-10-05）
                 upd('feeNum', round(v / 100.0, 4))
                 upd('fee', '{:.2f}%'.format(v))
-            v = num(gv('基金规模合计'))
-            if v is not None:
+            v = num(gv('基金规模合计', '规模'))
+            if v is not None and v > 0:
                 upd('size', round(v, 2))
                 x['sizeDate'] = datetime.date.today().isoformat()   # 规模取数日期（供中央数据库 data_center 区分新旧，2026-09-25 新增）
-            upd('trackName', str(gv('跟踪指数名称')).strip() if gv('跟踪指数名称') else None)
+            _tn = gv('跟踪指数名称', '跟踪指数')
+            upd('trackName', str(_tn).strip() if _tn else None)
             if chg:
                 updated += 1
                 print('  [OK] %s (%d 字段)' % (x['code'], chg))
