@@ -1,8 +1,9 @@
 {
  "domain": "retired",
- "schema": "retired: { <code>: {name, lists[], maturityDate, retiredDate, reason} }",
- "note": "excel-exit 机制 B · 停用名单：已清盘/结束标的。由 sync_lifecycle.py 依 Wind「基金到期日」（≤今天=已结束）维护；build_lists.py 重建时跳过这些 code（历史数据不删）。删条目即恢复。适用于：境内红利ETF / 港交所红利ETF / REITs / 货币基金。",
+ "schema": "retired: { <code>: {name, lists[], maturityDate, retiredDate, reason, source} }",
+ "note": "excel-exit 机制 B · 停用名单：已清盘/退市/结束标的。港交所ETF 由 aastocks 港股ETF列表比对（不在列表=退市）；境内红利ETF/REITs/货币基金 由 Wind「基金到期日」（≤今天=已结束）判定。build_lists.py 重建时跳过这些 code（历史数据不删）。删条目即恢复。",
  "updatedAt": "2026-10-06",
- "lastRun": "",
+ "lastWindRun": "",
+ "lastAastocksRun": "",
  "retired": {}
 }
