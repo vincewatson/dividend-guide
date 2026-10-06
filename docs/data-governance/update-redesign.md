@@ -77,20 +77,44 @@
 
 ### 阶段 0（只测量、不改逻辑）
 
-**状态：计数层已就绪；测量运行待 Wind 额度恢复后执行。**
+**状态：计数层已就绪；已实跑一次测量（2026-10-07 00:19–00:33，`SX_NO_DEPLOY=1` 只跑数据不部署）。⚠️ 流水线在**步骤 18（check_data）中止**——**非** Wind 额度中断（共 **1004** 次 < 2000）。**
 
-- **2026-10-06**：新建 `wind_client.py`（统一 Wind 客户端）；15 个脚本的 **18 处** Wind 调用已**全部改走** `wind_client.run(...)`（透传 `subprocess.run`，**查询逻辑/措辞/重试/并发零改动**）；`auto_sync_deploy.sh` 的 `run_py` 注入 `SX_WIND_STEP=<步骤 label>`，计数写入 `.wind_usage/YYYY-MM-DD.json`（按步骤，且与 `.run_timings.jsonl` 的 label 对齐，便于把「次数 × 耗时」合成一张表）。
-- **验证（未耗用 Wind）**：`bash -n` 通过、相关 `.py` 全部 `ast.parse` 通过；**桩测试**（`SX_WIND_CLI_REAL=桩`）实跑 `sync_product_quotes.py --dry-run` → 调用被正确计入该步，且与守卫计数一致。
-- ⏳ **待办**：Wind 额度恢复后**跑一次完整更新**，把下表填实（这是阶段 0 的验收物）。
+- **2026-10-06**：新建 `wind_client.py`（统一 Wind 客户端）；15 个脚本的 **18 处** Wind 调用**全部改走** `wind_client.run(...)`（透传 `subprocess.run`，逻辑/措辞/重试/并发**零改动**）；`auto_sync_deploy.sh` 的 `run_py` 注入 `SX_WIND_STEP=<label>`，计数写 `.wind_usage/YYYY-MM-DD.json`（与 `.run_timings.jsonl` 的 label 对齐）。
+- **2026-10-07 00:19–00:33 实测**：全新一日额度（从 0 起），逐 step 计数正常。**中止原因**：步骤 18 `check_data` 报 **9 项未通过**，全部为「跨市场日期口径」——当日 **A股假期休市（A股最近交易日 09-30）、港股开市（10-07）**，而 check_data 的「全覆盖（允许滞后≤2天）」以**合并最新交易日 2026-10-07** 要求全部序列，故 A股系（09-30，滞后 7 天）被判滞后。**属既有判据的节假日问题，与本次重构无关**（无任何 schema/类型错误；`divHistory 最新日期: 2026-10-07` 等 HK 系为 ✅）。
 
-#### 每步 Wind 调用次数 + 耗时（待实测填入）
+#### 每步 Wind 调用次数 + 耗时（2026-10-07 实测 · `SX_NO_DEPLOY=1`）
 
-| 步骤 | 脚本 | Wind 次数 | 耗时 | 备注 |
-|---|---|---|---|---|
-| （待实测） | | | | |
+| 步骤 | 脚本（label） | Wind 次数 | 耗时(s) |
+|---|---|---|---|
+| 3.5（编号外） | sync_lifecycle.py | 227 | 65 |
+| 4 | build_lists.py（第一次） | 0 | 5 |
+| 5 | sync_div_history.py | 87 | 171 |
+| 5 | fix_laggard_indexes.py | 42 | 10 |
+| 6 | sync_daily_change.py | 37 | 215 |
+| 7 | sync_money_fund.py | 1 | 5 |
+| 8 | sync_yuebao_history.py | 18 | 45 |
+| 9 | sync_asset_macro.py | 13 | 10 |
+| 10 | sync_reits_daily.py | 89 | 30 |
+| 11 | build_lists.py（第二次） | 0 | 5 |
+| 12 | sync_new_etf.py | 1 | 5 |
+| 编号外 | sync_new_hk_etf.py --add | 0 | 5 |
+| 13 | sync_new_reits.py | 99 | 130 |
+| 编号外 | sync_new_monthly.py | 3 | 10 |
+| 编号外 | sync_product_quotes.py | 17 | 15 |
+| 14 | sync_fund_divdate.py all --force | 315 | 95 |
+| 15 | sync_wind_fields.py all | 55 | 40 |
+| 16 | sync_daily.py | 0 | 5 |
+| 17 | backup_db.py | 0 | 5 |
+| 18 | check_data.py | 0 | 5 |
+| **合计** | | **1004** | **876 ≈ 14.6 min** |
+| 19 | embed_data.py | 0 | 未执行（步骤 18 中止） |
+| 20 | 部署 deploy_cloudflare | — | 本次跳过（SX_NO_DEPLOY=1） |
+| 21 | 线上验证 | — | 本次跳过（SX_NO_DEPLOY=1） |
 
-> 采集方式：跑 `auto_sync_deploy.sh` → 由 `.wind_usage/<date>.json`（次数）与 `.run_timings.jsonl`（耗时）合成。
+> **口径**：**Wind 次数**来自 `.wind_usage/2026-10-07.json`；**耗时**来自 `.run_timings.jsonl`（wall-clock，各步 `run_py` 实测）。`.wind_usage` 的 `sec` 是**单次调用耗时累加**（并发下远大于 wall-clock，如 lifecycle 382s vs 65s），故未采用。语法预检 / preflight 非 `run_py`，未计入。
+>
+> **结论（阶段 0 用途）**：现状 ≈ **14.6 分钟 / 1004 次调用**，远高于目标（日更 ≤10min、≤300 次）。**调用最多**：fund_divdate 315、lifecycle 227、new_reits 99、reits_daily 89、div_history 87 → 即阶段 4「减少调用」的优先对象；**耗时最多**：daily_change 215s、div_history 171s、new_reits 130s。
 
 ### 阶段完成记录
 
-（每完成一阶段记一行：**阶段 N 完成：耗时 / Wind 次数 前→后**）
+- ⏳ **阶段 0：未验收**。测量表已产出，但 `check_data` 未全通过（上述跨市场假期判据）。**建议先确认/修复该判据（或明确节假日口径）并补跑一次，通过后方进入阶段 1。**

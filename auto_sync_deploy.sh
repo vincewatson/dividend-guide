@@ -225,14 +225,18 @@ echo "===== [19/21] 刷新内嵌兜底数据 ====="
 run_py "embed_data.py" embed_data.py
 
 echo ""
+if [ "$SX_NO_DEPLOY" = "1" ]; then echo "===== [20/21] 部署到 Cloudflare Pages — ⏭ 跳过（SX_NO_DEPLOY=1，只跑数据）====="; else
 echo "===== [20/21] 部署到 Cloudflare Pages ====="
 # 2026-10-03 迁移：原 Vercel 直传 → Cloudflare Pages 直传（含 functions/ 与 _redirects/_headers）
 bash "$(pwd)/deploy_cloudflare.sh"
+fi
 
 echo ""
+if [ "$SX_NO_DEPLOY" = "1" ]; then echo "===== [21/21] 线上验证 — ⏭ 跳过（SX_NO_DEPLOY=1）====="; else
 echo "===== [21/21] 线上验证（最多等待 20 秒，避免网络被拦截时无限挂起）====="
 env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u NODE_USE_ENV_PROXY \
   curl -s --connect-timeout 10 --max-time 20 "https://divlab.net/?cmp=$(date +%s)" | grep -o '数据更新于[^<]*' | head -1 || echo "（线上验证被网络拦截或页面文案已改版，请手动确认）"
+fi
 
 echo ""
 echo "===== [耗时汇总] 本次各步耗时（降序 · 供优化定位）====="
