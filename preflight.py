@@ -44,6 +44,13 @@ STEP_TIME = {
 }
 # 预检可建议跳过的步骤（纯 Wind 日频 + 资讯），其余步骤一律保留
 SKIPPABLE = [5, 6, 7, 8, 9, 10, 16]
+# 档位（2026-10-07 · 重构阶段2：先落地「日更/周更」两档）
+#   周更步骤 = 附录「归档建议=周更」的步骤：分红日期、生命周期、新 REITs、新 ETF(含港 ETF)、月月分红发现。
+#   日更 = 其余步骤；**周更本次只跑周级步骤（weekly-only）**，日更跳过它们。
+WEEKLY_STEPS = [12, 13, 14]                        # 编号步骤：new_etf / new_reits / fund_divdate
+WEEKLY_EXTRA = [                                    # 编号外周级步骤（label 供报告/流水线门控）
+    "sync_lifecycle.py", "sync_new_hk_etf.py --add", "sync_new_monthly.py",
+]
 # 步骤 → 中文名（报告用）
 STEP_NAME = {
     3: "语法预检", 4: "重建数据(1)", 5: "股息率 div_history", 6: "涨跌幅 daily_change",
@@ -241,7 +248,7 @@ def r_lists_newest():
 # ----------------------------------------------------------------------------
 # 体检主逻辑
 # ----------------------------------------------------------------------------
-def build(today):
+def build(today, mode="daily"):
     cn_last = last_trading_day(CN, today)
     hk_last = last_trading_day(HK, today)
     both = max([x for x in (cn_last, hk_last) if x], default=None)
@@ -331,12 +338,16 @@ def build(today):
 
     all_steps = sorted(STEP_TIME.keys())
     skip_set = set(skip)
+    # 档位步骤集：日更=全部编号步骤−周更步骤；周更=仅周级步骤（weekly-only）
+    tier_steps = list(WEEKLY_STEPS) if mode == "weekly" \
+        else [s for s in all_steps if s not in WEEKLY_STEPS]
     st_time, measured = resolve_step_seconds()
-    total_time = sum(st_time[s] for s in all_steps if s not in skip_set)
+    total_time = sum(st_time[s] for s in tier_steps if s not in skip_set)
 
     return {
         "today": today, "cn_last": cn_last, "hk_last": hk_last, "both": both,
-        "rows": rows, "step_status": step_status,
+        "rows": rows, "step_status": step_status, "mode": mode,
+        "tier_steps": sorted(tier_steps),
         "skip": sorted(skip), "run": sorted(run),
         "lists_new": lists_new, "lists_note": lists_note,
         "warn": warn, "total_time": total_time, "measured": measured,
@@ -389,10 +400,17 @@ def print_report(rep):
               + _status_label(r["status"])
               + ("   " + r["note"] if r["note"] else ""))
     print("-" * 70)
-    all_steps = sorted(STEP_TIME.keys())
+    _mode = rep.get("mode", "daily")
     skip_set = set(rep["skip"])
+    tier = rep.get("tier_steps", [])
+    print("  本次档位：%s" % ("周更（仅周级步骤）" if _mode == "weekly" else "日更（默认）"))
     print("  可跳过（已是最新交易日）：%s" % (" ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in rep["skip"]) or "无"))
-    print("  需执行：%s" % " ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in all_steps if s not in skip_set))
+    print("  本次需执行：%s" % (" ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in tier if s not in skip_set) or "无"))
+    if _mode == "daily":
+        _moved = "、".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in WEEKLY_STEPS)
+        print("  （周级步骤已移至周更、本次不跑：%s；编号外：%s）" % (_moved, "、".join(WEEKLY_EXTRA)))
+    else:
+        print("  （周更仅跑周级步骤；日更步骤由日常运行负责）")
     if rep["lists_new"]:
         print("  🔸 清单/标注（data/curation）有更新 → 步骤 4/11（重建数据）需重跑以套用")
     _src = "含上次实测，随运行自动更新" if rep.get("measured") else "粗估，可能偏大（尚无实测记录）"
@@ -408,11 +426,14 @@ def main():
     ap.add_argument("--date", help="体检日期 YYYY-MM-DD（默认今天）")
     ap.add_argument("--json", action="store_true", help="输出机器可读 JSON")
     ap.add_argument("--emit-skip", action="store_true", help="仅输出建议跳过的步骤号")
+    ap.add_argument("--weekly", action="store_true", help="按周更档位体检（仅周级步骤）")
+    ap.add_argument("--mode", choices=["daily", "weekly"], help="档位（默认 daily；--weekly 等价 --mode weekly）")
     args = ap.parse_args()
 
+    mode = "weekly" if (args.weekly or args.mode == "weekly") else "daily"
     today = _d(args.date) or datetime.date.today()
     try:
-        rep = build(today)
+        rep = build(today, mode)
     except Exception as e:  # 预检失败绝不阻断流水线
         if args.emit_skip:
             print("")

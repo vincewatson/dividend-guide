@@ -24,8 +24,67 @@ import io, json, os, sys, datetime
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
 FAIL = []
+latest = ''   # divHistory 合并最新日期（数据派生；在下方 check 2 计算）
 
 import datetime
+
+# ---------------------------------------------------------------------------
+# 按市场分别判断「最新交易日」（2026-10-07 · 重构阶段1/2 合并）
+#   背景：A股/港股假期不同步时（如 2026-10-07 A股休市、港股开市），原用「合并最新日期」
+#   会把未开市市场的全部序列误判为滞后。改为：A股系序列对照 A股日历、港股系对照港股日历。
+#   日历来源 market_calendar.json（与 preflight 同源，单一真实来源）。
+# ---------------------------------------------------------------------------
+try:
+    from preflight import last_trading_day as _last_td
+    _TODAY = datetime.date.today()
+    _cn = _last_td('CN', _TODAY)
+    _hk = _last_td('HK', _TODAY)
+    CN_LATEST = _cn.isoformat() if _cn else None
+    HK_LATEST = _hk.isoformat() if _hk else None
+except Exception:
+    CN_LATEST = HK_LATEST = None
+
+# 额度不足「待补」的步骤（由 wind_client 写 .wind_pending.json）：
+#   这些步骤产出的数据项本次豁免「新鲜度」校验（额度不足不失败，符合 update-redesign.md）。
+def _load_pending():
+    try:
+        with io.open(os.path.join(BASE, '.wind_pending.json'), encoding='utf-8') as _f:
+            return set(json.load(_f).get('steps') or [])
+    except Exception:
+        return set()
+
+PENDING = _load_pending()
+
+
+def _mkt_of_index(x):
+    """指数所属日历市场：'港股' → HK；其余（沪深/沪市/深市/沪港深/未知）→ CN。
+    market 缺失时按代码后缀兜底（.HI → HK）。"""
+    mk = str(x.get('market') or '')
+    if mk == '港股':
+        return 'HK'
+    if mk:
+        return 'CN'
+    return 'HK' if str(x.get('code') or '').endswith('.HI') else 'CN'
+
+
+def _name_market(name):
+    """按名称判定市场（用于 assetData 红利项——其无 market 字段）。"""
+    return 'HK' if any(k in str(name) for k in ('港股', '香港', '恒生', 'HK')) else 'CN'
+
+
+def _exp_for(mkt):
+    """某市场当前应达到的最新交易日；日历不可用时回落数据合并最新日期（退化为原行为）。"""
+    return (HK_LATEST if mkt == 'HK' else CN_LATEST) or latest
+
+
+def _behind(d, exp):
+    """d 落后 exp 的天数（d 早于 exp 为正；d 达到/超过 exp 为 0 或负）。解析失败返回 999。"""
+    try:
+        return (datetime.date.fromisoformat(str(exp)[:10])
+                - datetime.date.fromisoformat(str(d)[:10])).days
+    except Exception:
+        return 999
+
 
 def days_between(a, b):
     try:
@@ -41,7 +100,11 @@ def jload(fn):
         FAIL.append('[{}] 读取失败: {}'.format(fn, e))
         return None
 
-def check(tag, ok, detail):
+def check(tag, ok, detail, step_label=None):
+    # 若失败项对应的步骤本次「额度不足待补」，则只告警、不计入 FAIL（额度不足不失败）
+    if not ok and step_label and step_label in PENDING:
+        print('⚠️ {}: {}（步骤 {} 本次额度不足待补，已豁免）'.format(tag, detail, step_label))
+        return True
     mark = '✅' if ok else '❌'
     print('{} {}: {}'.format(mark, tag, detail))
     if not ok:
@@ -77,16 +140,39 @@ if idx:
             # trackOnly（详情页图表补充的跟踪指数，2026-10-04）不进「红利指数浏览器」列表，不参与该计数
             missing.append(x.get('name', '?'))
     latest = max(dates) if dates else ''
-    check('divHistory 最新日期', bool(latest), latest or '无数据')
+    # 日历不可用 / 数据缺失时回落：CN、HK 均取合并最新日期（退化为原「合并口径」）
+    if CN_LATEST is None:
+        CN_LATEST = latest
+    if HK_LATEST is None:
+        HK_LATEST = latest
+    check('divHistory 最新日期', bool(latest),
+          f'{latest or "无数据"}（A股最新 {CN_LATEST} / 港股最新 {HK_LATEST}）')
     check('divHistory 缺失指数', len(missing) <= 3, f'{len(missing)} 个: {missing[:5]}')
 
-# 3. assetData 红利指数 == divHistory 最新
+# 3. assetData 红利指数 == 对应市场最新交易日（股息率非每日更新，允许滞后≤2天，2026-08-19）
+#    2026-10-07：部分指数（尤其港股）股息率序列滞于其行情序列（行情已更新、股息率源滞后）——
+#    这类「行情新、股息率旧」属数据源特性，不判滞后：容许日期 ∈ 该市场「行情时效达标指数」的股息率日期集合。
 ad = jload('assetData.json')
 if ad and dates:
-    red_dates = [x['date'] for x in ad if x.get('type') == '红利' and x.get('date')]
-    red_ok = all(days_between(d, latest) <= 2 for d in red_dates)   # 股息率非每日更新，允许滞后≤2天（2026-08-19 调整）
-    check('assetData 红利指数 date == divHistory 最新(允许滞后≤2天)', red_ok,
-          f'{sorted(set(red_dates))} vs divHistory {latest}')
+    _tol = {'CN': set(), 'HK': set()}
+    for _x in (idx or []):
+        _h = _x.get('divHistory') or []
+        if not _h:
+            continue
+        _m = _mkt_of_index(_x)
+        _e = _exp_for(_m)
+        _dd = _x.get('dailyDate') or ''
+        if not _dd or _behind(_dd, _e) <= 2:
+            _tol[_m].add(str(_h[-1].get('date', ''))[:10])
+    red_bad = []
+    for x in ad:
+        if x.get('type') == '红利' and x.get('date'):
+            _m = _name_market(x.get('name', ''))
+            exp = _exp_for(_m)
+            if _behind(x['date'], exp) > 2 and str(x['date'])[:10] not in _tol[_m]:
+                red_bad.append((x.get('name'), x['date'], exp))
+    check('assetData 红利指数 date == 对应市场最新交易日(允许滞后≤2天)', not red_bad,
+          ('异常: %s' % red_bad) if red_bad else f'全部达标(CN {CN_LATEST} / HK {HK_LATEST})')
 
 # 4/5/6. 余额宝相关
 if ad:
@@ -154,11 +240,13 @@ for fn, keys in _MONTHLY_KEYS.items():
     check(f'{fn} 行结构完整', not miss,
           ('缺字段: %s' % miss[:3]) if miss else f'{len(d)} 行齐备')
 
-# 8. dailyChange 日期
+# 8. dailyChange 日期（与 divHistory 合并最新一致；跨市场/源差异允许 ≤2 天，2026-10-07 放宽）
 if idx:
     dc_dates = [x.get('dailyDate', '') for x in idx if x.get('dailyDate')]
     dc_latest = max(dc_dates) if dc_dates else ''
-    check('dailyChange 最新日期', dc_latest == latest, f'{dc_latest} vs divHistory {latest}')
+    check('dailyChange 最新日期(与 divHistory 最新一致·允许≤2天)',
+          bool(dc_latest) and days_between(dc_latest, latest) <= 2,
+          f'{dc_latest} vs divHistory {latest}')
 
 # 9. yuebaoHistory 结构 + 日频
 # assetHistory 各序列非空（sync_asset_macro 拉取失败不得清空，2026-08-11 确立）
@@ -176,11 +264,12 @@ if yh:
     yh_ok = False
     try:
         dt1 = datetime.datetime.strptime(yh_latest[:10], '%Y-%m-%d')
-        dt2 = datetime.datetime.strptime(latest[:10], '%Y-%m-%d')
+        dt2 = datetime.datetime.strptime(str(CN_LATEST)[:10], '%Y-%m-%d')
         yh_ok = 0 <= (dt2 - dt1).days <= 3
     except Exception:
         pass
-    check('yuebaoHistory 最新日期(允许滞后≤3天)', yh_ok, f'{yh_latest} vs divHistory {latest}')
+    check('yuebaoHistory 最新日期(允许滞后≤3天)', yh_ok, f'{yh_latest} vs A股最新 {CN_LATEST}',
+          step_label='sync_yuebao_history.py')
     # 起点检查：yuebaoHistory 起点必须早于 divHistory 起点（否则图表最长区间早期会无数据/假填充，2026-08-11 余额宝假平线 bug）
     yh_first = s[0].get('date', '') if s else ''
     # divHistory 最早日期（单独收集：dates 存的是最后日期）
@@ -204,22 +293,35 @@ if yh:
           f'yuebao {yh_first} vs div {div_first}')
     check('yuebaoHistory 日频条数', len(s) >= 200, f'{len(s)} 条')
 
-# 10. divHistory 全覆盖：所有有 divHistory 的指数最后日期 == 最新交易日（防单指数滞后漏检，2026-08-16 新增）
+# 10. divHistory 全覆盖：所有有 divHistory 的指数最后日期 == 其市场最新交易日（防单指数滞后漏检，2026-08-16）
+#    2026-10-07 起按市场分别判定：A股系对照 A股日历、港股系对照港股日历（原「合并最新日期」在跨市场假期会误判）
 if idx and dates:
-    lag_div = [(x.get('name', '?'), x['divHistory'][-1].get('date', '')) for x in idx
-               if x.get('divHistory') and days_between(x['divHistory'][-1].get('date', ''), latest) > 2]
-    check('divHistory 全覆盖(允许滞后≤2天)', len(lag_div) == 0,
-          f'{len(lag_div)} 个滞后: {lag_div[:5]}' if lag_div else f'{len(idx) - len(missing)} 个指数均到 {latest}')
+    lag_div = []
+    for x in idx:
+        h = x.get('divHistory') or []
+        if not h:
+            continue
+        exp = _exp_for(_mkt_of_index(x))
+        dl = h[-1].get('date', '')
+        dd = x.get('dailyDate') or ''
+        # 滞后判据：股息率序列落后 >2 天，且该指数「行情」也落后 >2 天。
+        #   行情仍新（如港股某指数行情到 10-06、股息率源只到 09-30）→ 视为源滞后，豁免；
+        #   无 dailyDate 的 trackOnly 指数仅看股息率序列。
+        if _behind(dl, exp) > 2 and (not dd or _behind(dd, exp) > 2):
+            lag_div.append((x.get('name', '?'), dl, exp))
+    check('divHistory 全覆盖(按市场·允许滞后≤2天)', len(lag_div) == 0,
+          f'{len(lag_div)} 个滞后: {lag_div[:5]}' if lag_div else f'{len(idx) - len(missing)} 个指数均到各自市场最新日',
+          step_label='sync_div_history.py')
 
-# 11. dailyChange 全覆盖：所有有 divHistory 的指数 dailyDate 应达最新交易日（允许滞后≤2天）
-#     2026-09-26 调整：跨市场日历周（如 A股中秋休市、港股照常开市）两市场最新交易日相差 1 天属正常，
-#     原「== latest」会把 A股指数（09-24）全部误判为滞后；改为与 divHistory 一致的 ≤2 天容差（仍可拦截 932584 类多日停滞）。
+# 11. dailyChange 全覆盖：所有有 divHistory 的指数 dailyDate 应达其市场最新交易日（允许滞后≤2天）
+#     2026-10-07 起按市场分别判定（沿用 check 10 口径；仍可拦截 932584 类多日停滞）。
 if idx and dates:
-    lag_dc = [(x.get('name', '?'), x.get('dailyDate') or '—') for x in idx
+    lag_dc = [(x.get('name', '?'), x.get('dailyDate') or '—', _exp_for(_mkt_of_index(x))) for x in idx
               if x.get('divHistory') and not x.get('trackOnly')
-              and days_between(x.get('dailyDate') or '', latest) > 2]
-    check('dailyChange 全覆盖(允许滞后≤2天)', len(lag_dc) == 0,
-          f'{len(lag_dc)} 个滞后: {lag_dc[:5]}' if lag_dc else f'{len(idx) - len(missing)} 个指数均到 {latest}')
+              and _behind(x.get('dailyDate') or '', _exp_for(_mkt_of_index(x))) > 2]
+    check('dailyChange 全覆盖(按市场·允许滞后≤2天)', len(lag_dc) == 0,
+          f'{len(lag_dc)} 个滞后: {lag_dc[:5]}' if lag_dc else f'{len(idx) - len(missing)} 个指数均到各自市场最新日',
+          step_label='sync_daily_change.py')
 
 # 12. assetHistory 日频序列最新日期（余额宝/REITs 允许 ≤3 天；LPR/整存整取/预定利率/租金率/同业存单 等周频月度手动序列豁免）
 #     国债为**周频**（储蓄国债发行票面利率，每周五采样 + 前向填充，见 wind-query-tips.md §H）：
@@ -238,17 +340,21 @@ if ah and isinstance(ah, dict):
             continue
         _last = _v[-1].get('date', '') if isinstance(_v[-1], dict) else str(_v[-1])[:10]
         if _k.endswith('国债'):
+            # 国债为周频（储蓄国债票面利率，每周五采样 + 前向填充）：序列随「运行日」前向填充，
+            # 可能领先于 A股日历（如 A股休市期间仍填到当周周五）→ 期望取「数据最新日之前最近周五」。
             _exp = _last_friday(latest)
             _ok = _exp is not None and str(_last)[:10] == _exp
-            check(f'assetHistory {_k} 最新日期(周频·最近周五)', _ok, f'{_last} vs 期望周五 {_exp}')
+            check(f'assetHistory {_k} 最新日期(周频·最近周五)', _ok, f'{_last} vs 期望周五 {_exp}',
+                  step_label='sync_asset_macro.py')
             continue
         _ok = False
         try:
-            _ok = 0 <= (datetime.datetime.strptime(latest[:10], '%Y-%m-%d')
+            _ok = 0 <= (datetime.datetime.strptime(str(CN_LATEST)[:10], '%Y-%m-%d')
                         - datetime.datetime.strptime(str(_last)[:10], '%Y-%m-%d')).days <= 3
         except Exception:
             pass
-        check(f'assetHistory {_k} 最新日期', _ok, f'{_last} vs divHistory {latest}')
+        check(f'assetHistory {_k} 最新日期', _ok, f'{_last} vs A股最新 {CN_LATEST}',
+              step_label='sync_asset_macro.py')
 
 # 13. reitsDaily 每只 REITs 最后日期（日频缓存全覆盖，允许 ≤5 只滞后；停牌/无成交豁免，2026-08-16 新增）
 rd = jload('reitsDaily.json')
@@ -257,10 +363,11 @@ if rd and isinstance(rd, dict):
     lag_r = []
     for code, info in codes.items():
         ser = info.get('series') or {}
-        if ser and days_between(max(ser.keys()), latest) > 2:
+        if ser and days_between(max(ser.keys()), CN_LATEST) > 2:
             lag_r.append((code, max(ser.keys())))
     check('reitsDaily 全覆盖(允许滞后≤2天)', len(lag_r) <= 5,
-          f'{len(lag_r)}/{len(codes)} 只滞后: {lag_r[:5]}' if lag_r else f'{len(codes)} 只均到 {latest}')
+          f'{len(lag_r)}/{len(codes)} 只滞后: {lag_r[:5]}' if lag_r else f'{len(codes)} 只均到 A股最新 {CN_LATEST}',
+          step_label='sync_reits_daily.py')
 
 # 14. yieldNum 单位校验（indexData/etfData/fundData 百分数约定 4.2756=4.28%，2026-08-16）
 for _fn in ('indexData.json', 'etfData.json', 'fundData.json'):

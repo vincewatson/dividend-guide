@@ -1108,6 +1108,20 @@ def main():
                         _n += 1
                 if _n:
                     print('  [合并] {} 保留比 curation 清单更新的 Wind 规模 {} 条'.format(key, _n))
+            # divDate（2026-10-07，重构阶段2）：curation 清单无「最近分红日期」列，
+            #   重建会把该字段清空（旧流程靠紧随其后的 sync_fund_divdate 恢复）。改为在重建时
+            #   直接保留旧文件里（sync_fund_divdate / Wind 取到）的分红日期——旧不覆盖新，取较晚者。
+            if _prev:
+                _dn = 0
+                for _it in data:
+                    _o = _prev.get(_it.get('code')) or {}
+                    _new = str(_it.get('divDate') or '')
+                    _old = str(_o.get('divDate') or '')
+                    if _old and _old > _new:
+                        _it['divDate'] = _old
+                        _dn += 1
+                if _dn:
+                    print('  [合并] {} 保留旧的分红日期 divDate {} 条'.format(key, _dn))
         # 规模日期（2026-09-26，中央数据库 data_center 要求：规模必须带日期，前端不展示）：
         # 清单来源（curation sourceMtime）里的规模用快照日期；之后 sync_wind_fields.py 取到 Wind 规模时会改成 Wind 取数日期
         _size_key = {'cnEtfData': 'size', 'hkEtfData': 'size', 'etfData': 'fundSize',

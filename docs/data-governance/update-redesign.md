@@ -115,6 +115,83 @@
 >
 > **结论（阶段 0 用途）**：现状 ≈ **14.6 分钟 / 1004 次调用**，远高于目标（日更 ≤10min、≤300 次）。**调用最多**：fund_divdate 315、lifecycle 227、new_reits 99、reits_daily 89、div_history 87 → 即阶段 4「减少调用」的优先对象；**耗时最多**：daily_change 215s、div_history 171s、new_reits 130s。
 
+#### 阶段 0 结果分析与后续安排（2026-10-07，Claude）
+
+**结论**：一次完整更新约 1000 次调用，所以一天跑两次再加上开发测试就会碰到 2000 的上限；耗时 14.6 分钟（不含部署）。约 64% 的调用花在“很少变化、不必每天查”的数据上。
+
+| 步骤 | 次数 | 归档建议 | 理由 |
+|---|---|---|---|
+| sync_fund_divdate all --force | 315 | **周更**；日更只查“预计近期分红”的基金 | 分红日期很少变，`--force` 每次全量重查 |
+| sync_lifecycle | 227 | **周更** | 成立/清盘状态很少变 |
+| sync_new_reits | 99 | **周更** | 新 REITs 发现 |
+| sync_new_monthly / sync_new_etf / new_hk_etf | 4 | 周更 | 新产品发现 |
+| build_lists（第二次） | 0 | **删除**（阶段 3） | |
+| fix_laggard_indexes | 42 | div_history 改增量后删除 | 补救步骤 |
+| sync_reits_daily | 89 | 日更，**批量化**（多代码一次） | |
+| sync_div_history | 87 / 171s | 日更，只取缺口 | |
+| sync_daily_change | 37 / 215s | 日更，查清为什么慢（等待/串行） | 次数少、耗时最长 |
+| 其余日更步骤 | ~105 | 日更 | |
+
+仅按上表移出周更步骤：日更约 **360 次 / 约 9 分钟**；再做 reits_daily 批量化、删除 fix_laggard，即可达到 ≤300 次的目标。
+
+**顺序调整**：阶段 1（预算+断点续跑）与阶段 2（三档频率）合并做，收益最大；阶段 3、4 随后。
+
+**check_data 节假日问题**（阶段 0 中止原因）：改为**按市场分别判断**“最新交易日”——A股系序列对照 A股日历、港股系对照港股日历（中央数据库 `ref.trade_calendar` 的 cn/hk，或 `market_calendar.json`），不再用合并后的最新日期。修好后阶段 0 视为验收通过，不需要再补测。
+
 ### 阶段完成记录
 
-- ⏳ **阶段 0：未验收**。测量表已产出，但 `check_data` 未全通过（上述跨市场假期判据）。**建议先确认/修复该判据（或明确节假日口径）并补跑一次，通过后方进入阶段 1。**
+- ✅ **阶段 0：通过**（2026-10-07）。`check_data.py` 已改为**按市场分别判断「最新交易日」**：A股系序列对照 A股日历、港股系对照港股日历（来源 `market_calendar.json`，与 preflight 同源）；仅当**落后**（早于）本市场最新交易日 >2 天才判滞后（领先不判）；若某指数「行情（dailyDate）仍新、仅股息率源滞后」则豁免其股息率滞后。原「合并最新日期」在跨市场假期（A股休市、港股开市）误判的问题已消除。
+
+- ✅ **阶段 1：预算 + 断点续跑**（2026-10-07）：
+  - `wind_client.py` 新增**按档位的每日预算**（日更 `SX_WIND_BUDGET` 默认 **300**、周更 **800**）：当日该档位调用数 ≥ 预算即**拒绝**后续调用（返回 rc=3 的合成结果），调用方按既有「保留旧值」路径**安全降级、不失败**；同时把当前步骤记入 `.wind_pending.json`。
+  - `auto_sync_deploy.sh`：流水线开头读取 pending → **本次先补**（无论档位都先跑），读后清空（若再触预算会重新写入）。
+  - `check_data.py`：对「待补步骤」产出的数据项**豁免新鲜度校验**（额度不足不失败；`check(..., step_label=...)`）。
+  - 新增 `SX_NO_DEPLOY=1`（只跑数据、不部署，供测量/演练）。
+
+- ✅ **阶段 2：三档频率（先落「日更 / 周更」两档）**（2026-10-07）：
+  - `preflight.py` 增 `--weekly` / `--mode`，输出本次档位与步骤清单；`--emit-skip` 仅日更生效。
+  - **移至周更**：分红日期 `sync_fund_divdate`(14)、生命周期 `sync_lifecycle`、新 REITs `sync_new_reits`(13)、新 ETF `sync_new_etf`(12) 与港 ETF `sync_new_hk_etf`、月月发现 `sync_new_monthly`。周更=**仅周级步骤**；日更=其余日频步骤（另 17/18/19 备份·校验·内嵌两档都跑）。
+  - `auto_sync_deploy.sh` 加 `--weekly` 档位门控（`step_on`/`label_on`），编号外步骤同受控；`SX_WIND_MODE` 透传 `wind_client`。
+  - **关键依赖修复**：`build_lists.py` 重建会清空 `divDate`（原靠紧随其后的 `sync_fund_divdate` 恢复）；该步移至周更后，遂让 `build_lists` 重建时**保留旧 `divDate`**（旧不覆盖新），使日更不再依赖它（已无 Wind 验证：重建日志出现「保留旧的分红日期 divDate N 条」，`check_data` ✅）。
+
+**两次实跑（2026-10-07，`SX_NO_DEPLOY=1`；同一日额度紧张，`SX_FORCE_RUN=1` 越过整跑闸）**
+
+| 档位 | Wind 次数 | 耗时 | 预算 | check_data |
+|---|---|---|---|---|
+| **日更** | **232** | **≈567s（9.5 min）** | ≤300 ✅ | ✅ |
+| **周更** | **644** | **577s（9.6 min）** | ≤800 ✅ | ✅ |
+
+日更分步（2026-10-07 实测）：
+
+| 步骤 | 脚本 | Wind | 耗时(s) |
+|---|---|---|---|
+| 4 | build_lists（第一次） | 0 | 5 |
+| 5 | sync_div_history.py | 87 | 76 |
+| 5 | fix_laggard_indexes.py | 41 | 240 |
+| 6 | sync_daily_change.py | 37 | 176 |
+| 11 | build_lists（第二次） | 0 | 5 |
+| 编号外 | sync_product_quotes.py | 12 | 10 |
+| 15 | sync_wind_fields.py all | 55 | 40 |
+| 16 | sync_daily.py | 0 | 5 |
+| 17 | backup_db.py | 0 | 5 |
+| 18 | check_data.py | 0 | 5 |
+| **合计** | | **232** | **≈567** |
+
+周更分步（2026-10-07 实测）：
+
+| 步骤 | 脚本 | Wind | 耗时(s) |
+|---|---|---|---|
+| 编号外 | sync_lifecycle.py | 227 | 65 |
+| 12 | sync_new_etf.py | 1 | 5 |
+| 编号外 | sync_new_hk_etf.py --add | 0 | 5 |
+| 13 | sync_new_reits.py | 96 | 196 |
+| 编号外 | sync_new_monthly.py | 3 | 10 |
+| 14 | sync_fund_divdate.py all --force | 317 | 280 |
+| 17 | backup_db.py | 0 | 6 |
+| 18 | check_data.py | 0 | 5 |
+| 19 | embed_data.py | 0 | 5 |
+| **合计** | | **644** | **577** |
+
+> 口径：Wind 次数按「本次运行 − 上次运行」的 `.wind_usage` 增量（`.wind_usage` 跨运行累计；本日增量与 `by_mode` 的 daily/weekly 一致）。耗时取自 `.run_timings.jsonl`（日更的中断未落总表，取自其运行日志逐步耗时）。当日实测总用量 1880/2000（含前次阶段 0 测量 1004）。
+>
+> **结论**：两档次数均达预算目标（日更 232≤300、周更 644≤800）；日更 ≈9.5min 逼近 10min 目标上限——主要因当日 **A股休市、港股开市**，`div_history`/`fix_laggard` 需为港股补数且较慢（fix_laggard 240s 已属异常，与港股假期补数有关）。下一步（阶段 3：一次构建+合并写入；阶段 4：减少调用）优先项：`fund_divdate`(317)、`lifecycle`(227)、`new_reits`(96)、`fix_laggard`(41/240s)。

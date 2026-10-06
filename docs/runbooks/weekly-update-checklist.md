@@ -32,6 +32,8 @@
 > **预检（preflight，2026-10-04 新增；不计入 21 步编号）**：流水线开头自动执行 `python3 preflight.py`——判断今天 A股/港股是否开盘、各数据域是否已是最新交易日、建议跑/跳过哪些步骤，并给出耗时粗估。默认只报告；按其建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`。交易日历见根目录 `market_calendar.json`（每年官方发布次年安排后更新一次）。
 >
 > **Wind 额度保护（2026-10-06 新增；不计入编号）**：① **调用级**——每次真实 Wind 调用经 `wind_guard_cli.mjs` 计数（`.wind_calls_<date>`），当日 ≥ `SX_WIND_DAILY_CAP`（默认 **2000**）即**拒绝**（脚本安全降级、保留旧值）；② **整跑级**——流水线开头 `run_gate.py` 记录 `.run_state.json`，**当日整跑达 `SX_MAX_FULL_RUNS`（默认 1）即拒绝启动**（强制再跑：`SX_FORCE_RUN=1`）。经验：**先做轻量/单项验证，确认无误后当日只整跑一次**。
+>
+> **档位（2026-10-07 新增；重构阶段 2；不计入编号）**：流水线分**日更**（默认）与**周更**（`bash auto_sync_deploy.sh --weekly`）两档——**周更仅跑周级步骤**（分红日期 14、生命周期、新 REITs 13、新 ETF 12、港 ETF、月月发现）；日更跑其余日频步骤（备份/校验/内嵌 17/18/19 两档都跑）。**按档位每日预算**：日更 300 / 周更 800 次（`SX_WIND_BUDGET` 可调），用满即**停并记 `.wind_pending.json`**、下次运行**先补**。`preflight.py --weekly` 可预览周更计划。只跑数据不部署：`SX_NO_DEPLOY=1`。
 
 | 步骤 | 脚本 | 更新内容 |
 |------|------|---------|

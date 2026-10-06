@@ -192,5 +192,10 @@
    - 记录 `.run_state.json`（`{date,count,lastStart}`）；当日整跑次数 ≥ `SX_MAX_FULL_RUNS`（默认 **1**）→ **拒绝启动**（退出码 3，避免「跑一半没额度」）。
    - 强制再跑：`SX_FORCE_RUN=1 bash auto_sync_deploy.sh`；上限可调 `SX_MAX_FULL_RUNS`。
    - 同时打印当日 Wind 用量（读 `.wind_calls_<date>`）。
+3. **按档位的每日预算 + 断点续跑 —— `wind_client.py`（2026-10-07 新增，重构阶段 1）**
+   - 统一 Wind 入口在调用级闸之内再加**按档位预算**：**日更默认 300 次 / 周更默认 800 次**（`SX_WIND_BUDGET` 可调；档位由 `SX_WIND_MODE` 决定）。
+   - 当日该档位调用数 ≥ 预算 → **拒绝**后续调用（返回 rc=3 合成结果），并把当前步骤记入 `.wind_pending.json`；脚本走「保留旧值」路径**安全降级**。
+   - **先补 pending**：`auto_sync_deploy.sh` 开头读取 pending，本次**无论档位都先跑**这些步骤（读后清空）。
+   - 档位：**日更**（默认，日常日频数据）/ **周更**（`bash auto_sync_deploy.sh --weekly`，仅周级步骤：分红日期、生命周期、新 REITs/新 ETF/港 ETF、月月发现）；`preflight.py --weekly` 预览周更计划。备份/校验/内嵌（17/18/19）两档都跑。
 
-> 两者产物 `.wind_calls_*` / `.run_state.json` 均**不入库**（已加入 `.gitignore`）。经验：先做**轻量/单项验证**，确认无误后当日**只整跑一次**。
+> 两者产物 `.wind_calls_*` / `.run_state.json` / `.wind_usage/` / `.wind_pending.json` 均**不入库**（已加入 `.gitignore`）。经验：先做**轻量/单项验证**，确认无误后当日**只整跑一次**。

@@ -95,18 +95,58 @@ run_py() {
 }
 
 # ------------------------------------------------------------
+# [档位] 日更 / 周更（2026-10-07 · 重构阶段2）
+#   日更（默认）：日频数据；周更（--weekly）：仅周级步骤（分红日期/生命周期/新REITs/新ETF/月月发现）。
+#   SX_WIND_MODE 透传 wind_client（决定预算 300/800 与计数档位）。
+#   「先补 pending」：上次因额度不足中断的步骤，本次无论档位都先跑（读取后清空，触预算会重写）。
+# ------------------------------------------------------------
+MODE="daily"
+for _a in "$@"; do [ "$_a" = "--weekly" ] && MODE="weekly"; done
+export SX_WIND_MODE="$MODE"
+WEEKLY_NUMS="12 13 14"                                   # 周更「编号」步骤：new_etf / new_reits / fund_divdate
+WEEKLY_LABELS="sync_lifecycle.py sync_new_hk_etf.py sync_new_monthly.py"   # 周更「编号外」步骤
+
+PENDING="$(python3 wind_client.py --pending 2>/dev/null || true)"
+if [ -n "$PENDING" ]; then
+  echo "🔁 上次额度不足待补（本次先跑）：$PENDING"
+  python3 wind_client.py --clear-pending >/dev/null 2>&1 || true
+fi
+pending_has() { case "$PENDING" in *"$1"*) return 0 ;; esac; return 1; }
+
+# 编号步骤是否执行：pending 强制 > 「17/18/19 两档都跑」> 档位
+step_on() {   # $1=步骤号  $2=代表 label 关键字
+  pending_has "$2" && return 0
+  case " 17 18 19 " in *" $1 "*) return 0 ;; esac
+  if [ "$MODE" = "weekly" ]; then
+    case " $WEEKLY_NUMS " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+  else
+    case " $WEEKLY_NUMS " in *" $1 "*) return 1 ;; *) return 0 ;; esac
+  fi
+}
+# 编号外步骤是否执行
+label_on() {  # $1=代表 label 关键字
+  pending_has "$1" && return 0
+  local _w=1 _l
+  for _l in $WEEKLY_LABELS; do case "$1" in *"$_l"*) _w=0 ;; esac; done
+  if [ "$MODE" = "weekly" ]; then [ $_w -eq 0 ] && return 0 || return 1
+  else [ $_w -eq 0 ] && return 1 || return 0; fi
+}
+echo "===== 本次档位：$([ "$MODE" = weekly ] && echo '周更（仅周级步骤）' || echo '日更（默认）') ====="
+
+# ------------------------------------------------------------
 # [预检] 更新前体检（2026-10-04 新增）
 #   判断今天 A股/港股是否开盘、哪些数据域已覆盖到最新交易日、建议跑/跳过哪些步骤。
-#   只读，不修改数据。默认仅报告。按建议跳过步骤有两种方式：
+#   只读，不修改数据。默认仅报告。日更下可按建议跳过已是最新的步骤：
 #     ① 显式指定：SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh
 #     ② 自动采纳：PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh
 #   （保守：仅跳过纯 Wind 日频 + 资讯步骤；build_lists/校验/部署等一律保留）
 # ------------------------------------------------------------
 echo "===== [预检] 更新前体检（preflight.py）====="
-if [ -z "$SKIP_STEPS" ] && [ "$PREFLIGHT_AUTO" = "1" ]; then
+PF_ARGS=""; [ "$MODE" = "weekly" ] && PF_ARGS="--weekly"
+if [ "$MODE" = "daily" ] && [ -z "$SKIP_STEPS" ] && [ "$PREFLIGHT_AUTO" = "1" ]; then
   SKIP_STEPS="$(python3 preflight.py --emit-skip 2>/dev/null || true)"
 fi
-python3 preflight.py || echo "（预检失败，忽略，继续执行完整流水线）"
+python3 preflight.py $PF_ARGS || echo "（预检失败，忽略，继续执行完整流水线）"
 if [ -n "$SKIP_STEPS" ]; then
   echo "⏭ 本次将跳过步骤：$SKIP_STEPS （如非预期，请检查 SKIP_STEPS / PREFLIGHT_AUTO）"
 fi
@@ -119,97 +159,152 @@ done
 echo "✅ 全部 $(ls *.py | wc -l | tr -d ' ') 个脚本语法 OK"
 
 echo ""
+if label_on "sync_lifecycle.py"; then
 echo "===== [编号外] 生命周期体检：停用已清盘/结束标的（Wind「基金到期日」）====="
 # 停用机制（excel-exit 机制 B）：境内红利ETF/港交所红利ETF/REITs/货币基金的「出」= 基金已结束。
 #   判据：Wind「基金到期日」≤ 今天 → 已结束 → 写入 data/curation/_retired.json；build_lists 重建时跳过（历史数据不删，删条目即恢复）。
 #   频率：清盘罕见，脚本自带约 28 天节流（SX_LIFECYCLE_DAYS），平时秒退；Wind 抖动不阻断。
 run_py "sync_lifecycle.py" sync_lifecycle.py || echo "  ⚠ 生命周期体检失败（Wind 抖动），保留现有停用名单，下次重试"
-
-echo "===== [4/21] 从 curation 重建数据（第一次；原 sync_excel，现 build_lists，不读 Excel）====="
-run_py "build_lists.py（第一次）" build_lists.py
+else
+echo "===== [编号外] 生命周期体检 — ⏭ 跳过（周更步骤）====="
+fi
 
 echo ""
-if should_skip 5; then echo "===== [5/21] 同步股息率历史（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
+if step_on 4 "build_lists.py"; then
+echo "===== [4/21] 从 curation 重建数据（第一次；原 sync_excel，现 build_lists，不读 Excel）====="
+run_py "build_lists.py（第一次）" build_lists.py
+else
+echo "===== [4/21] 从 curation 重建数据（第一次）— ⏭ 跳过 ====="
+fi
+
+echo ""
+if step_on 5 "sync_div_history.py" && ! should_skip 5; then
 echo "===== [5/21] 同步股息率历史（Wind）====="
 run_py "sync_div_history.py" sync_div_history.py
 run_py "fix_laggard_indexes.py" fix_laggard_indexes.py
+else
+echo "===== [5/21] 同步股息率历史 — ⏭ 跳过（档位/预检：已是最新交易日）====="
 fi
 
 echo ""
-if should_skip 6; then echo "===== [6/21] 同步每日涨跌幅（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
+if step_on 6 "sync_daily_change.py" && ! should_skip 6; then
 echo "===== [6/21] 同步每日涨跌幅（Wind）====="
 run_py "sync_daily_change.py" sync_daily_change.py
+else
+echo "===== [6/21] 同步每日涨跌幅 — ⏭ 跳过（档位/预检）====="
 fi
 
 echo ""
-if should_skip 7; then echo "===== [7/21] 同步货币基金实时收益率（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
+if step_on 7 "sync_money_fund.py" && ! should_skip 7; then
 echo "===== [7/21] 同步货币基金实时收益率（Wind）====="
 run_py "sync_money_fund.py" sync_money_fund.py
+else
+echo "===== [7/21] 同步货币基金实时收益率 — ⏭ 跳过（档位/预检）====="
 fi
 
 echo ""
-if should_skip 8; then echo "===== [8/21] 同步余额宝7日年化历史（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
+if step_on 8 "sync_yuebao_history.py" && ! should_skip 8; then
 echo "===== [8/21] 同步余额宝7日年化历史（Wind）====="
 run_py "sync_yuebao_history.py" sync_yuebao_history.py
+else
+echo "===== [8/21] 同步余额宝7日年化历史 — ⏭ 跳过（档位/预检）====="
 fi
 
 echo ""
-if should_skip 9; then echo "===== [9/21] 同步宏观资产历史（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
+if step_on 9 "sync_asset_macro.py" && ! should_skip 9; then
 echo "===== [9/21] 同步宏观资产历史（Wind）====="
 run_py "sync_asset_macro.py" sync_asset_macro.py
+else
+echo "===== [9/21] 同步宏观资产历史 — ⏭ 跳过（档位/预检）====="
 fi
 
 echo ""
-if should_skip 10; then echo "===== [10/21] 同步 REITs 日频增量 — ⏭ 跳过（预检：已是最新交易日）====="; else
+if step_on 10 "sync_reits_daily.py" && ! should_skip 10; then
 echo "===== [10/21] 同步 REITs 日频增量（asset_macro 不覆盖 REITs）====="
 run_py "sync_reits_daily.py" sync_reits_daily.py
+else
+echo "===== [10/21] 同步 REITs 日频增量 — ⏭ 跳过（档位/预检）====="
 fi
 
 echo ""
+if step_on 11 "build_lists.py"; then
 echo "===== [11/21] 从 curation 重建数据（第二次！assetData 取最新 divHistory/yieldDate）====="
 run_py "build_lists.py（第二次）" build_lists.py
+else
+echo "===== [11/21] 从 curation 重建数据（第二次）— ⏭ 跳过 ====="
+fi
 
 echo ""
+if step_on 12 "sync_new_etf.py"; then
 echo "===== [12/21] 新 ETF/新指数自动发现（Wind）====="
 run_py "sync_new_etf.py" sync_new_etf.py
+else
+echo "===== [12/21] 新 ETF/新指数自动发现 — ⏭ 跳过（周更步骤）====="
+fi
 
 echo ""
-echo "===== [港ETF·进] 新港交所红利ETF 自动补入（中央数据库名单；2026-10-06 新增·编号外，不影响 1..21 计数）====="
+if label_on "sync_new_hk_etf.py"; then
+echo "===== [港ETF·进] 新港交所红利ETF 自动补入（中央数据库名单；2026-10-06 新增·编号外）====="
 # 数据源 = data/curation/_hk_etf_universe.json 的 dividend_funds（中央数据库导出，与「策略魔方」同源）。
 # 关键词筛红利类 + 排除 REIT + 按全称归并多柜台 → 与 hkEtfData 对照；新标的用 --add 拉 Wind 详情自动补入
 # （表外行护栏保证重建不丢）。已收录的不会重复补；行缺 trackCode/detailUrl 须人工补。
 run_py "sync_new_hk_etf.py --add" sync_new_hk_etf.py --add || echo "  ⚠ 港ETF 自动补入失败（Wind 抖动），保留现有清单，下次重试"
+else
+echo "===== [港ETF·进] 新港交所红利ETF 自动补入 — ⏭ 跳过（周更步骤）====="
+fi
 
 echo ""
+if step_on 13 "sync_new_reits.py"; then
 echo "===== [13/21] 新 REITs 自动发现（Wind；2026-09-26 新增）====="
 run_py "sync_new_reits.py" sync_new_reits.py
+else
+echo "===== [13/21] 新 REITs 自动发现 — ⏭ 跳过（周更步骤）====="
+fi
 
 echo ""
-echo "===== [月月名单] 自动补入（Wind；2026-10-06 新增·编号外，不影响 1..21 计数）====="
+if label_on "sync_new_monthly.py"; then
+echo "===== [月月名单] 自动补入（Wind；2026-10-06 新增·编号外）====="
 # 全市场检索「近1年分红次数 ≥ 11」的指数产品（A 类去重）→ 自动补入月月分红名单（etfData/fundData）。
 # 位置关键：必须在 step 11 build_lists(2) 之后（产出的是 curation 表外行，靠 build_lists 表外行护栏保留）、
 #           且在 step 14 之前（同轮紧接刷 divDate + prune_stale_monthly 剔除超期成员）。Wind 抖动失败不阻断。
 run_py "sync_new_monthly.py" sync_new_monthly.py || echo "  ⚠ 月月名单自动补入失败（Wind 抖动），保留现有名单，下次重试"
+else
+echo "===== [月月名单] 自动补入 — ⏭ 跳过（周更步骤）====="
+fi
 
 echo ""
-echo "===== [产品行情] 快照入库（Wind；2026-10-05 新增·编号外，不影响 1..21 计数）====="
+if label_on "sync_product_quotes.py"; then
+echo "===== [产品行情] 快照入库（Wind；2026-10-05 新增·编号外）====="
 # 拉取各 ETF/基金【当日涨跌幅】【今年以来回报】，按日期打标签【追加】到 data/productQuotes.json
 # （只追加不覆盖：历史快照永久保留；产品回报绝不跨取跟踪指数）。Wind 抖动失败不阻断后续步骤。
 # ⚠️ 位置（2026-10-06 调整）：必须放在「月月名单自动补入」**之后** —— 补入的新产品才能在同轮拿到行情快照。
 run_py "sync_product_quotes.py" sync_product_quotes.py || echo "  ⚠ 产品行情快照失败（Wind 抖动），保留已有快照，下次重试"
+else
+echo "===== [产品行情] 快照入库 — ⏭ 跳过（日更步骤）====="
+fi
 
 echo ""
+if step_on 14 "sync_fund_divdate.py"; then
 echo "===== [14/21] 恢复基金最近分红日期（Wind，覆盖被 curation 重建覆盖的 divDate）====="
 run_py "sync_fund_divdate.py all --force" sync_fund_divdate.py all --force
+else
+echo "===== [14/21] 恢复基金最近分红日期 — ⏭ 跳过（周更步骤）====="
+fi
 
 echo ""
+if step_on 15 "sync_wind_fields.py"; then
 echo "===== [15/21] 字段级 Wind 化（fundCount/ETF字段/月月分红字段，2026-08-16）====="
 run_py "sync_wind_fields.py all" sync_wind_fields.py all
+else
+echo "===== [15/21] 字段级 Wind 化 — ⏭ 跳过（日更步骤）====="
+fi
 
 echo ""
-if should_skip 16; then echo "===== [16/21] 同步食息资讯（日报）— ⏭ 跳过（预检：digest 源无新日期）====="; else
+if step_on 16 "sync_daily.py" && ! should_skip 16; then
 echo "===== [16/21] 同步食息资讯（日报；只读 digest-db.json）====="
 run_py "sync_daily.py" sync_daily.py
+else
+echo "===== [16/21] 同步食息资讯（日报）— ⏭ 跳过（档位/预检）====="
 fi
 
 echo ""
