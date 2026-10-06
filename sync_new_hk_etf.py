@@ -24,7 +24,7 @@ CURATION_DIR = os.path.join(DATA_DIR, 'curation')
 UNIVERSE = os.path.join(CURATION_DIR, '_hk_etf_universe.json')
 HK_ETF = os.path.join(DATA_DIR, 'hkEtfData.json')
 RETIRED = os.path.join(CURATION_DIR, '_retired.json')
-CLI = os.path.expanduser('~/.agents/skills/wind-mcp-skill/scripts/cli.mjs')
+CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
 
 # 红利类关键词（港交所口径：红利/高息/高股息/股息率/股东回报/央企回报）
 KEYWORDS = ['红利', '高息', '高股息', '股息率', '股东回报', '央企回报']

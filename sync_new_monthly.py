@@ -36,7 +36,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 ETF = os.path.join(DATA_DIR, 'etfData.json')
 FUND = os.path.join(DATA_DIR, 'fundData.json')
-CLI = os.path.expanduser('~/.agents/skills/wind-mcp-skill/scripts/cli.mjs')
+CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
 SKILL_DIR = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
 
 THRESHOLD = 11

@@ -30,6 +30,8 @@
 > 编号自 2026-09-19 起统一为**连续 1..20**；**2026-09-26 起新增步骤 13（sync_new_reits），顺延为连续 1..21**，与 `data-governance/update-mechanism.md`「标准流程（21 步）」、`auto_sync_deploy.sh` 保持一致。步骤 1–2 为任务准备（由任务层完成），步骤 3–21 为脚本流水线（`auto_sync_deploy.sh` 从步骤 3 开始打印）。
 >
 > **预检（preflight，2026-10-04 新增；不计入 21 步编号）**：流水线开头自动执行 `python3 preflight.py`——判断今天 A股/港股是否开盘、各数据域是否已是最新交易日、建议跑/跳过哪些步骤，并给出耗时粗估。默认只报告；按其建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`。交易日历见根目录 `market_calendar.json`（每年官方发布次年安排后更新一次）。
+>
+> **Wind 额度保护（2026-10-06 新增；不计入编号）**：① **调用级**——每次真实 Wind 调用经 `wind_guard_cli.mjs` 计数（`.wind_calls_<date>`），当日 ≥ `SX_WIND_DAILY_CAP`（默认 **2000**）即**拒绝**（脚本安全降级、保留旧值）；② **整跑级**——流水线开头 `run_gate.py` 记录 `.run_state.json`，**当日整跑达 `SX_MAX_FULL_RUNS`（默认 1）即拒绝启动**（强制再跑：`SX_FORCE_RUN=1`）。经验：**先做轻量/单项验证，确认无误后当日只整跑一次**。
 
 | 步骤 | 脚本 | 更新内容 |
 |------|------|---------|

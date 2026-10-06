@@ -179,3 +179,18 @@
 - **域名**（2026-10-03 已绑定并上线）：Pages 项目 `dividend-guide` 新增自定义域 **`divlab.net`** 与 **`www.divlab.net`**；DNS 托管在同一 Cloudflare 账户，两条 **CNAME → `dividend-guide-5km.pages.dev`（proxied）**（根域走 CNAME 扁平化）。线上实测 `https://divlab.net/`（200）、`http → https`（301）、`https://www.divlab.net/`（200）。
 - **收尾**：Cloudflare 上线验证通过后，**已删除 `vercel.json` / `.vercelignore`**（2026-10-03）；Vercel 侧项目 `dividend-guide`（`prj_ci9SSB1opXOx8912PjiqMauOiaQ8`）不再接收部署，可按需在 Vercel 面板归档/删除。
 - **环境变量（2026-10-03 已配置）**：Pages 项目 `dividend-guide` 的 **Production 与 Preview** 均已设 `STUDIO_PASSWORD`（plain_text，值为后台登录口令）与 `GITHUB_PAT`（secret_text；为**细粒度 token**，仅授权 `vincewatson/dividend-guide` 一个仓库、权限 `Contents: Read and write` + `Metadata: Read-only`、无到期日）。配置后需**重新部署**一次才被 Functions 读取。线上实测：`POST /api/studio/auth`（正确口令）返回 `token`、（错误口令）`密码错误`；`/api/studio/list`（带 token）`{posts:[]}`、无 token `未授权`。⚠️ 口令/PAT 值不写入仓库，仅存于 Cloudflare Pages 环境变量与 `~/.config/dividend-guide/`。
+
+### Wind 额度保护（2026-10-06 新增）
+
+> 背景：Wind 每日额度约 **2000 次**。2026-10-06 因**同日多轮整跑** `auto_sync_deploy.sh`（外加零散单项验证）把当日额度耗尽。为此加**两层防护**，互为补充：
+
+1. **调用级硬上限 —— `wind_guard_cli.mjs`（包装器）**
+   - 全部 sync/fix 脚本的 `CLI` 已由真实 `cli.mjs` 改为指向本包装器；每次真实调用前向 `.wind_calls_<YYYY-MM-DD>` 追加一行计数。
+   - 当日计数 ≥ `SX_WIND_DAILY_CAP`（默认 **2000**）→ **直接拒绝**（退出码 3），不发起真实调用；脚本视非零退出码为失败 → 走既有「重试 / 保留旧值」逻辑**安全降级，绝不误改数据**。
+   - argv / stdio / 退出码对调用方**完全透明**；真实 cli.mjs 路径可用 `SX_WIND_CLI_REAL` 覆盖（默认 `~/.agents/skills/wind-mcp-skill/scripts/cli.mjs`）。
+2. **整跑级闸 —— `run_gate.py`（流水线开头调用）**
+   - 记录 `.run_state.json`（`{date,count,lastStart}`）；当日整跑次数 ≥ `SX_MAX_FULL_RUNS`（默认 **1**）→ **拒绝启动**（退出码 3，避免「跑一半没额度」）。
+   - 强制再跑：`SX_FORCE_RUN=1 bash auto_sync_deploy.sh`；上限可调 `SX_MAX_FULL_RUNS`。
+   - 同时打印当日 Wind 用量（读 `.wind_calls_<date>`）。
+
+> 两者产物 `.wind_calls_*` / `.run_state.json` 均**不入库**（已加入 `.gitignore`）。经验：先做**轻量/单项验证**，确认无误后当日**只整跑一次**。

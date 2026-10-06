@@ -17,7 +17,7 @@ DATA_DIR = os.path.join(BASE, 'data')
 MONEY_JSON = os.path.join(DATA_DIR, 'moneyFundData.json')
 
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(WIND_SKILL, 'scripts', 'cli.mjs')
+CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
 
 # 需要实时更新的货基代码（Excel 里 43 只全量太长，只更新头部+展示需要的）
 # 当前详情页图表只用天弘余额宝；后续可扩展

@@ -37,6 +37,18 @@ if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
 fi
 export CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 
+# ------------------------------------------------------------
+# [额度闸] 每日整跑闸（2026-10-06 新增）
+#   防止同日重复整跑耗尽 Wind 额度（2026-10-06 事故复盘：多轮整跑 + 零散单项验证把 2000 次/日额度用尽）。
+#   默认每天最多整跑 1 次；已达上限则直接退出（不启动流水线，避免「跑一半没额度」）。
+#   覆盖：SX_FORCE_RUN=1 强制再跑；上限：SX_MAX_FULL_RUNS（默认 1）。
+#   同时打印今日 Wind 调用用量（由 wind_guard_cli.mjs 记入 .wind_calls_<date>）。
+# ------------------------------------------------------------
+if ! python3 run_gate.py; then
+  echo "⛔ 本次整跑被额度闸拦截。如确需再跑：SX_FORCE_RUN=1 bash auto_sync_deploy.sh"
+  exit 0
+fi
+
 # 强制 Python 无缓冲输出：重定向/管道时避免 stdout 块缓冲导致"长时间无进展、像卡住"（2026-09-19 优化）
 export PYTHONUNBUFFERED=1
 

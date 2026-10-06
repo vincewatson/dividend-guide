@@ -30,7 +30,7 @@ DATA_DIR = os.path.join(BASE, 'data')
 OUT_FILE = os.path.join(DATA_DIR, 'assetHistory.json')
 
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(WIND_SKILL, 'scripts', 'cli.mjs')
+CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
 
 # 时间范围：近36个月（EDB 新契约要求 yyyy-MM-dd，2026-08-29 修正）
 # 2026-09-19 修复：END 原硬编码 '2026-08-28'，导致每周跑都停在 8/28，新数据进不来 → 改为动态取今天。

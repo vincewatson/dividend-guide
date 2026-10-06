@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 CN_ETF = os.path.join(DATA_DIR, 'cnEtfData.json')
 INDEX = os.path.join(DATA_DIR, 'indexData.json')
-CLI = os.path.expanduser('~/.agents/skills/wind-mcp-skill/scripts/cli.mjs')
+CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
 
 KEYWORDS = ['红利', '高股息', '股东回报', '央企回报']
 DAYS = 30

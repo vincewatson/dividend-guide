@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(WIND_SKILL, 'scripts', 'cli.mjs')
+CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
 INDEX_FILE = os.path.join(DATA, 'indexData.json')
 
 # 2026-09-19 优化：get_index_price_indicators 支持逗号分隔多代码（空格分隔只返回第一个，实测）。

@@ -33,7 +33,7 @@ BASE = os.path.dirname(os.path.abspath(__file__)) + '/data'
 # 1.5s 足够。若出现 Wind 限流（连续返回空表/没找到数据），可用 SX_WIND_INTERVAL=3 调回（2026-09-19 优化）。
 INTERVAL = float(os.environ.get('SX_WIND_INTERVAL', '1.5'))
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(WIND_SKILL, 'scripts', 'cli.mjs')
+CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
 
 # 分红日期查询措辞（按优先级尝试；2026-09-13：主措辞改为「最近分红情况」）
 PHRASINGS = ['{} 最近分红情况', '{} 最近分红发放日期', '{} 基金分红 分红发放日']
