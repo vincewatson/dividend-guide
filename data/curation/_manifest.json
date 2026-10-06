@@ -1,0 +1,119 @@
+{
+ "exportedAt": "2026-10-06 10:49:10",
+ "snapshots": {
+  "main": "食息指南(EXCEL-Wind)-快照2.xlsx",
+  "pro": "食息指南PRO(EXCEL-Wind)-快照2.xlsx",
+  "feishu": "食息指南Pro-飞书.xlsx"
+ },
+ "snapshotMtimes": {
+  "main": "2026-09-20 18:01",
+  "pro": "2026-09-20 18:35",
+  "feishu": "2026-08-02 23:44"
+ },
+ "exports": [
+  {
+   "file": "indices_pro.json",
+   "domain": "indices",
+   "source": "食息指南PRO(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "境内红利指数",
+   "rows": 47,
+   "columns": 13
+  },
+  {
+   "file": "indices_feishu_info.json",
+   "domain": "indices",
+   "source": "食息指南Pro-飞书.xlsx",
+   "sheet": "红利指数信息表",
+   "rows": 48,
+   "columns": 13
+  },
+  {
+   "file": "indices_feishu_yield.json",
+   "domain": "indices",
+   "source": "食息指南Pro-飞书.xlsx",
+   "sheet": "红利指数股息率",
+   "rows": 22,
+   "columns": 6
+  },
+  {
+   "file": "indices_main.json",
+   "domain": "indices",
+   "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "红利指数",
+   "rows": 22,
+   "columns": 8
+  },
+  {
+   "file": "cn_etf.json",
+   "domain": "cn_etf",
+   "source": "食息指南PRO(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "境内红利ETF",
+   "rows": 87,
+   "columns": 19
+  },
+  {
+   "file": "hk_etf_pro.json",
+   "domain": "hk_etf",
+   "source": "食息指南PRO(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "港交所红利ETF",
+   "rows": 11,
+   "columns": 11
+  },
+  {
+   "file": "hk_etf_feishu.json",
+   "domain": "hk_etf",
+   "source": "食息指南Pro-飞书.xlsx",
+   "sheet": "港交所红利ETF",
+   "rows": 11,
+   "columns": 11
+  },
+  {
+   "file": "monthly_etf.json",
+   "domain": "monthly_etf",
+   "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "月月可分红ETF",
+   "rows": 15,
+   "columns": 19
+  },
+  {
+   "file": "monthly_fund.json",
+   "domain": "monthly_fund",
+   "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "月月可分红（场外）",
+   "rows": 26,
+   "columns": 17
+  },
+  {
+   "file": "money_fund.json",
+   "domain": "money_fund",
+   "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "货币基金",
+   "rows": 43,
+   "columns": 6
+  },
+  {
+   "file": "reits_equity.json",
+   "domain": "reits",
+   "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "REITs（产权类）",
+   "rows": 35,
+   "columns": 13
+  },
+  {
+   "file": "reits_concession.json",
+   "domain": "reits",
+   "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "REITs（经营权类）",
+   "rows": 23,
+   "columns": 13
+  },
+  {
+   "file": "assets.json",
+   "domain": "assets",
+   "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
+   "sheet": "总表",
+   "rows": 15,
+   "columns": 6
+  }
+ ]
+}

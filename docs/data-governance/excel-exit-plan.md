@@ -49,7 +49,14 @@
 
 ---
 
-## 四、待确认（执行前）
+## 四、已确认（2026-10-06 用户拍板）
 
-1. **单一来源落哪？** 建议 **仓库 `data/curation/*.json`**（git 版本化、可 review、零依赖）；备选：**data_center 中央库**（`central-market-db`）/ 线上表格（飞书·腾讯文档——但本质仍是「外部表格」，不推荐）。
-2. **Excel 层移除力度？** 建议 **分阶段 P0→P3**（先建 JSON 源并双跑校验，稳定后再删 Excel 层）；备选：立即彻底删除 / 永久保留 Excel 兜底。
+1. **单一来源** = **仓库内 JSON** → `data/curation/*.json`（git 版本化、可 review、零外部依赖）。
+2. **移除力度 = 分阶段（P0→P3）**：先建 JSON 源并双跑校验，稳定后再删 Excel 层。
+
+### 执行进度
+- **✅ P0 已完成（2026-10-06）**：新增一次性迁移工具 `export_curation.py`，把当前 Excel 快照的**清单 + 标注**导出为 `data/curation/` 下 **13 个 JSON**（+ `_manifest.json`），列按**表头名**存储（消除「按列下标取值」的隐性契约，见 backlog B-1）；已 git 版本化。**未改任何流水线**。
+  - 导出对照：indices（PRO 47 / 飞书信息表 48 / 飞书股息率 22 / 主表 22）、cn_etf 87、hk_etf（PRO 11 / 飞书 11）、monthly_etf 15、monthly_fund 26、money_fund 43、reits（产权 35 / 经营权 23）、assets 15。
+- **⏳ P1（下一步）**：让 `sync_excel.py` 的**标注类字段**改读 `data/curation/`（Excel 仅剩清单作用）；博客标注改 JSON。
+- **⏳ P2**：清单改由 curation + Wind 自动发现维护；`sync_excel` 不再读 xlsx。
+- **⏳ P3**：删除 `find_snapshot`/`load_sheet`/`SNAP*` 与 `pd`；`backup_db.py`/`preflight.py` 去 Excel；归档 xlsx 与文档章节。
