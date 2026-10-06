@@ -160,10 +160,9 @@ ETF代码 | ETF扩位场内简称 | 跟踪指数代码 | 跟踪指数名称 | �
 |--------|--------|------|
 | ① 首选 | Wind（快照 Excel + Wind MCP）| 所有基础数据、股息率历史、宏观资产、货币基金、指数/ETF/REITs 快照 |
 | ② 备选 | iFind（EDB/基金端）| Wind 配额不足/超限时（国债中债收益率、余额宝日频历史）|
-| ③ 备选 | 东财 mx-ds-mcp | 行情/板块补充 |
-| ④ 权威 | 用户手动（对话告知 AI → 登记 `manual-overrides.md`；官方发布）| 指数公司、加权方式、发布日期、存款利率、LPR 等 |
+| ③ 权威 | 用户手动（对话告知 AI → 登记 `manual-overrides.md`；官方发布）| 指数公司、加权方式、发布日期、存款利率、LPR 等 |
 
-**执行要求**：Wind 优先；Wind `QUOTA_ERROR` 才切 iFind/东财并记录"本次用 X 源替代"；已用其他源补的数据，Wind 配额可用时优先 Wind 重拉核对（`SX_FULL_REFRESH=1`）；用户表字段永远优先不被覆盖。
+**执行要求**：Wind 优先；Wind `QUOTA_ERROR` 才切 iFind 并记录"本次用 X 源替代"；已用其他源补的数据，Wind 配额可用时优先 Wind 重拉核对（`SX_FULL_REFRESH=1`）；用户表字段永远优先不被覆盖。
 
 **已知替代（2026-08-05 确认）**：国债 3/5 年期 Wind EDB 无权限（S0059746）→ 保留 iFind；余额宝 Wind get_fund_kline 限流严重 → iFind 日频 1311 条保留；标普A股红利100 各源均无股息率 → 维持 `—`。
 
