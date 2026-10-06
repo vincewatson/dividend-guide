@@ -186,7 +186,7 @@ def r_asset(key):
 
 def r_lists_newest():
     """清单/标注来源（data/curation/*.json）的最新修改时间。
-    excel-exit P2（2026-10-06）起不再看 xlsx —— sync_excel 已不读 Excel。"""
+    excel-exit P2/P3（2026-10-06）起不再看 xlsx —— build_lists（原 sync_excel）已不读 Excel。"""
     files = [f for f in glob.glob(os.path.join(DATA, "curation", "*.json"))
              if not os.path.basename(f).startswith("_")]
     if not files:
@@ -258,12 +258,12 @@ def build(today):
     if os.path.exists(p):
         data_mt = datetime.datetime.fromtimestamp(os.path.getmtime(p))
     if cur_mt and data_mt and cur_mt > data_mt + datetime.timedelta(seconds=60):
-        snap_note = "发现较新的清单/标注（curation）：%s（%s）→ 需重跑" % (cur_name, cur_mt.strftime("%Y-%m-%d %H:%M"))
-        snap_new = True
+        lists_note = "发现较新的清单/标注（curation）：%s（%s）→ 需重跑" % (cur_name, cur_mt.strftime("%Y-%m-%d %H:%M"))
+        lists_new = True
     else:
-        snap_note = "清单/标注（curation）无更新" + ("" if cur_mt else "／未找到")
-        snap_new = False
-    add("清单/标注类(7 文件重建)", "4/11", None, None, "event", snap_note)
+        lists_note = "清单/标注（curation）无更新" + ("" if cur_mt else "／未找到")
+        lists_new = False
+    add("清单/标注类(7 文件重建)", "4/11", None, None, "event", lists_note)
 
     # ------------------------------------------------------------------
     # 汇总：可跳过 / 需执行
@@ -294,7 +294,7 @@ def build(today):
         "today": today, "cn_last": cn_last, "hk_last": hk_last, "both": both,
         "rows": rows, "step_status": step_status,
         "skip": sorted(skip), "run": sorted(run),
-        "excel_new": snap_new, "excel_note": snap_note,
+        "lists_new": lists_new, "lists_note": lists_note,
         "warn": warn, "total_time": total_time,
     }
 
@@ -332,7 +332,7 @@ def print_report(rep):
     skip_set = set(rep["skip"])
     print("  可跳过（已是最新交易日）：%s" % (" ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in rep["skip"]) or "无"))
     print("  需执行：%s" % " ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in all_steps if s not in skip_set))
-    if rep["excel_new"]:
+    if rep["lists_new"]:
         print("  🔸 清单/标注（data/curation）有更新 → 步骤 4/11（重建数据）需重跑以套用")
     print("  预计耗时：约 %d 分 %d 秒（已跳过 %d 个可跳步骤）"
           % (rep["total_time"] // 60, rep["total_time"] % 60, len(rep["skip"])))

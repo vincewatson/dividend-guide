@@ -9,7 +9,7 @@
   4. 归类写入：
        - Wind 代码 .SH / .SZ（场内 ETF）→ `data/etfData.json`（月月分红 ETF）
        - Wind 代码 .OF（场外）        → `data/fundData.json`（指数基金月月分红）
-     站点 `code` 一律写 `base + '.OF'`（与 sync_excel 口径一致）。
+     站点 `code` 一律写 `base + '.OF'`（与 build_lists 口径一致）。
   5. 仅纳入**指数产品**（ETF / 指数基金，Wind 返回「跟踪指数代码」）：主动管理基金
      （如超短债、量化选股，无跟踪指数）不纳入月月分红名单——名单两个板块固有语义为
      「ETF 月月分红 / 指数基金月月分红」。
@@ -17,9 +17,9 @@
      自动完成（最近一次分红早于「上一个月」即移出，见步骤 14）。
 
 联动与防回退：
-  - 本脚本产出的是「Excel 表外行」→ 必须由 `sync_excel.py` 的 etfData/fundData
-    「表外行保留护栏」保住，否则每周 Excel 整表重建会冲掉（同 cnEtfData 新 ETF / reitsData 新 REITs）。
-  - 流水线位置：**sync_excel(2)（步骤 11）之后、sync_fund_divdate（步骤 14）之前**
+  - 本脚本产出的是「curation 表外行」→ 必须由 `build_lists.py` 的 etfData/fundData
+    「表外行保留护栏」保住，否则每周整表重建会冲掉（同 cnEtfData 新 ETF / reitsData 新 REITs）。
+  - 流水线位置：**build_lists(2)（步骤 11）之后、sync_fund_divdate（步骤 14）之前**
     （编号外步骤）——便于同轮紧接的 step 14 刷新 divDate 并做月月连续性校验。
   - 字段填充：本脚本只写「身份 / 结构」字段（code/name/company/成立日/费率/跟踪指数…）；
     数值类字段与跟踪指数规范名由后续 `sync_wind_fields.py`（步骤 15）Wind 化补齐。
@@ -115,7 +115,7 @@ def short_company(s):
 
 
 def smart_tax_rate(name):
-    """港股红利税系数：含「港股」/「沪港深」→ 0.8，其余 → 1.0（与 sync_excel 一致）。"""
+    """港股红利税系数：含「港股」/「沪港深」→ 0.8，其余 → 1.0（与 build_lists 一致）。"""
     s = name or ''
     return 0.8 if ('港股' in s or '沪港深' in s) else 1.0
 

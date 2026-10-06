@@ -3,7 +3,7 @@
 """
 食息指南 · 本地数据库备份脚本
 ====================================
-把网站全部数据（data/*.json + Excel 源文件）打包为本地数据库快照，
+把网站全部数据（data/*.json）打包为本地数据库快照，
 确保即使某天无法再拉取 Wind / iFind 在线数据，现有数据也完整可用。
 
 功能:
@@ -20,6 +20,8 @@
 说明:
     - 快照目录中的文件是"最后已知良好"数据，任何时刻都可直接拷回 data/ 恢复。
     - offline-db-<日期>.json 是单一归档文件，包含全部数据，便于整体迁移/导入。
+    - excel-exit P3（2026-10-06）：不再备份 Excel 源文件（原 xlsx 已归档 archive/excel-baseline-*；
+      清单/标注已冻结为 data/curation/*.json 并随仓库版本化）。
 """
 import argparse
 import datetime
@@ -39,12 +41,6 @@ DATA_FILES = [
     'dailyTagColors.json', 'divNoRecord.json', 'etfData.json', 'fundData.json',
     'hkEtfData.json', 'indexData.json', 'moneyFundData.json', 'reitsData.json',
     'yuebaoHistory.json',
-]
-# Excel 源文件（data/ 根目录 + data/user/ 子目录）
-EXCEL_FILES = [
-    '食息指南(EXCEL-Wind)-快照2.xlsx',
-    '食息指南PRO(EXCEL-Wind)-快照2.xlsx',
-    '食息指南Pro-飞书.xlsx',
 ]
 
 
@@ -106,16 +102,7 @@ def do_backup():
         if os.path.exists(src):
             shutil.copy2(src, os.path.join(snap_dir, f))
             copied += 1
-    # 2. 复制 Excel 源文件
-    for f in EXCEL_FILES:
-        for sub in ['', 'user']:
-            src = os.path.join(DATA_DIR, sub, f) if sub else os.path.join(DATA_DIR, f)
-            if os.path.exists(src):
-                dst = os.path.join(snap_dir, sub) if sub else snap_dir
-                os.makedirs(dst, exist_ok=True)
-                shutil.copy2(src, os.path.join(dst, f))
-                break
-    print('快照已保存: {}（{} 个 JSON + Excel 源）'.format(snap_dir, copied))
+    print('快照已保存: {}（{} 个 JSON）'.format(snap_dir, copied))
 
     # 3. 生成单一离线归档
     db = build_offline_db()

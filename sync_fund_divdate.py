@@ -38,7 +38,7 @@ CLI = os.path.join(WIND_SKILL, 'scripts', 'cli.mjs')
 # 分红日期查询措辞（按优先级尝试；2026-09-13：主措辞改为「最近分红情况」）
 PHRASINGS = ['{} 最近分红情况', '{} 最近分红发放日期', '{} 基金分红 分红发放日']
 # 「无分红记录」缓存文件（code → 最近一次确认为"无记录"的日期）。独立于 cnEtfData，
-# 以免被 sync_excel 每周重建时覆盖（2026-09-26）。
+# 以免被 build_lists 每周重建时覆盖（2026-09-26）。
 NORECORD_FILE = os.path.join(BASE, 'divNoRecord.json')
 
 

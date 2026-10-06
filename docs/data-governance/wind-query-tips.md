@@ -29,7 +29,7 @@
 - **单次查询字段数 ≤7 个**：超过则 Wind 返回"没找到数据"（08-16 实测，12 字段查询全部落空）；拆两次查询合并。
 - **批量查询需限速**：连续同类查询（如"跟踪X的基金数量"）高频触发 Wind 限流返回空表 → 批次间 sleep ≥10 秒；失败批次可重跑（增量逻辑安全）。
 - **列名不稳定**：「跟踪X的基金数量」有时带"指数"二字（跟踪指数X）→ 解析用正则 `^跟踪(指数)?` 兼容。
-- **ETF 上市临时 N 前缀**：交易所对刚上市产品简称加"N"（new），上市数日后摘除；判断标准=网站简称带 N 而 Wind 证券简称不带 N → 摘除（fix_n_prefix）；摘除后 Excel 快照残留 N 不恢复（sync_excel 保护）。
+- **ETF 上市临时 N 前缀**：交易所对刚上市产品简称加"N"（new），上市数日后摘除；判断标准=网站简称带 N 而 Wind 证券简称不带 N → 摘除（fix_n_prefix）；摘除后 Excel 快照残留 N 不恢复（build_lists 保护）。
 
 **F. 2026-08-29 补充（工具契约变更）**：
 - **EDB 取数工具已更名**：`economic_data.natural_language_get_edb_data` 已下线（ROUTE_ERROR）；现用 `search_economic_indicator`（找指标/确认代码）+ `query_economic_indicator_data`（取时序，**beginDate/endDate 必填，格式 yyyy-MM-dd，或 observation 近N期，勿把日期塞进 question**）。返回结构为 `metrics` 数组（`meta`/`date[]`/`value[]`，日期为 yyyymmdd 紧凑格式需归一化）。sync_asset_macro.py 已于 08-29 适配。

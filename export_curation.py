@@ -8,6 +8,9 @@
 本脚本**只读 Excel、只写 JSON**，不改动任何站点数据文件、不参与 auto_sync_deploy.sh。
 用途：① 生成迁移基线；② 日后需要核对「Excel 里原本写了什么」时可重跑。
 
+excel-exit P3（2026-10-06）：原 xlsx 已从 data/user、user_upload **移入 archive/excel-baseline-20261006/**；
+本脚本会自动到该归档目录下检索（见 _xlsx_dirs），因此仍可对归档的 Excel 重跑核对。
+
 用法：python3 export_curation.py
 """
 import glob, io, json, os, re, datetime
@@ -19,10 +22,22 @@ USER_DIR = os.path.join(BASE, 'data', 'user')
 OUT_DIR = os.path.join(BASE, 'data', 'curation')
 
 
+def _xlsx_dirs():
+    """检索 xlsx 的目录：现行目录 + excel-exit P3 归档目录（archive/excel-baseline-*）。"""
+    dirs = [os.path.join(BASE, 'data'), USER_DIR,
+            os.path.join(BASE, 'user_upload')]
+    for d in sorted(glob.glob(os.path.join(BASE, 'archive', 'excel-baseline-*'))):
+        if os.path.isdir(d):
+            dirs.append(d)
+            dirs.append(os.path.join(d, 'user_upload'))
+    return dirs
+
+
 def find_snapshot(prefix):
-    """与 sync_excel.find_snapshot 同口径：data/ 与 data/user/ 取 mtime 最新。"""
-    files = glob.glob(os.path.join(BASE, 'data', prefix + '*.xlsx'))
-    files += glob.glob(os.path.join(USER_DIR, prefix + '*.xlsx'))
+    """同原 sync_excel.find_snapshot 口径：在 _xlsx_dirs() 各目录取 mtime 最新的快照。"""
+    files = []
+    for d in _xlsx_dirs():
+        files += glob.glob(os.path.join(d, prefix + '*.xlsx'))
     files = [f for f in files if not os.path.basename(f).startswith('~$')]
     if not files:
         return None
@@ -36,7 +51,7 @@ SNAPS = {
 }
 
 # domain, source_key, sheet, out_json, data_start_row
-#   data_start_row 必须与 sync_excel.py 各 builder 的 `for i in range(N, len(df))` 一致：
+#   data_start_row 必须与 build_lists.py 各 builder（原 sync_excel）的 `for i in range(N, len(df))` 一致：
 #   飞书/PRO/总表 = 1；主表的 红利指数/月月ETF/月月场外/货币基金/REITs = 2（这些表第 1 行是单位行）。
 EXPORTS = [
     ('indices',      'pro',    '境内红利指数',      'indices_pro.json',           1),
@@ -92,7 +107,7 @@ def uniq(names):
 def fill_formula_links(path, sheet, cols, rows, code_col, link_col='详情页', data_start=1):
     """补全 Excel 里的 HYPERLINK 公式列（pandas 读不到缓存值 → 返回 None）。
 
-    与 sync_excel.load_user_index_info 的解析口径一致：
+    与原 sync_excel.load_user_index_info（P2 起改读 curation）的解析口径一致：
       data_only=False 保留公式，正则抓取 HYPERLINK("<url>",...) 的第 1 个参数。
     背景：飞书表「红利指数信息表」的「详情页」整列都是 =HYPERLINK("…","链接") 公式，
     pandas/openpyxl(data_only=True) 会读到 None；「港交所红利ETF」的「详情页」是纯文本不受影响。
@@ -145,7 +160,7 @@ def main():
             continue
         cols = uniq(df.iloc[0].tolist())
         rows = []
-        for i in range(data_start, len(df)):   # 与 sync_excel builder 的行偏移一致
+        for i in range(data_start, len(df)):   # 与 build_lists builder 的行偏移一致
             vals = df.iloc[i].tolist()
             if all(cell(v) is None for v in vals):
                 continue                     # 全空行跳过
@@ -207,8 +222,10 @@ def _bsplit(v):
 def export_blog():
     """导出 ① 文章清单（公众号历史文章*.xlsx）② 标注（博客文章标注表*.xlsx）。"""
     # ① 文章清单
-    srcs = [f for f in glob.glob(os.path.join(BASE, 'user_upload', '公众号历史文章*.xlsx'))
-            if not os.path.basename(f).startswith('~$')]
+    srcs = []
+    for d in _xlsx_dirs():
+        srcs += glob.glob(os.path.join(d, '公众号历史文章*.xlsx'))
+    srcs = [f for f in srcs if not os.path.basename(f).startswith('~$')]
     if srcs:
         src = max(srcs, key=os.path.getmtime)
         wb = openpyxl.load_workbook(src, data_only=True)
@@ -247,8 +264,10 @@ def export_blog():
         print('[WARN] 未找到 user_upload/公众号历史文章*.xlsx，跳过博客清单导出')
 
     # ② 标注表 → url -> {direction, indexes}
-    annts = [f for f in glob.glob(os.path.join(BASE, 'user_upload', '博客文章标注表*.xlsx'))
-             if not os.path.basename(f).startswith('~$')]
+    annts = []
+    for d in _xlsx_dirs():
+        annts += glob.glob(os.path.join(d, '博客文章标注表*.xlsx'))
+    annts = [f for f in annts if not os.path.basename(f).startswith('~$')]
     if annts:
         ax = max(annts, key=os.path.getmtime)
         wb = openpyxl.load_workbook(ax, data_only=True)

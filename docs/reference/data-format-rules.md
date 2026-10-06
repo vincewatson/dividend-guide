@@ -28,12 +28,12 @@
 
 ## 数据源口径统一
 
-1. **指数股息率以 Wind divHistory 最新值为准**：`sync_excel.py` 写回 indexData 时用 divHistory 最新值覆盖 `yield/yieldNum`；curation 清单仅兜底。Wind 无值 → `yield` 置空显示 `—`，**禁止 `0.00%`**、禁止用陈旧数值充数。
-2. **手动字段保护**：`publisher/listedDate/weight/weightExtra/components/market/currency/fullReturn`（+ `adjustCycle/adjustDate`）由用户维护，sync_excel 不得覆盖（旧值非空保留）；`AUTHORITATIVE_MANUAL` 硬编码权威值强制固定（如 SPCADMCP.SPI components=100、000922.CSI listedDate=2008-05-09）。**手工修订在对话里告知 AI，由 AI 落地并登记到 `manual-overrides.md`；「标注」统一来源 = `data/curation/*.json`（2026-10-06 excel-exit P1/P2，已不再依赖飞书/Excel 表）。**
+1. **指数股息率以 Wind divHistory 最新值为准**：`build_lists.py` 写回 indexData 时用 divHistory 最新值覆盖 `yield/yieldNum`；curation 清单仅兜底。Wind 无值 → `yield` 置空显示 `—`，**禁止 `0.00%`**、禁止用陈旧数值充数。
+2. **手动字段保护**：`publisher/listedDate/weight/weightExtra/components/market/currency/fullReturn`（+ `adjustCycle/adjustDate`）由用户维护，build_lists 不得覆盖（旧值非空保留）；`AUTHORITATIVE_MANUAL` 硬编码权威值强制固定（如 SPCADMCP.SPI components=100、000922.CSI listedDate=2008-05-09）。**手工修订在对话里告知 AI，由 AI 落地并登记到 `manual-overrides.md`；「标注」统一来源 = `data/curation/*.json`（2026-10-06 excel-exit P1/P2，已不再依赖飞书/Excel 表）。**
 3. **REITs 两类口径**（2026-08-11 确立，08-15 定稿）：
    - 分类按**现金流属性**（非 Wind"项目属性"物权口径）：产权类 = 园区/仓储物流/消费/保障房；特许经营权类 = 交通/新能源/生态环保/水利（**派息含资产摊销本金返还，虚高**）。
    - 指标 = Wind **名义派息率（中位数）**：产权类、特许经营权类均**日频**（每交易日，2023-01 起约 873 点/类，assetHistory 运行时加载）。
-   - 首页 assetData 的 yield/date：sync_excel 特判从 assetHistory 最新日频中位数覆盖（08-15 起），**不随 curation 清单回退**；note/desc/图例统一"名义派息率（中位数）"。
+   - 首页 assetData 的 yield/date：build_lists 特判从 assetHistory 最新日频中位数覆盖（08-15 起），**不随 curation 清单回退**；note/desc/图例统一"名义派息率（中位数）"。
    - 特许经营权类详情页红字风险提示（定稿文案）：**"特别提示：特许经营权类REITs的名义派息率，包含资产摊销对应的本金返还部分，该指标会高估实际投资收益率，需要结合IRR综合判断真实回报水平。"**
 4. **红利指数覆盖**：build_asset_data 中红利指数 yield/date 取 indexData divHistory 最新值（`ASSET_INDEX_NAME_MAP`：上证国企红利→上国红利、香港银行→HK银行(HKD)）。
 5. **ETF 简称统一口径 = 场内扩位简称**（2026-09-20 用户要求）：**站内所有 ETF 的 `name` 一律取 Wind「基金扩位场内简称」**，❌ 不用「基金简称 / 证券简称」，❌ 不用「场内简称」。
@@ -45,7 +45,7 @@
    同一指数在 Wind 常有**港币版 / 人民币版**两条（代码不同、**股息率数值完全相同**）。站内**只保留一条**，取「**基准版**」：
    - **判定**：Wind 全称里写「人民币」的那一版是**变体**（折算派生版）；若没有「人民币」版，则带「港币 / (港币)」的那一版是变体。
    - **已核验的变体对**：`SPAHLVHP.SPI`（港币）→ **`SPAHLVCP.SPI`（基准 = 人民币版）**；`930915.CSI`（人民币）→ `930914.CSI`（基准）；`930840.CSI` → `930839.CSI`；`930793.CSI` → `930792.CSI`。
-   - **实现**：`index_variants.py` 是**单一事实来源**（映射表 + `normalize()`）；`sync_excel.py` 在所有 builder 产出后统一归并、`sync_new_etf.py` 补入前归并；`check_data.py` 第 17 项硬校验「站内任何 trackCode 都不得是变体代码」。
+   - **实现**：`index_variants.py` 是**单一事实来源**（映射表 + `normalize()`）；`build_lists.py` 在所有 builder 产出后统一归并、`sync_new_etf.py` 补入前归并；`check_data.py` 第 17 项硬校验「站内任何 trackCode 都不得是变体代码」。
    - 归并会改变**展示名**（如「标普港股通低波红利指数(港币)」→「标普港股通低波红利指数」）；主题/市场筛选由 trackName 推导（`cnEtfThemeOf` / `cnEtfMarketOf`），归并前后结果一致（已实测）。
    - ⏸ **其余变体对保持现状（用户 2026-09-20 确认，不做迁移）**：`930914.CSI`(HKD)/`930915.CSI`(CNY) 一组站内 9 处用前者、2 处用后者（`513530.OF`/`018387.OF`），两版数值相同；`930840.CSI`/`930793.CSI` 站内未出现。映射表只启用标普一组；将来要统一，把键加进 `index_variants.py` 一行即可（`check_data.py` 第 17 项自动覆盖）。详见 `data-catalog.md`「已确认：其余变体对保持现状」。
 

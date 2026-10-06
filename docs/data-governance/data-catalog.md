@@ -12,34 +12,34 @@
 |----------|--------|----------|--------------|----------|
 | indexData.json（divHistory）| Wind 指数股息率日频 | sync_div_history.py + fix_laggard | 增量补到最新交易日（2023-01 起全量）；fix_laggard 单查补缺口（**日频查询 + 合并**，2026-09-13 修订）| **绝不删除**（跳过做占位 + 写回兜底）|
 | indexData.json（dailyChange）| Wind 涨跌幅 | sync_daily_change.py | 每日最新交易日 | 仅更新两字段；**存小数**（-0.0204=-2.04%）|
-| productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 sync_excel 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）；位置=「月月名单自动补入」之后（2026-10-06 后移，使新补入产品同轮取到行情）|
+| productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 build_lists 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）；位置=「月月名单自动补入」之后（2026-10-06 后移，使新补入产品同轮取到行情）|
 | indexData.json（新指数）| Wind（自动发现）| sync_new_etf.py | 新 ETF 跟踪指数缺失时补入 | 自动纳入，含 divHistory |
-| cnEtfData/hkEtf/etf/fundData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起，原 Excel 快照已弃用）| sync_excel.py | 全量重建（按【列名】取值）| divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的**；**hkEtf 保留表外标的 + `active`/`shares` 字段（2026-10-05，如主动管理ETF 3555.HK）**；**etf/fund 保留表外标的（月月名单自动补入，2026-10-06）** |
+| cnEtfData/hkEtf/etf/fundData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起，原 Excel 快照已弃用）| build_lists.py | 全量重建（按【列名】取值）| divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的**；**hkEtf 保留表外标的 + `active`/`shares` 字段（2026-10-05，如主动管理ETF 3555.HK）**；**etf/fund 保留表外标的（月月名单自动补入，2026-10-06）** |
 | cnEtfData（新 ETF）| Wind（自动发现）| sync_new_etf.py | 近 30 天成立红利类 ETF 自动补入 | 与 curation 重建合并去重 |
-| reitsData.json（新 REITs）| Wind（自动发现）| sync_new_reits.py | 全部已上市公募 REITs（508xxx.SH / 180xxx.SZ）对照补入；明细字段本次取不到**留空不填 0**（数值 null / 字符串 ''）| 与 curation 重建合并去重（sync_excel 保留 Wind 自动发现标的，2026-09-26 起）|
-| etfData/fundData（月月名单**新增**成员）| Wind `search_funds` 全市场检索（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly.py** | 每次自动补入（2026-10-06 起；编号外步骤，位于 step 13 后）| 与 curation 重建合并去重（sync_excel 保留表外行，2026-10-06 起）|
-| divDate | Wind 最近分红 | sync_fund_divdate.py | 全量重拉 | 无数据保留原值；**必须在 sync_excel 之后**；措辞**多路兜底**（最近分红情况→最近分红发放日期→基金分红 分红发放日）|
-| moneyFundData（yield7d/yieldDate）| Wind 实时 | sync_money_fund.py | 最新交易日 | 重建时保留 yieldDate；**必须早于 sync_excel(2)** |
+| reitsData.json（新 REITs）| Wind（自动发现）| sync_new_reits.py | 全部已上市公募 REITs（508xxx.SH / 180xxx.SZ）对照补入；明细字段本次取不到**留空不填 0**（数值 null / 字符串 ''）| 与 curation 重建合并去重（build_lists 保留 Wind 自动发现标的，2026-09-26 起）|
+| etfData/fundData（月月名单**新增**成员）| Wind `search_funds` 全市场检索（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly.py** | 每次自动补入（2026-10-06 起；编号外步骤，位于 step 13 后）| 与 curation 重建合并去重（build_lists 保留表外行，2026-10-06 起）|
+| divDate | Wind 最近分红 | sync_fund_divdate.py | 全量重拉 | 无数据保留原值；**必须在 build_lists 之后**；措辞**多路兜底**（最近分红情况→最近分红发放日期→基金分红 分红发放日）|
+| moneyFundData（yield7d/yieldDate）| Wind 实时 | sync_money_fund.py | 最新交易日 | 重建时保留 yieldDate；**必须早于 build_lists(2)** |
 | yuebaoHistory.json | Wind 日频 | sync_yuebao_history.py | **动态：divHistory 最早日期向前 180 天** | 每段重试 3 次 + 写回前与现有文件**合并**兜底（2026-09-13 加固，防瞬时失败丢段）|
 | assetHistory.json | Wind EDB + 中指季度报告 | sync_asset_macro.py + sync_reits_daily.py | 各序列全量；REITs 两类为**日频增量**；重点50城租金率为**中指季度时点序列**（用户/季度报告更新，asset_macro 保留现有值）| safe_fetch：拉取空保留旧值；asset_macro 不覆盖 REITs 与重点50城租金率 |
 | reitsDaily.json | Wind REITs 日频原始缓存（89 只逐只）| sync_reits_daily.py | **增量缓存**（每只续补新段 → 汇总两类中位数 → 写 assetHistory）| 纯缓存，可从 Wind 重建；断点续传落盘处 |
 | dailyData.json | digest-db.json（坚果云同步，稳定机器接口）| sync_daily.py | 最新一期前置 | 独立 |
 | dailyTagColors.json | digest-db.json → meta.tagColors | sync_daily.py | 10 标签浅底/深字配色，前端直接复用 | 独立 |
 | blogData.json（博客 · 子弹列车文章目录）| **仓库内 curation JSON**（`data/curation/blog_articles.json` 文章清单 + `data/curation/blog_annotations.json` 内容标签/相关指数，按 url 合并）—— 原为用户 `user_upload/公众号历史文章*.xlsx` + `博客文章标注表*.xlsx`，2026-10-06 excel-exit P1 已冻结迁移 | **手动**（`sync_blog.py`：读 curation → 按链接去重 + 空格规范；**已不再依赖 Excel**）| 目标 = 公众号历史文章全量目录（当前 **289 篇**，含付费 **2** 篇；已标注内容标签 **114** 篇 / 相关指数 **86** 篇，其余留空待补；相关指数为 Wind 指数简称，前端按站点 `indexData` 匹配，命中者标蓝并可跳转其指数代码）| 独立（不参与自动流水线）|
-| etfData/fundData/cnEtfData/hkEtf/indexData（Wind 化字段）| Wind get_fund_financials / get_index_fundamentals | **sync_wind_fields.py** | 步骤 15，在 sync_excel(2)（步骤 11）之后（不被覆盖）| **fundCount/yrChange/divDate/yield=指数股息率 均保护**；N 前缀摘除不恢复（fix_n_prefix + sync_excel 保护）|
+| etfData/fundData/cnEtfData/hkEtf/indexData（Wind 化字段）| Wind get_fund_financials / get_index_fundamentals | **sync_wind_fields.py** | 步骤 15，在 build_lists(2)（步骤 11）之后（不被覆盖）| **fundCount/yrChange/divDate/yield=指数股息率 均保护**；N 前缀摘除不恢复（fix_n_prefix + build_lists 保护）|
 
 ## 数据文件清单（data/）
 
 | 文件 | 当前数量 | 生成脚本 | 主来源 | 更新方式 |
 |------|---------|---------|--------|---------|
-| indexData.json | 58 指数 | sync_excel.py + sync_new_etf | ②+① 混合 | 流水线 |
-| cnEtfData.json | 95 ETF | sync_excel.py + sync_new_etf + sync_fund_divdate | ② Wind 快照（divDate/新 ETF 由 ③）| 流水线 |
-| hkEtfData.json | 13 | sync_excel.py（表外行保留）| ① 用户表优先；人工补充（3555.HK 主动管理ETF，2026-10-05）| 流水线 |
-| etfData.json | 15 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
-| fundData.json | 28 | sync_excel.py + sync_new_monthly + sync_fund_divdate | ② Wind 快照 + 全市场自动补入（2026-10-06）| 流水线 |
-| moneyFundData.json | 43 | sync_excel.py + sync_money_fund | ② Wind 快照 | 流水线 |
-| reitsData.json | 89（新上市自动补入）| sync_excel.py + sync_new_reits | ② Wind 快照（新 REITs 由 ③ 自动发现）| 流水线 |
-| assetData.json | 17 | sync_excel.py（+ `EXTRA_ASSETS` 手工补加）| ① 用户表（总表）+ 手工补加行（「红利低波」，2026-10-06）| 流水线 |
+| indexData.json | 58 指数 | build_lists.py + sync_new_etf | ②+① 混合 | 流水线 |
+| cnEtfData.json | 95 ETF | build_lists.py + sync_new_etf + sync_fund_divdate | ② Wind 快照（divDate/新 ETF 由 ③）| 流水线 |
+| hkEtfData.json | 13 | build_lists.py（表外行保留）| ① 用户表优先；人工补充（3555.HK 主动管理ETF，2026-10-05）| 流水线 |
+| etfData.json | 15 | build_lists.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
+| fundData.json | 28 | build_lists.py + sync_new_monthly + sync_fund_divdate | ② Wind 快照 + 全市场自动补入（2026-10-06）| 流水线 |
+| moneyFundData.json | 43 | build_lists.py + sync_money_fund | ② Wind 快照 | 流水线 |
+| reitsData.json | 89（新上市自动补入）| build_lists.py + sync_new_reits | ② Wind 快照（新 REITs 由 ③ 自动发现）| 流水线 |
+| assetData.json | 17 | build_lists.py（+ `EXTRA_ASSETS` 手工补加）| ① 用户表（总表）+ 手工补加行（「红利低波」，2026-10-06）| 流水线 |
 | （Wind 化字段）| — | **sync_wind_fields.py** | Wind get_fund_financials / get_index_fundamentals | 周流水线 步骤 15 |
 | assetHistory.json | 12 序列 | sync_asset_macro.py + sync_reits_daily.py | ③ Wind MCP（REITs 日频独立脚本；重点50城租金率=中指季度报告）| 流水线 |
 | reitsDaily.json | 89 只日频缓存 | sync_reits_daily.py | ③ Wind MCP | 流水线（缓存，可重建）|
@@ -56,7 +56,7 @@
 - ① 用户手动（受保护，不更新）：`publisher/listedDate/weight/weightExtra/components/market/currency/fullReturn/adjustCycle/adjustDate`。
 - ③ Wind：`yield/yieldNum`（divHistory 最新值覆盖）、`divHistory`（日频，2023-01 起，只补不删）、`dailyChange/dailyDate`（独立脚本，存小数）。
 - 新指数：sync_new_etf 自动补入（基础信息 + divHistory）。
-- **详情页补充指数（`trackOnly: true`）**：**不进「红利指数浏览器」列表**（前端 `renderIndices` 用 `!x.trackOnly` 过滤；`check_data` 第 2 项亦跳过），仅供 ETF/基金**详情页图表**按 `trackCode` 取用（`findIndexForTrack` 按 code 精确命中 → 取其 `divHistory` 画「跟踪指数股息率」曲线）。其 `divHistory` 亦由 `sync_div_history`（遍历**全部** indexData 代码）每周自动维护，并由 `sync_excel` 表外行护栏保留。
+- **详情页补充指数（`trackOnly: true`）**：**不进「红利指数浏览器」列表**（前端 `renderIndices` 用 `!x.trackOnly` 过滤；`check_data` 第 2 项亦跳过），仅供 ETF/基金**详情页图表**按 `trackCode` 取用（`findIndexForTrack` 按 code 精确命中 → 取其 `divHistory` 画「跟踪指数股息率」曲线）。其 `divHistory` 亦由 `sync_div_history`（遍历**全部** indexData 代码）每周自动维护，并由 `build_lists` 表外行护栏保留。
   - 既有 7 个：`930782.CSI`(500SNLV)、`930915.CSI`(港股通高股息CNY)、`399433.SZ`(国证交运)、`000510.SH`(中证A500)、`888888.FI`(富时A股自由现金流聚焦)、`932365.CSI`(中证现金流)、`932368.CSI`(800现金流)。
   - **2026-10-06 新增** `HSSSCHD.HI`（恒生沪深港(特选企业)高股息率，挂钩港交所 `3190.HK 富邦沪深港高股息`）——用户要求把港交所红利 ETF 的挂钩指数股息率数据补入、并展示在对应详情页（不入浏览器）。divHistory 504 点（2024-09-13 起）。
 
@@ -93,7 +93,7 @@
 | 中证同业存单AAA | ② Wind | ③ Wind EDB |
 | 天弘余额宝 | ② Wind（快照）+ ③ 实时覆盖 | ④ iFind 日频（Wind 限流）|
 
-> **红利组展示顺序（2026-10-06 用户要求）**：首页「主流资产食息率」中 `type=红利` 的行**默认按股息率从高到低排名** —— 由 `sync_excel.py · build_asset_data()` 在重建末尾按 `yield` 降序重排红利组（按出现位置原地替换，各组位置与其它组内部顺序不变）。站点为**静态更新**，故须在**数据层**落地：每次更新数据后红利组自动保持降序（前端默认按 `assetData` 数组顺序渲染，用户点击表头排序可临时覆盖）。
+> **红利组展示顺序（2026-10-06 用户要求）**：首页「主流资产食息率」中 `type=红利` 的行**默认按股息率从高到低排名** —— 由 `build_lists.py · build_asset_data()` 在重建末尾按 `yield` 降序重排红利组（按出现位置原地替换，各组位置与其它组内部顺序不变）。站点为**静态更新**，故须在**数据层**落地：每次更新数据后红利组自动保持降序（前端默认按 `assetData` 数组顺序渲染，用户点击表头排序可临时覆盖）。
 
 ### 货币基金 / REITs / 食息资讯（日报）
 - 货币基金（moneyFundData）：② 快照「货币基金」+ sync_money_fund ③ 实时更新头部（含 yieldDate）。
@@ -108,9 +108,9 @@
 
 ## 清单/标注来源（`data/curation/`）列结构与编辑约定（2026-10-06 excel-exit P2 后）
 
-> **规范数据库（2026-10-06 excel-exit P2 后）**：清单 + 标注的单一事实来源 = **`data/curation/*.json`**（仓库内、git 版本化；结构与编辑约定见 `data/curation/README.md`）。原 Excel 快照（`data/user/食息指南*`）**已无脚本引用**。
-> `sync_excel.py` 各 builder **按【列名】取值**（不再有 `pd.read_excel` / 列下标）→ 增删/移动列不再有「静默错位」风险（backlog **B-1 已关闭**）。
-> ⚠️ 若改动 curation 的**列名**（`columns` 数组）或字段名，需同步改 `sync_excel.py` 里对应的 `row.get('列名')`；仅改**行值**则无需动代码。
+> **规范数据库（2026-10-06 excel-exit P2 后）**：清单 + 标注的单一事实来源 = **`data/curation/*.json`**（仓库内、git 版本化；结构与编辑约定见 `data/curation/README.md`）。原 Excel 快照（`data/user/食息指南*`）**已无脚本引用**；**P3（2026-10-06）起已归档 `archive/excel-baseline-20261006/`（不入库）**。
+> `build_lists.py` 各 builder **按【列名】取值**（不再有 `pd.read_excel` / 列下标）→ 增删/移动列不再有「静默错位」风险（backlog **B-1 已关闭**）。
+> ⚠️ 若改动 curation 的**列名**（`columns` 数组）或字段名，需同步改 `build_lists.py` 里对应的 `row.get('列名')`；仅改**行值**则无需动代码。
 
 ### ETF 简称的唯一口径
 
@@ -149,7 +149,7 @@ ETF代码 | ETF扩位场内简称 | 跟踪指数代码 | 跟踪指数名称 | �
 
 ### 防回退要点
 
-- 修改 JSON 简称后，**必须同时更新 `data/curation/` 里对应行的简称**（清单/标注来源），否则下次 `sync_excel.py`（每周步骤 4/11）会按 curation 旧值重建并回退。
+- 修改 JSON 简称后，**必须同时更新 `data/curation/` 里对应行的简称**（清单/标注来源），否则下次 `build_lists.py`（每周步骤 4/11）会按 curation 旧值重建并回退。
 - 新 ETF（`sync_new_etf.py` 自动发现）不走 curation 清单，其简称由 `fetch_ext_short_names()` 从 Wind 取「基金扩位场内简称」，已内置，无需人工干预。
 
 ## 数据源优先级
@@ -192,7 +192,7 @@ Wind 对港股通 / 香港类指数通常**同时发布港币版与人民币版�
 | 位置 | 作用 |
 |---|---|
 | `index_variants.py` | **映射表 `VARIANT_TO_BASE` + `BASE_NAME` + `normalize()`**，全站唯一来源；改口径只改这里 |
-| `sync_excel.py` | 所有 builder 产出后**统一归并**（置于「按跟踪指数股息率校正」之前，保证取到的是基准版股息率）|
+| `build_lists.py` | 所有 builder 产出后**统一归并**（置于「按跟踪指数股息率校正」之前，保证取到的是基准版股息率）|
 | `sync_new_etf.py` | 补入新 ETF 前**归并**跟踪指数，避免港币版进入数据 |
 | `check_data.py` 第 17 项 | 硬校验：站内任何 `trackCode` 都不得是变体代码 |
 

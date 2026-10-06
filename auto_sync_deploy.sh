@@ -5,10 +5,11 @@
 #   ↑ 步骤编号：[3/21] 语法预检 + [4..21/21]；步骤 1–2（修订文档 / 确认任务逻辑）由任务层在上游完成
 # 顺序关键点（防复发）：
 #   - 步骤 3：全部 .py 语法预检（防 // 注释类错误）
-#   - sync_excel 跑两次：第二次在 div_history/daily_change/money_fund/yuebao 之后，
+#   - build_lists（原 sync_excel）跑两次：第二次在 div_history/daily_change/money_fund/yuebao 之后，
 #     build_asset_data 才能取到最新 divHistory（红利指数）与 moneyFundData.yieldDate（余额宝）
-#   - sync_fund_divdate 必须在最后一次 sync_excel 之后（sync_excel 重建会覆盖 divDate）
-#   - sync_excel.py 自 2026-10-06（excel-exit P2）起**不再读 Excel**，清单/标注一律来自 data/curation/*.json
+#   - sync_fund_divdate 必须在最后一次 build_lists 之后（build_lists 重建会覆盖 divDate）
+#   - build_lists.py 自 2026-10-06（excel-exit P2）起**不再读 Excel**，清单/标注一律来自 data/curation/*.json
+#     2026-10-06（excel-exit P3）：由 sync_excel.py 更名为 build_lists.py；xlsx 已归档 archive/excel-baseline-*
 #   - check_data.py 验证全部 ✅ 才允许部署（硬门槛）
 # 三条铁律：写回绝不删除旧数据；历史序列起点早于图表起点；check_data 必须全 ✅
 # ============================================================
@@ -75,7 +76,7 @@ run_py() {
 #   只读，不修改数据。默认仅报告。按建议跳过步骤有两种方式：
 #     ① 显式指定：SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh
 #     ② 自动采纳：PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh
-#   （保守：仅跳过纯 Wind 日频 + 资讯步骤；sync_excel/校验/部署等一律保留）
+#   （保守：仅跳过纯 Wind 日频 + 资讯步骤；build_lists/校验/部署等一律保留）
 # ------------------------------------------------------------
 echo "===== [预检] 更新前体检（preflight.py）====="
 if [ -z "$SKIP_STEPS" ] && [ "$PREFLIGHT_AUTO" = "1" ]; then
@@ -93,8 +94,8 @@ for f in *.py; do
 done
 echo "✅ 全部 $(ls *.py | wc -l | tr -d ' ') 个脚本语法 OK"
 
-echo "===== [4/21] 从 curation 重建数据（第一次；原 sync_excel，现不读 Excel）====="
-run_py "sync_excel.py（第一次）" sync_excel.py
+echo "===== [4/21] 从 curation 重建数据（第一次；原 sync_excel，现 build_lists，不读 Excel）====="
+run_py "build_lists.py（第一次）" build_lists.py
 
 echo ""
 if should_skip 5; then echo "===== [5/21] 同步股息率历史（Wind）— ⏭ 跳过（预检：已是最新交易日）====="; else
@@ -135,7 +136,7 @@ fi
 
 echo ""
 echo "===== [11/21] 从 curation 重建数据（第二次！assetData 取最新 divHistory/yieldDate）====="
-run_py "sync_excel.py（第二次）" sync_excel.py
+run_py "build_lists.py（第二次）" build_lists.py
 
 echo ""
 echo "===== [12/21] 新 ETF/新指数自动发现（Wind）====="
@@ -148,7 +149,7 @@ run_py "sync_new_reits.py" sync_new_reits.py
 echo ""
 echo "===== [月月名单] 自动补入（Wind；2026-10-06 新增·编号外，不影响 1..21 计数）====="
 # 全市场检索「近1年分红次数 ≥ 11」的指数产品（A 类去重）→ 自动补入月月分红名单（etfData/fundData）。
-# 位置关键：必须在 step 11 sync_excel(2) 之后（产出的是 Excel 表外行，靠 sync_excel 表外行护栏保留）、
+# 位置关键：必须在 step 11 build_lists(2) 之后（产出的是 curation 表外行，靠 build_lists 表外行护栏保留）、
 #           且在 step 14 之前（同轮紧接刷 divDate + prune_stale_monthly 剔除超期成员）。Wind 抖动失败不阻断。
 run_py "sync_new_monthly.py" sync_new_monthly.py || echo "  ⚠ 月月名单自动补入失败（Wind 抖动），保留现有名单，下次重试"
 
@@ -160,7 +161,7 @@ echo "===== [产品行情] 快照入库（Wind；2026-10-05 新增·编号外，
 run_py "sync_product_quotes.py" sync_product_quotes.py || echo "  ⚠ 产品行情快照失败（Wind 抖动），保留已有快照，下次重试"
 
 echo ""
-echo "===== [14/21] 恢复基金最近分红日期（Wind，覆盖被 Excel 覆盖的 divDate）====="
+echo "===== [14/21] 恢复基金最近分红日期（Wind，覆盖被 curation 重建覆盖的 divDate）====="
 run_py "sync_fund_divdate.py all --force" sync_fund_divdate.py all --force
 
 echo ""

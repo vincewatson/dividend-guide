@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-食息指南 数据重建脚本（原 sync_excel；excel-exit P2 后**不再读 Excel**）
+食息指南 数据重建脚本（原 sync_excel；excel-exit P3 后更名为 build_lists）
 ====================================
 从 data/curation/*.json（清单 + 标注）+ 其它 data/*.json 重建 8 个站点数据文件。
+脚本**不读任何 Excel**（excel-exit P0→P3 已完成；原 xlsx 已归档 archive/excel-baseline-*）。
 
 用法:
-    python3 sync_excel.py     # 文件名保留以兼容流水线；P3 归档 Excel 层时再改名
+    python3 build_lists.py     # 由 auto_sync_deploy.sh 步骤 4 / 11 调用
 
 数据源（仓库内、git 版本化；本脚本不再读任何 xlsx）:
     data/curation/assets.json                             → assetData（首页总表）

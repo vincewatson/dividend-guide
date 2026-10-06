@@ -10,14 +10,14 @@
 |---|------|------|-------------|
 | 1 | 同业存单标的指数错误（用 931815 0-6个月AAA）| 取数时误选 | 用户确认 **931059.CSI**；sync_asset_macro 固化；文案定稿 |
 | 2 | 同业存单 note"今年以来"不准确 | Excel 备注误导 | NOTE_OVERRIDE 强制；前端 listNote 简版/详情完整版 |
-| 3 | divDate 被 sync_excel 重建覆盖（反复）| Excel 快照无/旧 divDate | 流水线顺序：fund_divdate 在 sync_excel(2) 之后；备份合并恢复 |
+| 3 | divDate 被 build_lists 重建覆盖（反复）| Excel 快照无/旧 divDate | 流水线顺序：fund_divdate 在 build_lists(2) 之后；备份合并恢复 |
 | 4 | sync_asset_macro fetch_ncd 缺 import datetime | 局部 import 模式遗漏 | fetch_ncd 内补 `import datetime`（文件风格为函数内 import）|
-| 5 | yrChange（本年涨跌幅）滞后 1-2pct | 仅来自 Excel 快照 | sync_daily_change 加 Wind 实时拉取 + sync_excel 保护 |
+| 5 | yrChange（本年涨跌幅）滞后 1-2pct | 仅来自 Excel 快照 | sync_daily_change 加 Wind 实时拉取 + build_lists 保护 |
 | 6 | fundCount 批量解析错位/漏 | Wind 列名"跟踪指数X"/"跟踪X"不稳定 | 正则 `^跟踪(指数)?` 解析；每批 sleep 10 秒防限流 |
 | 7 | Wind 查询 12 字段返回"没找到数据" | 单次查询字段过多 | **≤7 字段/次**，拆两次查询合并 |
 | 8 | ETF 股息率显示 3.43% vs 万得指数 5.35% | 误用"近12月分红收益率"（ETF 实际派息）| yield=**跟踪指数股息率**（trackCode 映射）；近12月分红收益率存 divYieldNum 备用 |
 | 9 | 未映射 trackCode 出现负值/15.92% 异常 | 兜底口径缺失 | `_extend_yield_map`：未映射 trackCode 自动查指数股息率 |
-| 10 | ETF 简称"N"前缀过期残留 | 上市临时标记未动态摘除 | fix_n_prefix（Wind 简称无 N 则摘）+ sync_excel 保护不恢复 |
+| 10 | ETF 简称"N"前缀过期残留 | 上市临时标记未动态摘除 | fix_n_prefix（Wind 简称无 N 则摘）+ build_lists 保护不恢复 |
 | 11 | dailyChange 批量截断漏指数（932584 停 08-11）| 批量返回上限 | check_data 全覆盖检查（更新数 vs 指数总数）拦截 |
 | 12 | divDate 查询措辞失效（误判"无数据"，覆盖率骤降）| 查询措辞随 Wind 语义漂移，**不存在永久最稳的单一措辞** | **多措辞依次兜底**（最近分红情况 → 最近分红发放日期 → 基金分红 分红发放日），首个返回「基金红利发放日」者即用（sync_fund_divdate.py）；验收看覆盖率（fund≥25/26、etf≥14/15、cnEtf≥50）。2026-09-13 复测：「最近分红情况」有效、「最近分红发放日期」失效（旧结论反转）|
 | 13 | 同业存单未来日期（08-31）| Wind 返回月内未来截止日 | fetch_ncd 自动修正为实际截止日 |
@@ -30,7 +30,7 @@
 | 20 | sync_yuebao_history 某段瞬时失败 → 全量重写后静默丢约 3 个月历史（956 < 1007 条）| 全量重写且无重试 | 每段**重试 3 次** + 写回前**与现有文件合并**兜底缺口（2026-09-13）；启动前先看日志的 `[WARN] 段…未获取到数据` |
 | 21 | 3/5 年期国债停更（assetHistory 保留旧值，assetData 日期停在上一周）| `fetch_bond_savings` 单一措辞「2023年至今储蓄国债发行记录票面利率3年期5年期」随 Wind 语义**漂移失效**（返回"没找到数据"）→ `safe_fetch` 保留旧数据 | 改为**多措辞依次兜底**（`BOND_PHRASINGS`：储蓄国债 票面利率 三年期 五年期 发行 → 旧措辞 → 储蓄国债发行记录 票面利率 3年期 5年期），取首个返回非空表者（2026-09-19）；验收看 `assetHistory` 国债最新日期是否达最近周五（周频前向填充口径）|
 | 22 | **未上市新 ETF 被静默漏收**（广发标普港股通低波红利ETF 158039 成立 09-18 却未进列表）| `sync_new_etf` 用**裸代码**（`split('.')[0]`）去查详情/规模/扩位简称；已上市 ETF 裸代码恰好唯一（159589→159589.SZ），但**未上市**基金在 Wind 是 `.OF`，裸代码 `158039` 撞上同号**债券** `158039.SH「18晋质20」` → `get_fund_info` 返回"没找到数据" → 走「详情拉取失败，跳过」分支**静默漏收** | 三处查询（`fetch_fund_detail` / `fetch_fund_scale` / `fetch_ext_short_names`）全部改用 **Wind 全代码**（`f['windCode']`，含后缀）；配套 `_pick_row()` 按全代码精确匹配 + 字段**按列名解析**（防列序漂移）；详情失败时打印 Wind 代码不再含糊（2026-09-20）|
-| 23 | **同一指数港币版/人民币版在站内并列**（标普港股通低波红利：indexData 是人民币版，3 只 ETF 却引港币版；另 930914/930915 亦是 7:2 分裂）| Wind 对港股通类指数同时发布港币版与人民币版，两版**代码不同、股息率数值完全相同**；各脚本各自取用、无归并口径 | 新增 `index_variants.py` 作**单一事实来源**：变体代码 → 基准版代码映射 + `normalize()`；`sync_excel` 在 builder 产出后**统一归并**、`sync_new_etf` 补入前归并、`check_data` 第 17 项硬校验「站内不得出现变体代码」（2026-09-20）。⏸ 其余三组（930914/930915、930839/930840、930792/930793）**用户 2026-09-20 确认保持现状、不迁移**，映射表只启用标普一组（详见 `data-catalog.md`「指数币种变体归并」及其中「已确认：其余变体对保持现状」）|
+| 23 | **同一指数港币版/人民币版在站内并列**（标普港股通低波红利：indexData 是人民币版，3 只 ETF 却引港币版；另 930914/930915 亦是 7:2 分裂）| Wind 对港股通类指数同时发布港币版与人民币版，两版**代码不同、股息率数值完全相同**；各脚本各自取用、无归并口径 | 新增 `index_variants.py` 作**单一事实来源**：变体代码 → 基准版代码映射 + `normalize()`；`build_lists` 在 builder 产出后**统一归并**、`sync_new_etf` 补入前归并、`check_data` 第 17 项硬校验「站内不得出现变体代码」（2026-09-20）。⏸ 其余三组（930914/930915、930839/930840、930792/930793）**用户 2026-09-20 确认保持现状、不迁移**，映射表只启用标普一组（详见 `data-catalog.md`「指数币种变体归并」及其中「已确认：其余变体对保持现状」）|
 | 24 | cnEtfData 管理费率显示 **15.00%**、费率筛选分档错误（158023 / 562150 / 562180）| auto-discover 的 ETF 把管理费率**百分数**（0.15）直接写入 `feeNum`，而站点约定 `feeNum` 为**小数**（0.0015）；与 #17 同类"单位混用" | `sync_new_etf` 改为 `fee/100`；修复存量 3 只；check_data 增「cnEtfData feeNum 单位」校验（0.0005~0.02）（2026-09-13）|
 | 25 | 周更"中途停顿 / 整轮中断 / 像卡住"三类运维陷阱 | ① `sync_asset_macro` 的 `END` **硬编码日期**（`2026-08-28`），过点后每周卡住；② `sync_money_fund` 拉取失败直接 `raise` → **中断整轮周更**；③ 部署/长命令用 `2>&1 \| tail`，**管道缓冲到进程结束才输出** + `curl` 无超时在被拦截出口**挂死** → 误判"卡住" | ①改**动态今日**；②改**告警 + 保留原值**（不中断）；③`PYTHONUNBUFFERED=1` + `curl --connect-timeout 10 --max-time 20` + 各步心跳/计时（2026-09-19）；详见 `wind-query-tips.md` I |
 | 26 | 部分指数 `get_index_price_indicators` 的「最新交易日」被 Wind 返回 `0`、涨跌幅为空 → `sync_daily_change` 写入**畸形日期**（930740 曾显示 `0--`；932584/SPAHLVCP 长期停在 09-18 未被察觉，因正常周与全局最新日恰好同值）| Wind 对个别指数（新指数/停牌口径）不返回截面，旧解析按固定格式硬拼出 `0--` | 解析前**校验日期为 8 位数字**、否则丢弃；对缺失/无效者**单只重查 + `get_index_kline` 兜底**（取最近两日收盘算涨跌幅）；2026-09-26 |
@@ -38,7 +38,7 @@
 | 28 | `backup_db.py` 仍备份已归档的 `weeklyData.json`，而**日报数据 `dailyData` / `dailyTagColors` 未纳入备份与 offline-db** | 09-20 周报→日报迁移未同步到备份脚本 | `DATA_FILES` 换为 `dailyData.json` / `dailyTagColors.json`（校验由 10→12 个 JSON）；2026-09-26 |
 | 29 | 周更单条 Wind 查询**串行**致大头耗时（`fund_divdate` 136 只≈17 min、`reits_daily` 58 只≈2.5 min）；且 `sync_reits_daily.call_wind` 缺「没找到数据」兜底 → 无数据区间每只空耗 3 次重试（~18s） | 逐只 `subprocess` 调用 + 逐只 `sleep` 串行；无数据时 Wind 返回非 JSON 触发异常重试 | 两脚本改 `ThreadPoolExecutor` 并发（默认 8 路，`SX_WIND_WORKERS` 可调；多措辞/保留旧值/原子写回语义不变）；`call_wind` 增 `没找到` → 空结果不重试（2026-09-26）|
 | 30 | 密集重跑触发 Wind「**单日请求次数超限**」→ 全部查询失败、脚本空跑（× 措辞 × 重试次数）白烧额度、耗时反而拉长 | CLI 返回 `ok:false`（非异常），旧 `call_wind` 走 3 次重试 | `call_wind` 识别 CLI 级 `ok:false`（含超限）**不重试**、立即返回；失败一律**保留旧值**（铁律不受影响）；**排期避免同日密集重跑**（2026-09-26）|
-| 31 | 每周重复重查「**确无分红记录**」的基金（cnEtf ~46 只）白耗 Wind 额度 | 无"无记录"记忆，每周对空值基金全量重查 | 新增 `data/divNoRecord.json` 缓存（**仅确证无记录时写、取到记录即删、失败不写**；`SX_DIV_NORECORD_DAYS` 默认 28 天复查）；独立文件防被 `sync_excel` 重建覆盖（2026-09-26）|
+| 31 | 每周重复重查「**确无分红记录**」的基金（cnEtf ~46 只）白耗 Wind 额度 | 无"无记录"记忆，每周对空值基金全量重查 | 新增 `data/divNoRecord.json` 缓存（**仅确证无记录时写、取到记录即删、失败不写**；`SX_DIV_NORECORD_DAYS` 默认 28 天复查）；独立文件防被 `build_lists` 重建覆盖（2026-09-26）|
 | 32 | 页脚文案改一处要改 **7 遍**、易漏；同一段 HTML 被复制成 7 份（1 global + 6 detail） | 早期图省事静态复制；CSS 是共用的（`.site-footer` 基类一处生效）让人**误以为 HTML 也是一处**——实际不是 | 页脚改造为「**网站地图 + 单源渲染**」：7 处 `.site-footer` 收敛为**空壳容器**，正文由 `index.html` 的 `renderFooter()` 统一写入（读 `#mainNav` 导航 DOM）。验收：`grep -c 'class="site-footer' index.html` = 7（容器数不变），但页脚正文在源码里只出现 1 次（2026-09-27）|
 | 33 | 想在 iframe / 窄屏里读「导航栏目」做单源派生校验，结果 `#mainNav` 里读不到 `.dropdown-item`（子项数为 0） | 窄屏 `mobile.js` 会把 `#mainNav` 重构成抽屉（`.m-nav-drawer`）并把 `.dropdown-item` **搬到兄弟容器**（`#mainNav .dropdown` 残留但已空） | 单源派生/校验一律以**桌面导航**为基准（宽屏帧或 `renderFooter()` 在移动脚本之前执行）；`renderFooter()` 绝不可挪到 `mobile.js` 之后；测试断言别用 `#mainNav` 逐项取子项（2026-09-27）|
 | 34 | 页头设 80% 透明度「看不出效果」——`.main-content`（唯一滚动容器，`overflow-y:auto`）与 `.top-bar` 是**并列的两个 flex 兄弟**，内容在 `.main-content` 顶部即被裁切，**永远不会经过页头下方**，故 0.80 与 0.88 视觉无差 | 站点用 `html,body{height:100%}` + `.app-shell{display:flex;flex-direction:column}`，滚动发生在 `.main-content` 而非 body；`.top-bar` 的 `position:sticky` 因此从不真正"粘"，页头只是普通首行 | 页头改 **`position:fixed` 覆盖层** + 主内容 `padding-top: var(--topbar-h)`（等高占位，布局逐像素不变）；高度用 JS 实测写回 `--topbar-h`（`ResizeObserver` 兜底 mobile.js 重构导航后的高度变化）；⚠️ 同页 `.index-table th` 的 `position:sticky` **不可**跟随 `--topbar-h`——表格自带 `overflow:hidden`（表格即其粘性滚动容器），改 `top` 会把表头整体下推 60px 留空隙，须保持 `top:0`（2026-09-27）。⚠️ **当日晚些时候已按 Tier1-② 彻底修复**——详见 #35 |

@@ -246,7 +246,7 @@ def main():
                 print(f'  [{ts()}] {item["name"]}: 无数据', flush=True)
         print(f'  [{ts()}] 批次 {bi//BATCH+1}/{n_batch} 完成（累计更新 {updated}）', flush=True)
         time.sleep(SLEEP)
-    # 本年涨跌幅更新（Wind 实时，2026-08-16 起；sync_excel 已保护不覆盖）
+    # 本年涨跌幅更新（Wind 实时，2026-08-16 起；build_lists 已保护不覆盖）
     yr = fetch_yr_change(d)
     yr_updated = 0
     for item in d:
