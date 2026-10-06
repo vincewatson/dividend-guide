@@ -9,6 +9,7 @@
       python3 sync_daily_change.py --incremental  # 增量：跳过已有 dailyDate 的
 """
 import io, json, os, subprocess, sys, time, tempfile
+from concurrent.futures import ThreadPoolExecutor
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
@@ -20,6 +21,8 @@ INDEX_FILE = os.path.join(DATA, 'indexData.json')
 # 实测 12 只/批 → 12 行/0 缺失；25 只/批报错。故批量上限定为 12，并保留单只回退。
 BATCH = int(os.environ.get('SX_DC_BATCH', '12'))
 SLEEP = float(os.environ.get('SX_DC_SLEEP', '0.5'))
+# 并发路数（2026-10-06 提速：批次并发；流水线本身串行，不会抬高 Wind 峰值并发）
+WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '6')))
 
 
 def ts():
@@ -186,11 +189,15 @@ def fetch_yr_change(d):
     year = datetime.date.today().year
     BATCH = 8
     result = {}
-    for i in range(0, len(d), BATCH):
-        batch = d[i:i+BATCH]
-        q = ' '.join('{} {}'.format(x.get('code',''), x.get('name','')) for x in batch if x.get('code')) \
+    batches = [d[i:i+BATCH] for i in range(0, len(d), BATCH)]
+
+    def _mkq(batch):
+        return ' '.join('{} {}'.format(x.get('code',''), x.get('name','')) for x in batch if x.get('code')) \
             + ' {}年初至今涨跌幅'.format(year)
-        rows = call_wind_yr(q)
+
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        rows_list = list(ex.map(call_wind_yr, [_mkq(b) for b in batches]))  # 保持批次顺序
+    for rows in rows_list:
         if rows:
             for r in rows:
                 if len(r) >= 3 and r[2] is not None:
@@ -199,9 +206,7 @@ def fetch_yr_change(d):
                         result[code] = round(float(r[2]) / 100.0, 4)
                     except (ValueError, TypeError):
                         pass
-        time.sleep(SLEEP)
-        print('  [%s] yrChange 批次 %d/%d' % (ts(), i // BATCH + 1,
-              (len(d) + BATCH - 1) // BATCH), flush=True)
+    print('  [%s] yrChange 并发拉取 %d 批完成' % (ts(), len(batches)), flush=True)
     return result
 
 
@@ -216,13 +221,17 @@ def main():
     print(f'共 {len(d)} 个指数，待更新 {n} 个（跳过 {skipped}），分 {n_batch} 批（{BATCH} 只/批）', flush=True)
 
     updated = 0
-    for bi in range(0, n, BATCH):
-        chunk = todo[bi:bi + BATCH]
+    batches = [todo[bi:bi + BATCH] for bi in range(0, n, BATCH)]
+    print(f'  并发 {WORKERS} 路拉取 {len(batches)} 批...', flush=True)
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        batch_got = list(ex.map(
+            lambda chunk: call_wind_batch([item['code'] for _, item in chunk]), batches))  # 保持批次顺序
+    for bi, chunk in enumerate(batches):
         codes = [item['code'] for _, item in chunk]
-        got = call_wind_batch(codes)
+        got = batch_got[bi]
         if got is None:
             # 整批失败 → 回退逐只（保数据不丢，且能定位到具体哪只查询异常）
-            print(f'  [{ts()}] 批次 {bi//BATCH+1}/{n_batch} 批量失败，回退单只查询', flush=True)
+            print(f'  [{ts()}] 批次 {bi+1}/{n_batch} 批量失败，回退单只查询', flush=True)
             got = {}
             for c in codes:
                 dt, v = call_wind(c)
@@ -244,8 +253,7 @@ def main():
                 print(f'  [{ts()}] {item["name"]}: {hit[0]} {hit[1]*100:.2f}%', flush=True)
             else:
                 print(f'  [{ts()}] {item["name"]}: 无数据', flush=True)
-        print(f'  [{ts()}] 批次 {bi//BATCH+1}/{n_batch} 完成（累计更新 {updated}）', flush=True)
-        time.sleep(SLEEP)
+        print(f'  [{ts()}] 批次 {bi+1}/{n_batch} 完成（累计更新 {updated}）', flush=True)
     # 本年涨跌幅更新（Wind 实时，2026-08-16 起；build_lists 已保护不覆盖）
     yr = fetch_yr_change(d)
     yr_updated = 0

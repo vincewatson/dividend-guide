@@ -28,6 +28,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
@@ -41,6 +42,8 @@ PRODUCT_FILES = ['cnEtfData.json', 'hkEtfData.json', 'etfData.json', 'fundData.j
 # get_fund_price_indicators 实测 12 只/批可用；25 只/批报错。留安全上限 12。
 BATCH = int(os.environ.get('SX_PQ_BATCH', '12'))
 SLEEP = float(os.environ.get('SX_PQ_SLEEP', '0.6'))
+# 并发路数（2026-10-06 提速：批次并发；流水线本身串行，不会抬高 Wind 峰值并发）
+WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '6')))
 INDEXES = '最新交易日,涨跌幅,年初至今涨跌幅'
 
 
@@ -212,11 +215,14 @@ def main():
         pass
 
     stats = {'new': 0, 'enrich': 0, 'skip': 0, 'miss': 0}
-    for bi in range(0, n, BATCH):
-        chunk = codes[bi:bi + BATCH]
-        got = call_wind_batch(chunk)
+    batches = [codes[bi:bi + BATCH] for bi in range(0, n, BATCH)]
+    print(f'  并发 {WORKERS} 路拉取 {len(batches)} 批...')
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        batch_got = list(ex.map(call_wind_batch, batches))   # 保持批次顺序
+    for bi, chunk in enumerate(batches):
+        got = batch_got[bi]
         if got is None:
-            print(f'  [{ts()}] 批次 {bi//BATCH+1}/{n_batch} 批量失败，回退单只')
+            print(f'  [{ts()}] 批次 {bi+1}/{n_batch} 批量失败，回退单只')
             got = {}
             for c in chunk:
                 d, dc, yc = call_wind_one(c)
@@ -237,8 +243,7 @@ def main():
             stats[r] += 1
             flag = {'new': '＋新增', 'enrich': '○补空', 'skip': '=已存'}[r]
             print(f'  [{ts()}] {c}: {date} 当日{dc} 今年{yc}  {flag}')
-        print(f'  [{ts()}] 批次 {bi//BATCH+1}/{n_batch} 完成（新增 {stats["new"]} / 补空 {stats["enrich"]} / 已存 {stats["skip"]} / 缺 {stats["miss"]}）')
-        time.sleep(SLEEP)
+        print(f'  [{ts()}] 批次 {bi+1}/{n_batch} 完成（新增 {stats["new"]} / 补空 {stats["enrich"]} / 已存 {stats["skip"]} / 缺 {stats["miss"]}）')
 
     if dry:
         print(f'[dry-run] 未写入。（新增 {stats["new"]} 补空 {stats["enrich"]} 已存 {stats["skip"]} 缺 {stats["miss"]}）')

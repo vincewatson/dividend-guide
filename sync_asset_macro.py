@@ -23,6 +23,7 @@
     python3 sync_asset_macro.py
 """
 import io, json, os, subprocess, time, tempfile, datetime
+from concurrent.futures import ThreadPoolExecutor
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE, 'data')
@@ -39,6 +40,9 @@ END = datetime.date.today().isoformat()
 
 # 租金代表性城市（中原地产口径，可扩充）
 RENT_CITIES = ['上海', '北京', '深圳', '广州', '成都', '天津']
+
+# 并发路数（2026-10-06 提速：各资产序列并发拉取；流水线本身串行，不会抬高 Wind 峰值并发）
+WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '6')))
 
 
 def ts():
@@ -411,15 +415,23 @@ def main():
         return safe_fetch(label, fn)
 
     result = {}
-    result['5年期LPR'] = step(1, 10, '5年期LPR', fetch_lpr)
-    result['3年期整存整取'] = step(2, 10, '3年期整存整取', lambda: expand_to_weekly(fetch_deposit(3)))
-    result['1年期整存整取'] = step(3, 10, '1年期整存整取', lambda: expand_to_weekly(fetch_deposit(1)))
-    result['人身保险产品预定利率研究值'] = step(4, 10, '人身保险产品预定利率研究值', lambda: expand_to_weekly(fetch_insurance()))
-    result['重点城市租金率(中原6城均值)'] = step(5, 10, '重点城市租金率(中原{}城均值)'.format(len(RENT_CITIES)), fetch_rent)
-    result['3年期储蓄国债'] = step(6, 10, '3年期储蓄国债', lambda: expand_to_weekly(fetch_bond_savings(3)))
-    result['5年期储蓄国债'] = step(7, 10, '5年期储蓄国债', lambda: expand_to_weekly(fetch_bond_savings(5)))
-    result['中证同业存单AAA指数'] = step(8, 10, '中证同业存单AAA指数', fetch_ncd)
-    result['天弘余额宝'] = step(9, 10, '天弘余额宝', load_yuebao)
+    # 并发拉取各资产序列（2026-10-06 提速）：各 fetch 相互独立、各写自己的 key；safe_fetch 只读旧值，线程安全。
+    jobs = [
+        ('5年期LPR', '5年期LPR', fetch_lpr),
+        ('3年期整存整取', '3年期整存整取', lambda: expand_to_weekly(fetch_deposit(3))),
+        ('1年期整存整取', '1年期整存整取', lambda: expand_to_weekly(fetch_deposit(1))),
+        ('人身保险产品预定利率研究值', '人身保险产品预定利率研究值', lambda: expand_to_weekly(fetch_insurance())),
+        ('重点城市租金率(中原6城均值)', '重点城市租金率(中原{}城均值)'.format(len(RENT_CITIES)), fetch_rent),
+        ('3年期储蓄国债', '3年期储蓄国债', lambda: expand_to_weekly(fetch_bond_savings(3))),
+        ('5年期储蓄国债', '5年期储蓄国债', lambda: expand_to_weekly(fetch_bond_savings(5))),
+        ('中证同业存单AAA指数', '中证同业存单AAA指数', fetch_ncd),
+        ('天弘余额宝', '天弘余额宝', load_yuebao),
+    ]
+    print('  [%s] 并发 %d 路拉取 %d 类资产序列 ...' % (ts(), WORKERS, len(jobs)), flush=True)
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        vals = list(ex.map(lambda j: safe_fetch(j[1], j[2]), jobs))
+    for (key, _label, _fn), v in zip(jobs, vals):
+        result[key] = v
     # REITs 两类序列由 sync_reits_daily.py 独立维护（日频口径，2026-08-15 起）：
     # 此处仅保留现有值，避免月度口径覆盖日频数据（且省去每周 58 次月度调用）
     # 重点50城租金率由用户/季度报告维护（中指研究院季度口径，2026-08-16 起），本脚本不覆盖（中原口径另存备用 key）
