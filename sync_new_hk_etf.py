@@ -217,13 +217,15 @@ def fetch_scale(wind_code):
 
 def build_row(fund, detail, size, today):
     fee = detail.get('feeRate', 0.0)            # 百分数（Wind 口径）
+    # 跟踪指数：优先 Wind，Wind 缺则回退中央数据库导出的 track_name
+    # （Wind 对部分新港ETF 不返回跟踪指数代码/名称，中央库仅有名称。）
     return {
         'code': fund['code'],
         'name': fund.get('name') or '',
         'fullname': fund.get('full_name') or '',
         'connect': bool(fund.get('hk_connect')),
         'trackCode': detail.get('trackCode', ''),
-        'trackName': detail.get('trackName', ''),
+        'trackName': detail.get('trackName', '') or (fund.get('track_name') or ''),
         'manager': detail.get('manager', ''),
         'listedDate': detail.get('foundDate', '') or '',
         'fee': '{:.2f}%'.format(fee) if fee else '0.00%',
@@ -238,8 +240,7 @@ def add_to_hk_etf(row):
     rows = load_json(HK_ETF, [])
     if any(isinstance(x, dict) and x.get('code') == row['code'] for x in rows):
         return False
-    rows.append(row)
-    rows.sort(key=lambda x: _code_int(x.get('code')))
+    rows.append(row)   # 只追加、不重排：保持现有展示顺序（curation 顺序 + 表外行追加）
     save_json(HK_ETF, rows)
     return True
 

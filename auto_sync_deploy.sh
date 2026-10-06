@@ -11,7 +11,7 @@
 #   - build_lists.py 自 2026-10-06（excel-exit P2）起**不再读 Excel**，清单/标注一律来自 data/curation/*.json
 #     2026-10-06（excel-exit P3）：由 sync_excel.py 更名为 build_lists.py；xlsx 已归档 archive/excel-baseline-*
 #   - 2026-10-06 新增清单「进出」两处（均编号外）：[生命周期体检] sync_lifecycle.py（「出」= 清盘/退市/终止）、
-#     [港ETF·进] sync_new_hk_etf.py（「进」= 新上市红利类港ETF，默认仅报告）——数据源均为
+#     [港ETF·进] sync_new_hk_etf.py（「进」= 新上市红利类港ETF，自动补入 hkEtfData）——数据源均为
 #     data/curation/_hk_etf_universe.json（中央数据库导出，与「策略魔方」同源）
 #   - check_data.py 验证全部 ✅ 才允许部署（硬门槛）
 # 三条铁律：写回绝不删除旧数据；历史序列起点早于图表起点；check_data 必须全 ✅
@@ -153,10 +153,11 @@ echo "===== [12/21] 新 ETF/新指数自动发现（Wind）====="
 run_py "sync_new_etf.py" sync_new_etf.py
 
 echo ""
-echo "===== [港ETF·进] 新港交所红利ETF 发现（中央数据库名单；2026-10-06 新增·编号外，不影响 1..21 计数）====="
+echo "===== [港ETF·进] 新港交所红利ETF 自动补入（中央数据库名单；2026-10-06 新增·编号外，不影响 1..21 计数）====="
 # 数据源 = data/curation/_hk_etf_universe.json 的 dividend_funds（中央数据库导出，与「策略魔方」同源）。
-# 默认仅报告（不修改数据）；如需自动补入 hkEtfData，把下一行改为： sync_new_hk_etf.py --add
-run_py "sync_new_hk_etf.py" sync_new_hk_etf.py || echo "  ⚠ 港ETF 发现失败，保留现有清单，下次重试"
+# 关键词筛红利类 + 排除 REIT + 按全称归并多柜台 → 与 hkEtfData 对照；新标的用 --add 拉 Wind 详情自动补入
+# （表外行护栏保证重建不丢）。已收录的不会重复补；行缺 trackCode/detailUrl 须人工补。
+run_py "sync_new_hk_etf.py --add" sync_new_hk_etf.py --add || echo "  ⚠ 港ETF 自动补入失败（Wind 抖动），保留现有清单，下次重试"
 
 echo ""
 echo "===== [13/21] 新 REITs 自动发现（Wind；2026-09-26 新增）====="
