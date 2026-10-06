@@ -197,5 +197,10 @@
    - 当日该档位调用数 ≥ 预算 → **拒绝**后续调用（返回 rc=3 合成结果），并把当前步骤记入 `.wind_pending.json`；脚本走「保留旧值」路径**安全降级**。
    - **先补 pending**：`auto_sync_deploy.sh` 开头读取 pending，本次**无论档位都先跑**这些步骤（读后清空）。
    - 档位：**日更**（默认，日常日频数据）/ **周更**（`bash auto_sync_deploy.sh --weekly`，仅周级步骤：分红日期、生命周期、新 REITs/新 ETF/港 ETF、月月发现）；`preflight.py --weekly` 预览周更计划。备份/校验/内嵌（17/18/19）两档都跑。
+4. **一次构建 + 合并写入 + 运行报告（2026-10-07 新增，重构阶段 3/4）**
+   - `build_lists` **只跑一次**（置原第 11 步位置）：assetData 取当日最新 divHistory；其后 new_*/fund_divdate/wind_fields 再更新。重建**保留** divDate/size/divHistory/dailyChange/yrChange（旧不覆盖新）。
+   - 取数步骤**合并写入**：`sync_daily_change`/`sync_money_fund` 加日期守卫（本次日期早于现有则不写）；序列类步骤只补缺口/追加。
+   - `sync_div_history` **按市场补缺口**（目标日按指数所属市场日历）；`fix_laggard_indexes.py` 已删除（逻辑并入 div_history）。
+   - **运行报告**：每次运行末尾 `make_run_report.py` 生成 **`logs/update-YYYYMMDD-HHMM.md`**（逐项「已更新/本次不跑(原因)/失败」+ Wind 次数 + 耗时）。
 
-> 两者产物 `.wind_calls_*` / `.run_state.json` / `.wind_usage/` / `.wind_pending.json` 均**不入库**（已加入 `.gitignore`）。经验：先做**轻量/单项验证**，确认无误后当日**只整跑一次**。
+> 产物 `.wind_calls_*` / `.run_state.json` / `.wind_usage/` / `.wind_pending.json` / `.run_timings.jsonl` / `.run_report.jsonl` / `logs/` 均**不入库**（已加入 `.gitignore`）。经验：先做**轻量/单项验证**，确认无误后当日**只整跑一次**。

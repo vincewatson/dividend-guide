@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 # ============================================================
-# 食息指南 · 每周同步部署脚本（2026-08-11 定稿；2026-09-19 修订：编号统一为连续 1..20）
-#   2026-09-26 修订：新增 [13/21] sync_new_reits.py（新 REITs 自动发现），原 13–20 步顺延为 14–21，总步数 21
-#   ↑ 步骤编号：[3/21] 语法预检 + [4..21/21]；步骤 1–2（修订文档 / 确认任务逻辑）由任务层在上游完成
+# 食息指南 · 同步部署脚本（2026-08-11 定稿；2026-09-19 编号 1..20；2026-09-26 增步骤 → 1..21）
+#   2026-10-07 重构阶段2/3：分「日更 / 周更」两档；重建数据只跑一次；分红日期等移周更。
+#   ↑ 步骤编号：[3/21] 语法预检 + [5..21/21]；步骤 1–2（修订文档/确认逻辑）由任务层完成；
+#     原 [4/21] build_lists(1) 与 [11/21] build_lists(2) 合并为**一次** build_lists（置于原第 11 步位置，
+#     以确保 assetData 取到当日最新 divHistory，同时「新名单/分红日期/字段」等仍在其后更新）。
 # 顺序关键点（防复发）：
 #   - 步骤 3：全部 .py 语法预检（防 // 注释类错误）
-#   - build_lists（原 sync_excel）跑两次：第二次在 div_history/daily_change/money_fund/yuebao 之后，
-#     build_asset_data 才能取到最新 divHistory（红利指数）与 moneyFundData.yieldDate（余额宝）
-#   - sync_fund_divdate 必须在最后一次 build_lists 之后（build_lists 重建会覆盖 divDate）
-#   - build_lists.py 自 2026-10-06（excel-exit P2）起**不再读 Excel**，清单/标注一律来自 data/curation/*.json
-#     2026-10-06（excel-exit P3）：由 sync_excel.py 更名为 build_lists.py；xlsx 已归档 archive/excel-baseline-*
-#   - 2026-10-06 新增清单「进出」两处（均编号外）：[生命周期体检] sync_lifecycle.py（「出」= 清盘/退市/终止）、
-#     [港ETF·进] sync_new_hk_etf.py（「进」= 新上市红利类港ETF，自动补入 hkEtfData）——数据源均为
-#     data/curation/_hk_etf_universe.json（中央数据库导出，与「策略魔方」同源）
+#   - build_lists **只跑一次**（原第 11 步位置）：在 div_history/daily_change 之后、rebuild 后 assetData 取最新 divHistory/yieldDate；
+#     其后 new_etf/new_reits/new_monthly/fund_divdate/wind_fields 再更新；build_lists 重建已改为**保留** divDate/size/divHistory/dailyChange/yrChange（合并写入）
+#   - sync_fund_divdate 在（唯一一次）build_lists 之后
+#   - build_lists.py 自 2026-10-06 起**不再读 Excel**，清单/标注一律来自 data/curation/*.json
 #   - check_data.py 验证全部 ✅ 才允许部署（硬门槛）
 # 三条铁律：写回绝不删除旧数据；历史序列起点早于图表起点；check_data 必须全 ✅
 # ============================================================
@@ -20,10 +18,6 @@ set -e
 cd "$(dirname "$0")"
 
 # Cloudflare Pages 部署凭据（2026-10-03 由 Vercel 迁移）
-#   从项目外的文件读取：~/.config/dividend-guide/cloudflare-token（一行 API token）
-#                       ~/.config/dividend-guide/cloudflare-account（一行 Account ID）
-#   也可用环境变量 CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID
-#   放在开头检查，避免跑完 20 分钟取数才发现无法部署
 CF_DIR="$HOME/.config/dividend-guide"
 if [ -z "$CLOUDFLARE_API_TOKEN" ] && [ -f "$CF_DIR/cloudflare-token" ]; then
   CLOUDFLARE_API_TOKEN="$(tr -d '[:space:]' < "$CF_DIR/cloudflare-token")"
@@ -39,36 +33,32 @@ export CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 
 # ------------------------------------------------------------
 # [额度闸] 每日整跑闸（2026-10-06 新增）
-#   防止同日重复整跑耗尽 Wind 额度（2026-10-06 事故复盘：多轮整跑 + 零散单项验证把 2000 次/日额度用尽）。
-#   默认每天最多整跑 1 次；已达上限则直接退出（不启动流水线，避免「跑一半没额度」）。
-#   覆盖：SX_FORCE_RUN=1 强制再跑；上限：SX_MAX_FULL_RUNS（默认 1）。
-#   同时打印今日 Wind 调用用量（由 wind_guard_cli.mjs 记入 .wind_calls_<date>）。
+#   默认每天最多整跑 1 次；已达上限则直接退出。覆盖：SX_FORCE_RUN=1；上限：SX_MAX_FULL_RUNS。
 # ------------------------------------------------------------
 if ! python3 run_gate.py; then
   echo "⛔ 本次整跑被额度闸拦截。如确需再跑：SX_FORCE_RUN=1 bash auto_sync_deploy.sh"
   exit 0
 fi
 
-# 强制 Python 无缓冲输出：重定向/管道时避免 stdout 块缓冲导致"长时间无进展、像卡住"（2026-09-19 优化）
 export PYTHONUNBUFFERED=1
 
 # ------------------------------------------------------------
-# 计时 + 心跳辅助（2026-09-19 优化）
-#   目的：每个 Python 步骤打印「开始/结束 + 耗时」；单步运行超过 30s 时每 30s 打一次心跳，
-#   避免长时间无输出被误判为"卡死"。兼容 macOS 自带 bash 3.2（不使用 wait -n / wait -p）。
+# 计时 + 心跳 + 运行报告（2026-09-19 / 2026-10-06 / 2026-10-07）
 # ------------------------------------------------------------
-# 每步耗时落盘（2026-10-06 新增）：此前耗时只打印、不留存，无法事后定位瓶颈。
-#   每次运行清空重建；格式 = 每行一个 JSON {label,sec,rc}。流水线末尾打印降序汇总。
 TIMINGS_FILE=".run_timings.jsonl"
 : > "$TIMINGS_FILE"
+# 运行报告事件流（每次运行清空重建；末尾 make_run_report.py 汇总为 logs/update-*.md）
+RUN_REPORT=".run_report.jsonl"
+: > "$RUN_REPORT"
+report_event() { printf '{"label":"%s","status":"%s","reason":"%s"}\n' "$1" "$2" "$3" >> "$RUN_REPORT"; }
+# 本次运行起点用量快照（用于报告里的「本次」增量）
+python3 -c "import json,wind_client; json.dump(wind_client.load(), open('.run_usage_baseline.json','w',encoding='utf-8'))" 2>/dev/null || true
 
 run_py() {
   local label="$1"; shift
   local t0=$(date +%s)
   echo "  ⏱  [$(date '+%H:%M:%S')] 开始：$label"
-  # 注入步骤名：wind_client.py 据此把本步的 Wind 调用数记入 .wind_usage/<date>.json（阶段 0 计数）
   export SX_WIND_STEP="$label"
-  # 后台运行以便心跳探测；PYTHONUNBUFFERED=1 已导出，脚本自身输出实时可见
   python3 "$@" &
   local pid=$!
   while kill -0 "$pid" 2>/dev/null; do
@@ -88,17 +78,16 @@ run_py() {
   printf '{"label":"%s","sec":%s,"rc":%s}\n' "$label" "$dur" "$rc" >> "$TIMINGS_FILE"
   if [ $rc -eq 0 ]; then
     echo "  ✅ [$(date '+%H:%M:%S')] 完成：$label（耗时 ${dur}s）"
+    report_event "$label" ran ""
   else
     echo "  ❌ [$(date '+%H:%M:%S')] 失败：$label（耗时 ${dur}s，退出码 $rc）"
+    report_event "$label" fail "退出码 $rc"
   fi
   return $rc
 }
 
 # ------------------------------------------------------------
 # [档位] 日更 / 周更（2026-10-07 · 重构阶段2）
-#   日更（默认）：日频数据；周更（--weekly）：仅周级步骤（分红日期/生命周期/新REITs/新ETF/月月发现）。
-#   SX_WIND_MODE 透传 wind_client（决定预算 300/800 与计数档位）。
-#   「先补 pending」：上次因额度不足中断的步骤，本次无论档位都先跑（读取后清空，触预算会重写）。
 # ------------------------------------------------------------
 MODE="daily"
 for _a in "$@"; do [ "$_a" = "--weekly" ] && MODE="weekly"; done
@@ -123,8 +112,7 @@ step_on() {   # $1=步骤号  $2=代表 label 关键字
     case " $WEEKLY_NUMS " in *" $1 "*) return 1 ;; *) return 0 ;; esac
   fi
 }
-# 编号外步骤是否执行
-label_on() {  # $1=代表 label 关键字
+label_on() {  # 编号外步骤是否执行：$1=代表 label 关键字
   pending_has "$1" && return 0
   local _w=1 _l
   for _l in $WEEKLY_LABELS; do case "$1" in *"$_l"*) _w=0 ;; esac; done
@@ -134,12 +122,7 @@ label_on() {  # $1=代表 label 关键字
 echo "===== 本次档位：$([ "$MODE" = weekly ] && echo '周更（仅周级步骤）' || echo '日更（默认）') ====="
 
 # ------------------------------------------------------------
-# [预检] 更新前体检（2026-10-04 新增）
-#   判断今天 A股/港股是否开盘、哪些数据域已覆盖到最新交易日、建议跑/跳过哪些步骤。
-#   只读，不修改数据。默认仅报告。日更下可按建议跳过已是最新的步骤：
-#     ① 显式指定：SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh
-#     ② 自动采纳：PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh
-#   （保守：仅跳过纯 Wind 日频 + 资讯步骤；build_lists/校验/部署等一律保留）
+# [预检] 更新前体检（2026-10-04 新增）。日更下可按建议跳过已是最新步骤（PREFLIGHT_AUTO=1）。
 # ------------------------------------------------------------
 echo "===== [预检] 更新前体检（preflight.py）====="
 PF_ARGS=""; [ "$MODE" = "weekly" ] && PF_ARGS="--weekly"
@@ -152,7 +135,7 @@ if [ -n "$SKIP_STEPS" ]; then
 fi
 should_skip() { case " $SKIP_STEPS " in *" $1 "*) return 0 ;; esac; return 1; }
 
-echo "===== [3/21] 脚本语法预检（全部 .py；步骤 1–2 修订文档/确认逻辑由任务层完成）====="
+echo "===== [3/21] 脚本语法预检（全部 .py）====="
 for f in *.py; do
   python3 -c "import ast; ast.parse(open('$f', encoding='utf-8').read())" || { echo "[ERROR] $f 语法错误"; exit 1; }
 done
@@ -161,29 +144,19 @@ echo "✅ 全部 $(ls *.py | wc -l | tr -d ' ') 个脚本语法 OK"
 echo ""
 if label_on "sync_lifecycle.py"; then
 echo "===== [编号外] 生命周期体检：停用已清盘/结束标的（Wind「基金到期日」）====="
-# 停用机制（excel-exit 机制 B）：境内红利ETF/港交所红利ETF/REITs/货币基金的「出」= 基金已结束。
-#   判据：Wind「基金到期日」≤ 今天 → 已结束 → 写入 data/curation/_retired.json；build_lists 重建时跳过（历史数据不删，删条目即恢复）。
-#   频率：清盘罕见，脚本自带约 28 天节流（SX_LIFECYCLE_DAYS），平时秒退；Wind 抖动不阻断。
 run_py "sync_lifecycle.py" sync_lifecycle.py || echo "  ⚠ 生命周期体检失败（Wind 抖动），保留现有停用名单，下次重试"
 else
-echo "===== [编号外] 生命周期体检 — ⏭ 跳过（周更步骤）====="
-fi
-
-echo ""
-if step_on 4 "build_lists.py"; then
-echo "===== [4/21] 从 curation 重建数据（第一次；原 sync_excel，现 build_lists，不读 Excel）====="
-run_py "build_lists.py（第一次）" build_lists.py
-else
-echo "===== [4/21] 从 curation 重建数据（第一次）— ⏭ 跳过 ====="
+echo "===== [编号外] 生命周期体检 — ⏭ 跳过 ====="
+report_event "sync_lifecycle.py" skip "周更步骤（本次日更不跑）"
 fi
 
 echo ""
 if step_on 5 "sync_div_history.py" && ! should_skip 5; then
-echo "===== [5/21] 同步股息率历史（Wind）====="
+echo "===== [5/21] 同步股息率历史（Wind，只补缺口）====="
 run_py "sync_div_history.py" sync_div_history.py
-run_py "fix_laggard_indexes.py" fix_laggard_indexes.py
 else
-echo "===== [5/21] 同步股息率历史 — ⏭ 跳过（档位/预检：已是最新交易日）====="
+echo "===== [5/21] 同步股息率历史 — ⏭ 跳过 ====="
+report_event "sync_div_history.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步骤（本次周更不跑）' || echo '预检：已是最新交易日')"
 fi
 
 echo ""
@@ -191,7 +164,8 @@ if step_on 6 "sync_daily_change.py" && ! should_skip 6; then
 echo "===== [6/21] 同步每日涨跌幅（Wind）====="
 run_py "sync_daily_change.py" sync_daily_change.py
 else
-echo "===== [6/21] 同步每日涨跌幅 — ⏭ 跳过（档位/预检）====="
+echo "===== [6/21] 同步每日涨跌幅 — ⏭ 跳过 ====="
+report_event "sync_daily_change.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步骤（本次周更不跑）' || echo '预检：已是最新交易日')"
 fi
 
 echo ""
@@ -199,7 +173,8 @@ if step_on 7 "sync_money_fund.py" && ! should_skip 7; then
 echo "===== [7/21] 同步货币基金实时收益率（Wind）====="
 run_py "sync_money_fund.py" sync_money_fund.py
 else
-echo "===== [7/21] 同步货币基金实时收益率 — ⏭ 跳过（档位/预检）====="
+echo "===== [7/21] 同步货币基金实时收益率 — ⏭ 跳过 ====="
+report_event "sync_money_fund.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步骤（本次周更不跑）' || echo '预检：已是最新交易日（A股休市，无新数据）')"
 fi
 
 echo ""
@@ -207,7 +182,8 @@ if step_on 8 "sync_yuebao_history.py" && ! should_skip 8; then
 echo "===== [8/21] 同步余额宝7日年化历史（Wind）====="
 run_py "sync_yuebao_history.py" sync_yuebao_history.py
 else
-echo "===== [8/21] 同步余额宝7日年化历史 — ⏭ 跳过（档位/预检）====="
+echo "===== [8/21] 同步余额宝7日年化历史 — ⏭ 跳过 ====="
+report_event "sync_yuebao_history.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步骤（本次周更不跑）' || echo '预检：已是最新交易日（A股休市，无新数据）')"
 fi
 
 echo ""
@@ -215,96 +191,93 @@ if step_on 9 "sync_asset_macro.py" && ! should_skip 9; then
 echo "===== [9/21] 同步宏观资产历史（Wind）====="
 run_py "sync_asset_macro.py" sync_asset_macro.py
 else
-echo "===== [9/21] 同步宏观资产历史 — ⏭ 跳过（档位/预检）====="
+echo "===== [9/21] 同步宏观资产历史 — ⏭ 跳过 ====="
+report_event "sync_asset_macro.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步骤（本次周更不跑）' || echo '预检：已是最新交易日（A股休市，无新数据）')"
 fi
 
 echo ""
 if step_on 10 "sync_reits_daily.py" && ! should_skip 10; then
-echo "===== [10/21] 同步 REITs 日频增量（asset_macro 不覆盖 REITs）====="
+echo "===== [10/21] 同步 REITs 日频增量（Wind）====="
 run_py "sync_reits_daily.py" sync_reits_daily.py
 else
-echo "===== [10/21] 同步 REITs 日频增量 — ⏭ 跳过（档位/预检）====="
+echo "===== [10/21] 同步 REITs 日频增量 — ⏭ 跳过 ====="
+report_event "sync_reits_daily.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步骤（本次周更不跑）' || echo '预检：已是最新交易日（A股休市，无新数据）')"
 fi
 
 echo ""
-if step_on 11 "build_lists.py"; then
-echo "===== [11/21] 从 curation 重建数据（第二次！assetData 取最新 divHistory/yieldDate）====="
-run_py "build_lists.py（第二次）" build_lists.py
-else
-echo "===== [11/21] 从 curation 重建数据（第二次）— ⏭ 跳过 ====="
-fi
+echo "===== [重建] 从 curation 重建数据（唯一一次；assetData 取最新 divHistory/yieldDate）====="
+run_py "build_lists.py" build_lists.py
 
 echo ""
 if step_on 12 "sync_new_etf.py"; then
 echo "===== [12/21] 新 ETF/新指数自动发现（Wind）====="
 run_py "sync_new_etf.py" sync_new_etf.py
 else
-echo "===== [12/21] 新 ETF/新指数自动发现 — ⏭ 跳过（周更步骤）====="
+echo "===== [12/21] 新 ETF/新指数自动发现 — ⏭ 跳过 ====="
+report_event "sync_new_etf.py" skip "周更步骤（本次日更不跑）"
 fi
 
 echo ""
 if label_on "sync_new_hk_etf.py"; then
-echo "===== [港ETF·进] 新港交所红利ETF 自动补入（中央数据库名单；2026-10-06 新增·编号外）====="
-# 数据源 = data/curation/_hk_etf_universe.json 的 dividend_funds（中央数据库导出，与「策略魔方」同源）。
-# 关键词筛红利类 + 排除 REIT + 按全称归并多柜台 → 与 hkEtfData 对照；新标的用 --add 拉 Wind 详情自动补入
-# （表外行护栏保证重建不丢）。已收录的不会重复补；行缺 trackCode/detailUrl 须人工补。
+echo "===== [港ETF·进] 新港交所红利ETF 自动补入（中央数据库名单·编号外）====="
 run_py "sync_new_hk_etf.py --add" sync_new_hk_etf.py --add || echo "  ⚠ 港ETF 自动补入失败（Wind 抖动），保留现有清单，下次重试"
 else
-echo "===== [港ETF·进] 新港交所红利ETF 自动补入 — ⏭ 跳过（周更步骤）====="
+echo "===== [港ETF·进] 新港交所红利ETF 自动补入 — ⏭ 跳过 ====="
+report_event "sync_new_hk_etf.py --add" skip "周更步骤（本次日更不跑）"
 fi
 
 echo ""
 if step_on 13 "sync_new_reits.py"; then
-echo "===== [13/21] 新 REITs 自动发现（Wind；2026-09-26 新增）====="
+echo "===== [13/21] 新 REITs 自动发现（Wind）====="
 run_py "sync_new_reits.py" sync_new_reits.py
 else
-echo "===== [13/21] 新 REITs 自动发现 — ⏭ 跳过（周更步骤）====="
+echo "===== [13/21] 新 REITs 自动发现 — ⏭ 跳过 ====="
+report_event "sync_new_reits.py" skip "周更步骤（本次日更不跑）"
 fi
 
 echo ""
 if label_on "sync_new_monthly.py"; then
-echo "===== [月月名单] 自动补入（Wind；2026-10-06 新增·编号外）====="
-# 全市场检索「近1年分红次数 ≥ 11」的指数产品（A 类去重）→ 自动补入月月分红名单（etfData/fundData）。
-# 位置关键：必须在 step 11 build_lists(2) 之后（产出的是 curation 表外行，靠 build_lists 表外行护栏保留）、
-#           且在 step 14 之前（同轮紧接刷 divDate + prune_stale_monthly 剔除超期成员）。Wind 抖动失败不阻断。
+echo "===== [月月名单] 自动补入（Wind·编号外）====="
 run_py "sync_new_monthly.py" sync_new_monthly.py || echo "  ⚠ 月月名单自动补入失败（Wind 抖动），保留现有名单，下次重试"
 else
-echo "===== [月月名单] 自动补入 — ⏭ 跳过（周更步骤）====="
+echo "===== [月月名单] 自动补入 — ⏭ 跳过 ====="
+report_event "sync_new_monthly.py" skip "周更步骤（本次日更不跑）"
 fi
 
 echo ""
 if label_on "sync_product_quotes.py"; then
-echo "===== [产品行情] 快照入库（Wind；2026-10-05 新增·编号外）====="
-# 拉取各 ETF/基金【当日涨跌幅】【今年以来回报】，按日期打标签【追加】到 data/productQuotes.json
-# （只追加不覆盖：历史快照永久保留；产品回报绝不跨取跟踪指数）。Wind 抖动失败不阻断后续步骤。
-# ⚠️ 位置（2026-10-06 调整）：必须放在「月月名单自动补入」**之后** —— 补入的新产品才能在同轮拿到行情快照。
+echo "===== [产品行情] 快照入库（Wind·编号外）====="
 run_py "sync_product_quotes.py" sync_product_quotes.py || echo "  ⚠ 产品行情快照失败（Wind 抖动），保留已有快照，下次重试"
 else
-echo "===== [产品行情] 快照入库 — ⏭ 跳过（日更步骤）====="
+echo "===== [产品行情] 快照入库 — ⏭ 跳过 ====="
+report_event "sync_product_quotes.py" skip "日更步骤（本次周更不跑）"
 fi
 
 echo ""
 if step_on 14 "sync_fund_divdate.py"; then
-echo "===== [14/21] 恢复基金最近分红日期（Wind，覆盖被 curation 重建覆盖的 divDate）====="
+echo "===== [14/21] 恢复基金最近分红日期（Wind）====="
 run_py "sync_fund_divdate.py all --force" sync_fund_divdate.py all --force
 else
-echo "===== [14/21] 恢复基金最近分红日期 — ⏭ 跳过（周更步骤）====="
+echo "===== [14/21] 恢复基金最近分红日期 — ⏭ 跳过 ====="
+report_event "sync_fund_divdate.py all --force" skip "周更步骤（本次日更不跑）"
 fi
 
 echo ""
 if step_on 15 "sync_wind_fields.py"; then
-echo "===== [15/21] 字段级 Wind 化（fundCount/ETF字段/月月分红字段，2026-08-16）====="
+echo "===== [15/21] 字段级 Wind 化（fundCount/ETF字段/月月分红字段）====="
 run_py "sync_wind_fields.py all" sync_wind_fields.py all
 else
-echo "===== [15/21] 字段级 Wind 化 — ⏭ 跳过（日更步骤）====="
+echo "===== [15/21] 字段级 Wind 化 — ⏭ 跳过 ====="
+report_event "sync_wind_fields.py all" skip "日更步骤（本次周更不跑）"
 fi
 
 echo ""
 if step_on 16 "sync_daily.py" && ! should_skip 16; then
-echo "===== [16/21] 同步食息资讯（日报；只读 digest-db.json）====="
+echo "===== [16/21] 同步食息资讯（日报）====="
 run_py "sync_daily.py" sync_daily.py
 else
-echo "===== [16/21] 同步食息资讯（日报）— ⏭ 跳过（档位/预检）====="
+echo "===== [16/21] 同步食息资讯（日报）— ⏭ 跳过 ====="
+report_event "sync_daily.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步骤（本次周更不跑）' || echo '预检：digest 源无新日期')"
 fi
 
 echo ""
@@ -320,21 +293,28 @@ echo "===== [19/21] 刷新内嵌兜底数据 ====="
 run_py "embed_data.py" embed_data.py
 
 echo ""
-if [ "$SX_NO_DEPLOY" = "1" ]; then echo "===== [20/21] 部署到 Cloudflare Pages — ⏭ 跳过（SX_NO_DEPLOY=1，只跑数据）====="; else
-echo "===== [20/21] 部署到 Cloudflare Pages ====="
-# 2026-10-03 迁移：原 Vercel 直传 → Cloudflare Pages 直传（含 functions/ 与 _redirects/_headers）
-bash "$(pwd)/deploy_cloudflare.sh"
+if [ "$SX_NO_DEPLOY" = "1" ]; then
+  echo "===== [20/21] 部署到 Cloudflare Pages — ⏭ 跳过（SX_NO_DEPLOY=1）====="
+  report_event "部署 deploy_cloudflare" skip "SX_NO_DEPLOY=1（只跑数据）"
+else
+  echo "===== [20/21] 部署到 Cloudflare Pages ====="
+  bash "$(pwd)/deploy_cloudflare.sh"
+  report_event "部署 deploy_cloudflare" ran ""
 fi
 
 echo ""
-if [ "$SX_NO_DEPLOY" = "1" ]; then echo "===== [21/21] 线上验证 — ⏭ 跳过（SX_NO_DEPLOY=1）====="; else
-echo "===== [21/21] 线上验证（最多等待 20 秒，避免网络被拦截时无限挂起）====="
-env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u NODE_USE_ENV_PROXY \
-  curl -s --connect-timeout 10 --max-time 20 "https://divlab.net/?cmp=$(date +%s)" | grep -o '数据更新于[^<]*' | head -1 || echo "（线上验证被网络拦截或页面文案已改版，请手动确认）"
+if [ "$SX_NO_DEPLOY" = "1" ]; then
+  echo "===== [21/21] 线上验证 — ⏭ 跳过（SX_NO_DEPLOY=1）====="
+  report_event "线上验证" skip "SX_NO_DEPLOY=1"
+else
+  echo "===== [21/21] 线上验证（最多等待 20 秒）====="
+  env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u NODE_USE_ENV_PROXY \
+    curl -s --connect-timeout 10 --max-time 20 "https://divlab.net/?cmp=$(date +%s)" | grep -o '数据更新于[^<]*' | head -1 || echo "（线上验证被网络拦截或页面文案已改版，请手动确认）"
+  report_event "线上验证" ran ""
 fi
 
 echo ""
-echo "===== [耗时汇总] 本次各步耗时（降序 · 供优化定位）====="
+echo "===== [耗时汇总] 本次各步耗时（降序）====="
 python3 - "$TIMINGS_FILE" <<'PY'
 import json, sys
 p = sys.argv[1]
@@ -355,6 +335,10 @@ if rows:
 else:
     print("  （无耗时记录）")
 PY
+
+echo ""
+echo "===== [运行报告] 生成 logs/update-YYYYMMDD-HHMM.md ====="
+python3 make_run_report.py --mode "$MODE" --deploy "$([ "$SX_NO_DEPLOY" = "1" ] && echo skipped || echo done)" || echo "（运行报告生成失败，忽略）"
 
 echo ""
 echo "✅ 同步完成！请访问 https://divlab.net"

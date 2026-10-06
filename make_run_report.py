@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""运行报告生成器（2026-10-07 · 重构阶段：每次运行留一份报告）
+
+读取本次运行落盘的：
+  - `.run_report.jsonl`      每步事件 {label,status,reason}（run_py / skip 分支写入）
+  - `.run_timings.jsonl`     每步耗时 {label,sec,rc}
+  - `.run_usage_baseline.json` 运行开始时的 .wind_usage 快照（用于算「本次」增量）
+  - `.wind_usage/<date>.json`  当日累计（含本次）
+  - `.wind_pending.json`     额度不足待补
+输出：
+  - `logs/update-YYYYMMDD-HHMM.md`
+
+用法（auto_sync_deploy.sh 末尾）：
+    python3 make_run_report.py --mode daily --deploy skipped
+"""
+import argparse
+import datetime
+import io
+import json
+import os
+import sys
+
+BASE = os.path.dirname(os.path.abspath(__file__))
+import wind_client  # noqa  提供 load()/used_mode()/MODE/BUDGET/load_pending()
+
+REPORT_JSONL = os.path.join(BASE, '.run_report.jsonl')
+BASELINE = os.path.join(BASE, '.run_usage_baseline.json')
+LOGS_DIR = os.path.join(BASE, 'logs')
+
+
+def _read_jsonl(p):
+    out = []
+    try:
+        with io.open(p, encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    out.append(json.loads(line))
+    except Exception:
+        pass
+    return out
+
+
+def _baseline():
+    try:
+        with io.open(BASELINE, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {"total": 0, "by_step": {}}
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--mode', default='daily')
+    ap.add_argument('--deploy', default='skipped')
+    ap.add_argument('--rc-checks', default='')
+    args = ap.parse_args()
+
+    now = datetime.datetime.now()
+    events = _read_jsonl(REPORT_JSONL)
+    timings = {r.get('label'): r for r in _read_jsonl(os.path.join(BASE, '.run_timings.jsonl'))}
+    cur = wind_client.load()
+    base = _baseline()
+    pend = wind_client.load_pending()
+
+    cur_by_step = cur.get('by_step') or {}
+    base_by_step = base.get('by_step') or {}
+
+    def delta_n(label):
+        return int(cur_by_step.get(label, {}).get('n', 0)) - int(base_by_step.get(label, {}).get('n', 0))
+
+    run_total = int(cur.get('total', 0)) - int(base.get('total', 0))
+    mode_name = '周更' if args.mode == 'weekly' else '日更'
+    budget = wind_client.BUDGET
+
+    lines = []
+    lines.append('# 食息指南 · 数据更新运行报告\n')
+    lines.append('- 生成时间：%s' % now.strftime('%Y-%m-%d %H:%M:%S'))
+    lines.append('- 档位：**%s**（`SX_WIND_MODE=%s`）' % (mode_name, args.mode))
+    lines.append('- Wind 调用：**本次 %d 次**；当日该档位累计 %d / 预算 %d；当日合计 %d / 硬上限 %d'
+                 % (run_total, wind_client.used_mode(), budget,
+                    int(cur.get('total', 0)), wind_client.CAP))
+    if pend:
+        lines.append('- 待补（额度不足，下次先跑）：%s' % '、'.join(pend))
+    else:
+        lines.append('- 待补：无')
+    lines.append('- 部署：%s' % ('跳过（SX_NO_DEPLOY=1）' if args.deploy == 'skipped' else '已执行'))
+    lines.append('')
+    lines.append('| 步骤/脚本 | 结果 | 说明 | Wind | 耗时(s) |')
+    lines.append('|---|---|---|---:|---:|')
+    STATUS = {'ran': '✅ 已更新', 'fail': '❌ 失败（保留旧值）', 'skip': '⏭ 本次不跑'}
+    for e in events:
+        label = e.get('label', '?')
+        st = e.get('status', '')
+        reason = e.get('reason', '') or ''
+        sec = timings.get(label, {}).get('sec', '')
+        if st == 'skip':
+            lines.append('| %s | %s | %s | — | — |' % (label, STATUS['skip'], reason))
+        else:
+            lines.append('| %s | %s | %s | %d | %s |'
+                         % (label, STATUS.get(st, st), reason, delta_n(label),
+                            sec if sec != '' else '—'))
+
+    # 汇总
+    ok = sum(1 for e in events if e.get('status') == 'ran')
+    fail = sum(1 for e in events if e.get('status') == 'fail')
+    skip = sum(1 for e in events if e.get('status') == 'skip')
+    lines.append('')
+    lines.append('**汇总**：已更新 %d 步、失败 %d 步、本次不跑 %d 步；本次 Wind %d 次。'
+                 % (ok, fail, skip, run_total))
+    lines.append('')
+    lines.append('> 说明：「本次不跑」的原因包括 **非本档位步骤**（如周更不含日更步骤）与 **预检判定已是最新交易日**（无新数据）。')
+
+    os.makedirs(LOGS_DIR, exist_ok=True)
+    out = os.path.join(LOGS_DIR, 'update-%s.md' % now.strftime('%Y%m%d-%H%M'))
+    with io.open(out, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines) + '\n')
+    print('[运行报告] 已生成：%s' % os.path.relpath(out, BASE))
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

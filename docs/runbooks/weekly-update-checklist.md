@@ -34,6 +34,8 @@
 > **Wind 额度保护（2026-10-06 新增；不计入编号）**：① **调用级**——每次真实 Wind 调用经 `wind_guard_cli.mjs` 计数（`.wind_calls_<date>`），当日 ≥ `SX_WIND_DAILY_CAP`（默认 **2000**）即**拒绝**（脚本安全降级、保留旧值）；② **整跑级**——流水线开头 `run_gate.py` 记录 `.run_state.json`，**当日整跑达 `SX_MAX_FULL_RUNS`（默认 1）即拒绝启动**（强制再跑：`SX_FORCE_RUN=1`）。经验：**先做轻量/单项验证，确认无误后当日只整跑一次**。
 >
 > **档位（2026-10-07 新增；重构阶段 2；不计入编号）**：流水线分**日更**（默认）与**周更**（`bash auto_sync_deploy.sh --weekly`）两档——**周更仅跑周级步骤**（分红日期 14、生命周期、新 REITs 13、新 ETF 12、港 ETF、月月发现）；日更跑其余日频步骤（备份/校验/内嵌 17/18/19 两档都跑）。**按档位每日预算**：日更 300 / 周更 800 次（`SX_WIND_BUDGET` 可调），用满即**停并记 `.wind_pending.json`**、下次运行**先补**。`preflight.py --weekly` 可预览周更计划。只跑数据不部署：`SX_NO_DEPLOY=1`。
+>
+> **阶段 3/4（2026-10-07 新增；不计入编号）**：`build_lists` **只跑一次**（原第 4、11 步合并为一次，置原第 11 步位置）；重建**保留** divDate/size/divHistory/dailyChange/yrChange（旧不覆盖新）；`sync_div_history` **按市场补缺口**（A股休市不再把 A股指数当滞后反复重查）、**`fix_laggard_indexes.py` 已删除**（逻辑并入 div_history）；`sync_daily_change` 重试等待默认 2s、批量失败先对半拆批、按市场跳过已到最新的指数。**每次运行末尾生成 `logs/update-YYYYMMDD-HHMM.md` 运行报告**（逐项结果/原因/Wind 次数/耗时）。
 
 | 步骤 | 脚本 | 更新内容 |
 |------|------|---------|

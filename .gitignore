@@ -19,6 +19,9 @@ __pycache__/
 .wind_calls_*
 .wind_usage/
 .wind_pending.json
+.run_report.jsonl
+.run_usage_baseline.json
+logs/
 
 # ---- 仓库为 public：用户原始数据与上传文件禁止入库 ----
 data/user/

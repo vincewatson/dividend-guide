@@ -90,6 +90,12 @@ def main():
             continue
         for fund in funds:
             if fund['code'] == code:
+                # 合并写入（2026-10-07 阶段3）：本次日期早于现有 yieldDate 时不覆盖（旧值不覆盖新值）
+                new_date = data.get('yieldDate') or ''
+                old_date = str(fund.get('yieldDate') or '')
+                if new_date and old_date and new_date < old_date:
+                    print('[SKIP] {} 取到 {} 早于现有 {}（保留旧值）'.format(fund['name'], new_date, old_date), flush=True)
+                    break
                 fund['yield7dNum'] = data['yield7d']
                 fund['yield7d'] = '{:.3f}%'.format(data['yield7d'] * 100)
                 fund['dailyWan'] = round(data['dailyWan'], 4)

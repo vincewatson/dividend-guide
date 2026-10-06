@@ -154,6 +154,18 @@
   - `auto_sync_deploy.sh` 加 `--weekly` 档位门控（`step_on`/`label_on`），编号外步骤同受控；`SX_WIND_MODE` 透传 `wind_client`。
   - **关键依赖修复**：`build_lists.py` 重建会清空 `divDate`（原靠紧随其后的 `sync_fund_divdate` 恢复）；该步移至周更后，遂让 `build_lists` 重建时**保留旧 `divDate`**（旧不覆盖新），使日更不再依赖它（已无 Wind 验证：重建日志出现「保留旧的分红日期 divDate N 条」，`check_data` ✅）。
 
+- 🔧 **阶段 3：一次构建 + 合并写入**（2026-10-07 · **代码完成，待实跑验收**）：
+  - `build_lists.py` **只跑一次**（原第 4、11 步的两次 → 合并为一次，置于原第 11 步位置）：确保 assetData 取到当日最新 divHistory，其后 new_*/fund_divdate/wind_fields 再更新。
+  - `build_lists` 重建**合并写入**：保留旧 `divDate`/`size`（`divHistory`/`dailyChange`/`yrChange` 本就保留）——旧值不覆盖新值。
+  - 取数步骤加**日期守卫（旧不覆盖新）**：`sync_daily_change`（本次 `dailyDate` 早于现有则不写）、`sync_money_fund`（`yieldDate` 早于现有则不写）。序列类步骤（div_history/yuebao/asset_macro/reits_daily/productQuotes）本就是「只补缺口/追加」。
+
+- 🔧 **阶段 4：日更提速（目标 ≤5 分钟）**（2026-10-07 · **代码完成，待实跑验收**）：
+  - **`sync_div_history` 按市场补缺口**：目标日按各指数所属市场日历（A 股对 A 股、港股对港股）——**A 股休市时 A 股指数不再被当作「滞后」反复重查**（原目标只跳周末、不跳节假日，假期内白查数百次）。`fill_laggards` 同步按市场目标。
+  - **删除 `fix_laggard_indexes.py`**（其逻辑早已并入 `sync_div_history.fill_laggards`；流水线第 5 步只留 div_history）。
+  - **`sync_daily_change` 提速**：慢因 = ①每交易日全量重拉（新交易日必要）；②**批量失败后逐只单查且每次失败 `sleep 6s`×3**（长超时放大）；③慢在「等待」而非串行——正常路径已是 **12 只/批、6 并发**。改：重试等待 `SX_DC_RETRY_SLEEP` 默认 **2s**；批量失败**先对半拆批重试**再逐只兜底；并**按市场跳过**已到最新交易日的指数（如 A 股休市时跳过 A 股指数）。
+
+- 🔧 **运行报告（每次运行生成）**（2026-10-07 · 代码完成）：`auto_sync_deploy.sh` 末尾 `make_run_report.py` 汇总 `.run_report.jsonl`（每步结果/原因）+ `.run_timings.jsonl`（耗时）+ `.wind_usage`（本次增量）+ `.wind_pending.json` → **`logs/update-YYYYMMDD-HHMM.md`**。报告逐项写明「已更新 / 本次不跑（原因）/ 失败」、Wind 次数与耗时。
+
 **两次实跑（2026-10-07，`SX_NO_DEPLOY=1`；同一日额度紧张，`SX_FORCE_RUN=1` 越过整跑闸）**
 
 | 档位 | Wind 次数 | 耗时 | 预算 | check_data |

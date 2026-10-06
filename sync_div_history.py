@@ -42,6 +42,54 @@ SLEEP = 0.5
 # 并发路数（2026-09-26 提速：批次并发；单批仍 ≤BATCH_SIZE 只 × ≤SEG_DAYS 天，稳在 100 行上限内）
 WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '8')))
 
+# ---- 按市场的最新交易日（2026-10-07 · 重构阶段4）----------------------------------------
+# 目的：只补「本市场最新交易日」之前的缺口。A股休市而港股开市时，A股指数不再被当作「滞后」反复重查
+#   （原 latest_trading_day 只跳周末、不跳节假日 → 假期内所有 A股指数都成 laggard，白白重查几百次）。
+CAL_PATH = os.path.join(BASE, 'market_calendar.json')
+try:
+    with io.open(CAL_PATH, encoding='utf-8') as _f:
+        _CAL = json.load(_f)
+except Exception:
+    _CAL = {}
+_TARGETS = {}   # {'CN': date, 'HK': date}，在 main() 里按当日计算
+
+
+def _is_trading_day(mkt, dd):
+    if dd.weekday() >= 5:
+        return False
+    return dd.isoformat() not in set(_CAL.get(mkt, {}).get(str(dd.year), []))
+
+
+def market_last_trading_day(mkt):
+    d = datetime.date.today()
+    for _ in range(40):
+        if _is_trading_day(mkt, d):
+            return d
+        d -= datetime.timedelta(days=1)
+    return datetime.date.today()
+
+
+def market_of(item):
+    """指数所属日历市场：'港股' → HK；其余（沪深/沪市/深市/沪港深/未知）→ CN（未知按代码后缀兜底）。"""
+    m = str(item.get('market') or '')
+    if m == '港股':
+        return 'HK'
+    if m:
+        return 'CN'
+    return 'HK' if str(item.get('code') or '').endswith('.HI') else 'CN'
+
+
+def target_of(item):
+    """该指数应补到的最新交易日（按其市场）；日历缺失时回落到「仅跳周末」。"""
+    return _TARGETS.get(market_of(item)) or latest_trading_day()
+
+
+def get_code_market():
+    with io.open(INDEX_JSON, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return {x['code']: market_of(x) for x in data}
+
+
 
 def latest_trading_day():
     """最近工作日（跳过周末；不含节假日——节假日时境内指数会滞后 1 天，由覆盖检查 ≤2 天容差放行）"""
@@ -121,22 +169,26 @@ def get_existing_last_dates():
             out[x['code']] = h[-1]['date']
     return out
 
-def _fetch_batch(batch, last_dates, full, today, max_start):
-    """单个批次：并集区间按 SEG_DAYS 切片拉取，返回 {code: [{'date','yield'}]}（无新增者返回空列表占位）。"""
+def _fetch_batch(batch, last_dates, full, code_mkt, targets, today, max_start):
+    """单个批次：**按每只指数自身市场的最新交易日**切片拉取，返回 {code: [{'date','yield'}]}（无新增者空列表占位）。"""
     out = {}
     starts = {}
+    ends = {}
     for code in batch:
+        tgt = targets.get(code_mkt.get(code, 'CN')) or today
         sd = last_dates.get(code)
         start = datetime.date.fromisoformat(sd) if sd else max_start
-        if sd and start >= today:
-            out[code] = []          # 占位：已到最新，无新增（main 保留旧数据）
+        if sd and start >= tgt:
+            out[code] = []          # 占位：已到本市场最新，无新增（main 保留旧数据）
             continue
         starts[code] = start
+        ends[code] = tgt
     if starts:
         cur = min(starts.values())
-        while cur <= today:
-            seg_end = min(cur + datetime.timedelta(days=SEG_DAYS), today)
-            active = [c for c in batch if c in starts and starts[c] <= seg_end]
+        overall_end = max(ends.values())
+        while cur <= overall_end:
+            seg_end = min(cur + datetime.timedelta(days=SEG_DAYS), overall_end)
+            active = [c for c in starts if starts[c] <= seg_end and cur <= ends[c]]
             if active:
                 q = '、'.join(active) + ' {}至{}的股息率历史数据按交易日列出，给出每个交易日的值'.format(
                     cur.isoformat(), seg_end.isoformat())
@@ -152,9 +204,9 @@ def _fetch_batch(batch, last_dates, full, today, max_start):
     return out
 
 
-def fetch_history(codes):
-    """并发拉取（2026-09-26 提速）：**批次间并发**，批内仍按 SEG_DAYS 切片（单次 ≲90 行，不触 Wind 100 行上限）。
-    增量：已有 divHistory 的只补最后日期之后；无历史的全量拉近 36 个月。SX_FULL_REFRESH=1 强制全量。"""
+def fetch_history(codes, code_mkt, targets):
+    """并发拉取（批次间并发）：**只补「本市场最新交易日」之前的缺口**（增量），旧数据保留。
+    无历史的全量拉近 36 个月；SX_FULL_REFRESH=1 强制全量。"""
     full = os.environ.get('SX_FULL_REFRESH') == '1'
     last_dates = {} if full else get_existing_last_dates()
     today = datetime.date.today()
@@ -164,7 +216,7 @@ def fetch_history(codes):
     print('  并发 {} 路拉取 {} 批...'.format(WORKERS, n_batch), flush=True)
     res = [None] * n_batch
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
-        futs = {ex.submit(_fetch_batch, b, last_dates, full, today, max_start): i
+        futs = {ex.submit(_fetch_batch, b, last_dates, full, code_mkt, targets, today, max_start): i
                 for i, b in enumerate(batches)}
         for fut in as_completed(futs):
             i = futs[fut]
@@ -201,22 +253,26 @@ def _fetch_gap_single(code, last_date, target):
 
 
 def fill_laggards(index_data):
-    """批次后仍滞后的指数，逐个单查补齐（原 fix_laggard_indexes 逻辑并入本脚本；2026-09-26 并发）。
-    只补缺口、旧数据全保留；节假日导致境内指数滞后时打印 WARN 但保留旧值。"""
-    target = latest_trading_day().isoformat()
-    laggards = [x for x in index_data
-                if x.get('divHistory') and x['divHistory'][-1]['date'] < target]
-    print('  批次后滞后指数: {}（单查补齐，TARGET={}）'.format(len(laggards), target), flush=True)
+    """批次后仍滞后的指数，逐个单查补齐（按各自市场的最新交易日；旧数据全保留）。
+    只补缺口、旧数据全保留；节假日导致某市场指数滞后时不再误判（目标按该市场日历）。"""
+    lag_by = {}
+    for x in index_data:
+        if x.get('divHistory') and x['divHistory'][-1]['date'] < target_of(x).isoformat():
+            lag_by[x['code']] = target_of(x)
+    laggards = [x for x in index_data if x['code'] in lag_by]
+    _tg = ' / '.join('%s=%s' % (k, v) for k, v in _TARGETS.items())
+    print('  批次后滞后指数: {}（单查补齐，TARGET {}）'.format(len(laggards), _tg or '—'), flush=True)
     if not laggards:
         return 0
 
     def _one(item):
         old = item.get('divHistory') or []
-        return item, old, _fetch_gap_single(item['code'], old[-1]['date'], target)
+        tgt = lag_by[item['code']].isoformat()
+        return item, old, tgt, _fetch_gap_single(item['code'], old[-1]['date'], tgt)
 
     fixed = 0
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
-        for item, old, pts in ex.map(_one, laggards):
+        for item, old, tgt, pts in ex.map(_one, laggards):
             if not pts:
                 print('  [WARN] {} 无新增（保留旧 {} 条）'.format(item['code'], len(old)), flush=True)
                 continue
@@ -225,7 +281,7 @@ def fill_laggards(index_data):
             series = sorted([{'date': d, 'yield': v} for d, v in merged.items()],
                             key=lambda x: x['date'])
             item['divHistory'] = series
-            if series[-1]['date'] >= target:
+            if series[-1]['date'] >= tgt:
                 fixed += 1
                 print('  [OK] {} 补齐 → {}'.format(item['code'], series[-1]['date']), flush=True)
             else:
@@ -238,9 +294,12 @@ def main():
     if not os.path.exists(CLI):
         print('[ERROR] wind-mcp-skill 未找到:', WIND_SKILL)
         return
+    _TARGETS['CN'] = market_last_trading_day('CN')
+    _TARGETS['HK'] = market_last_trading_day('HK')
     codes = get_all_codes()
-    print('指数数:', len(codes))
-    hist = fetch_history(codes)
+    code_mkt = get_code_market()
+    print('指数数:', len(codes), '（A股最新 {} / 港股最新 {}）'.format(_TARGETS['CN'], _TARGETS['HK']))
+    hist = fetch_history(codes, code_mkt, _TARGETS)
     print('拉取到 {} 个指数的历史数据'.format(len(hist)))
 
     with io.open(INDEX_JSON, 'r', encoding='utf-8') as f:
@@ -265,7 +324,7 @@ def main():
         else:
             # 拉取失败/跳过：保留旧数据，绝不删除（2026-08-10 A6 复发修复：此前这里 pop 会清空全部 divHistory）
             pass
-    # 滞后指数单查补齐（原 fix_laggard_indexes 逻辑并入本脚本，2026-09-26；fix_laggard 仍可单独跑，通常已无滞后）
+    # 滞后指数单查补齐（原 fix_laggard_indexes 逻辑已并入本脚本；该独立脚本 2026-10-07 删除）
     fill_laggards(index_data)
     # 原子写入：先写临时文件再替换，避免坚果云盘对目标文件加锁导致 EPERM
     import tempfile

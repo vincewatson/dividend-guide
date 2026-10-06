@@ -39,7 +39,7 @@ WEEK = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
 
 # 各步骤粗略耗时（秒，基于历史运行观察的粗估，仅用于给用户一个量级感）
 STEP_TIME = {
-    3: 5, 4: 20, 5: 110, 6: 60, 7: 30, 8: 45, 9: 70, 10: 70, 11: 20,
+    3: 5, 5: 110, 6: 60, 7: 30, 8: 45, 9: 70, 10: 70, 11: 20,
     12: 70, 13: 90, 14: 120, 15: 120, 16: 8, 17: 8, 18: 8, 19: 8, 20: 60, 21: 10,
 }
 # 预检可建议跳过的步骤（纯 Wind 日频 + 资讯），其余步骤一律保留
@@ -53,22 +53,21 @@ WEEKLY_EXTRA = [                                    # 编号外周级步骤（la
 ]
 # 步骤 → 中文名（报告用）
 STEP_NAME = {
-    3: "语法预检", 4: "重建数据(1)", 5: "股息率 div_history", 6: "涨跌幅 daily_change",
+    3: "语法预检", 5: "股息率 div_history", 6: "涨跌幅 daily_change",
     7: "货基 money_fund", 8: "余额宝 yuebao_history", 9: "宏观 asset_macro",
-    10: "REITs reits_daily", 11: "重建数据(2)", 12: "新ETF/指数 new_etf",
+    10: "REITs reits_daily", 11: "重建数据 build_lists", 12: "新ETF/指数 new_etf",
     13: "新REITs new_reits", 14: "分红日 fund_divdate", 15: "Wind字段 wind_fields",
     16: "食息资讯 sync_daily", 17: "备份 backup_db", 18: "校验 check_data",
     19: "内嵌 embed_data", 20: "部署 deploy_cloudflare", 21: "线上验证",
 }
-# 流水线 .run_timings.jsonl 的 label → 步骤号（2026-10-06 新增）
-#   让「预计耗时」优先采用**上次实测值**（同一脚本多步会累加，如步骤 5 = div_history + fix_laggard）；
-#   未覆盖到的步骤仍回落 STEP_TIME 粗估。编号外步骤（lifecycle/港ETF/月月/产品行情）不计入步骤号。
+# 流水线 .run_timings.jsonl 的 label → 步骤号（2026-10-06 新增；2026-10-07 fix_laggard 并入 div_history）
+#   让「预计耗时」优先采用**上次实测值**；未覆盖到的步骤仍回落 STEP_TIME 粗估。编号外步骤不计入步骤号。
 _TIMING_LABEL_STEP = (
-    ("sync_div_history.py", 5), ("fix_laggard_indexes.py", 5),
+    ("sync_div_history.py", 5),
     ("sync_daily_change.py", 6), ("sync_money_fund.py", 7),
     ("sync_yuebao_history.py", 8), ("sync_asset_macro.py", 9),
     ("sync_reits_daily.py", 10),
-    ("build_lists.py（第一次）", 4), ("build_lists.py（第二次）", 11),
+    ("build_lists.py", 11),
     ("sync_new_etf.py", 12), ("sync_new_reits.py", 13),
     ("sync_fund_divdate.py", 14), ("sync_wind_fields.py", 15),
     ("sync_daily.py", 16), ("backup_db.py", 17),
