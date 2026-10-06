@@ -37,7 +37,7 @@
 | hkEtfData.json | 13 | build_lists.py（表外行保留）| ① 用户表优先；人工补充（3555.HK 主动管理ETF，2026-10-05）| 流水线 |
 | etfData.json | 15 | build_lists.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
 | fundData.json | 28 | build_lists.py + sync_new_monthly + sync_fund_divdate | ② Wind 快照 + 全市场自动补入（2026-10-06）| 流水线 |
-| moneyFundData.json | 43 | build_lists.py + sync_money_fund | ② Wind 快照 | 流水线 |
+| moneyFundData.json | 43（**站点仅用天弘余额宝**）| build_lists.py + sync_money_fund | ② Wind 快照 | 流水线。**说明（2026-10-06）**：清单为静态对比样本；`sync_money_fund` **只实时刷新 `000198.OF 天弘余额宝`**，`build_money_fund_data()` 重建时只对带 `yieldDate` 的行（=余额宝）保留 Wind 实时值，其余 42 行沿用冻结值；**前端不展示其余货基**（`getYuebaoRate()` 只取余额宝；无「货币基金列表」页）。 |
 | reitsData.json | 89（新上市自动补入）| build_lists.py + sync_new_reits | ② Wind 快照（新 REITs 由 ③ 自动发现）| 流水线 |
 | assetData.json | 17 | build_lists.py（+ `EXTRA_ASSETS` 手工补加）| ① 用户表（总表）+ 手工补加行（「红利低波」，2026-10-06）| 流水线 |
 | （Wind 化字段）| — | **sync_wind_fields.py** | Wind get_fund_financials / get_index_fundamentals | 周流水线 步骤 15 |

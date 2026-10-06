@@ -36,6 +36,7 @@
 | 1 | （任务准备）| 修订文档：读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/` 对应文件 |
 | 2 | （任务准备）| 确认任务逻辑：核对定时任务 / `auto_sync_deploy.sh` / `update-mechanism.md` 三者步骤数·顺序·脚本清单一致 |
 | 3 | （语法预检）| 全部 .py 语法检查（防 // 注释类错误）|
+| 3.5 | **sync_lifecycle**（编号外）| **生命周期体检**：Wind「基金到期日」**≤ 今天** → 该基金已结束（清盘）→ 写入 `data/curation/_retired.json`，`build_lists` 重建时剔除（境内红利ETF/港交所ETF/REITs/货基的「出」机制；清盘罕见，脚本自带约 28 天节流 `SX_LIFECYCLE_DAYS`，平时秒退；2026-10-06）|
 | 4 | build_lists(1) | **从 `data/curation/*.json` 重建**（assetData/indexData/cnEtf/hkEtf/etf/fund/moneyFund/reits；2026-10-06 P2 起不再读 Excel）|
 | 5 | sync_div_history + fix_laggard | 指数股息率日频补最新交易日（57 指数）|
 | 6 | sync_daily_change | 每日涨跌幅 + **本年涨跌幅 yrChange**（Wind 实时）|

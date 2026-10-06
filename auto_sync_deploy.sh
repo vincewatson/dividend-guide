@@ -94,6 +94,13 @@ for f in *.py; do
 done
 echo "✅ 全部 $(ls *.py | wc -l | tr -d ' ') 个脚本语法 OK"
 
+echo ""
+echo "===== [编号外] 生命周期体检：停用已清盘/结束标的（Wind「基金到期日」）====="
+# 停用机制（excel-exit 机制 B）：境内红利ETF/港交所红利ETF/REITs/货币基金的「出」= 基金已结束。
+#   判据：Wind「基金到期日」≤ 今天 → 已结束 → 写入 data/curation/_retired.json；build_lists 重建时跳过（历史数据不删，删条目即恢复）。
+#   频率：清盘罕见，脚本自带约 28 天节流（SX_LIFECYCLE_DAYS），平时秒退；Wind 抖动不阻断。
+run_py "sync_lifecycle.py" sync_lifecycle.py || echo "  ⚠ 生命周期体检失败（Wind 抖动），保留现有停用名单，下次重试"
+
 echo "===== [4/21] 从 curation 重建数据（第一次；原 sync_excel，现 build_lists，不读 Excel）====="
 run_py "build_lists.py（第一次）" build_lists.py
 

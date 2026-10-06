@@ -92,6 +92,22 @@ def _find_col(cols, names):
     return None
 
 
+# 「停用名单」（excel-exit 机制 B，2026-10-06）：sync_lifecycle.py 依 Wind「基金到期日」
+#   （≤ 今天 = 已结束）写入 data/curation/_retired.json；重建时跳过这些 code（历史数据不删）。
+#   适用于：境内红利ETF / 港交所红利ETF / REITs / 货币基金。
+_RETIRED_KEYS = ('cnEtfData', 'hkEtfData', 'reitsData', 'moneyFundData')
+
+
+def load_retired_codes():
+    """读取 data/curation/_retired.json 的 stopped code 集合。缺失/损坏 → 空集合。"""
+    try:
+        with io.open(os.path.join(CURATION_DIR, '_retired.json'), 'r', encoding='utf-8') as f:
+            obj = json.load(f)
+        return set((obj.get('retired') or {}).keys())
+    except Exception:
+        return set()
+
+
 # 「规模 as-of 日期」的来源 curation 文件（= 原 Excel 快照的等价物）：
 # 用于 sizeDate —— 清单来源快照日期（冻结在 curation 的 sourceMtime）。
 _SIZE_ASOF = {
@@ -922,6 +938,7 @@ def main():
         'moneyFundData': ('moneyFundData.json', build_money_fund_data),
         'reitsData': ('reitsData.json', build_reits_data),
     }
+    _retired_codes = load_retired_codes()
     for key, (fname, fn) in builders.items():
         data = fn()
         # 指数币种变体归并（2026-09-20 用户要求 · 数据治理）：
@@ -1100,6 +1117,14 @@ def main():
             for _it in data:
                 if isinstance(_it, dict) and _it.get(_size_key) and not _it.get('sizeDate'):
                     _it['sizeDate'] = _snap_date
+        # 停用名单（excel-exit 机制 B）：已清盘/结束的标的（Wind「基金到期日」已过）
+        #   在此统一剔除 —— 置于所有「表外行护栏」之后，确保被停用的标的不会被重新并入。
+        if key in _RETIRED_KEYS and _retired_codes:
+            _n_before = len(data)
+            data = [x for x in data if not (isinstance(x, dict) and x.get('code') in _retired_codes)]
+            if len(data) != _n_before:
+                print('  [停用] {} 剔除已结束标的 {} 只（curation/_retired.json）'.format(
+                    key, _n_before - len(data)))
         path = os.path.join(DATA_DIR, fname)
         # 原子写入：先写临时文件再替换，避免坚果云盘对目标文件加锁导致 EPERM
         import tempfile

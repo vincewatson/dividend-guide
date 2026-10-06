@@ -31,7 +31,10 @@
 | `assets.json` | assets | 主表·总表 | assetData | build_lists（**清单**）|
 | `blog_articles.json` | blog_articles | 公众号历史文章 | blogData | sync_blog（**清单**）|
 | `blog_annotations.json` | blog_annotations | 博客文章标注表 | blogData | sync_blog（**标注**）|
+| `_retired.json` | retired | （停用名单 · 非导出项）| cnEtf/hkEtf/reits/moneyFund | sync_lifecycle 维护；build_lists 读取跳过 |
 | `_manifest.json` | — | 导出清单（来源文件 / mtime / 行数）| — | 参考 |
+
+> **关于 `money_fund.json`（2026-10-06 说明）**：这是一份**静态对比样本**，站点**仅使用其中「天弘余额宝」（000198.OF）**一支——`sync_money_fund.py` 只实时刷新 000198.OF 的 7 日年化/日万份，`build_money_fund_data()` 每周重建时也**只对带 `yieldDate` 的行（即余额宝）保留 Wind 实时值**，其余 42 行一律沿用本清单的冻结值（停在原处、不更新）。**前端不展示其余货基**（无「货币基金列表」页面；`getYuebaoRate()` 只按名称取余额宝）。清单暂保留 43 行：一是 `check_data.py` 对 `moneyFundData.json` 有「≥30 行」硬校验，二是留作对比样本备用。
 
 ## 每个 JSON 的结构
 
@@ -67,3 +70,4 @@
 2. 也可**在对话里告知**，由 AI 落到这里并登记 `docs/data-governance/manual-overrides.md`。
 3. 本目录随 git 版本化；改口径只改这里，重建脚本统一引用。
 4. `export_curation.py` **不入流水线**，仅作「从旧 Excel 重新冻结 / 核对」的一次性工具；它会在 `archive/excel-baseline-*/` 下自动检索 xlsx（见其 `_xlsx_dirs()`）。本目录 JSON 是那批 xlsx 的**冻结结果**，两者已解耦——xlsx 是否留存都不影响站点。
+5. **停用名单 `_retired.json`（「出」机制 · 2026-10-06）**：境内红利ETF / 港交所红利ETF / REITs / 货币基金的「出」= 基金已结束（清盘）。由编号外步骤 `sync_lifecycle.py` 依 Wind **「基金到期日」** 判定：**到期日 ≤ 今天 ⇒ 已结束**（写入本名单）；到期日为空（ETF/货基常青）或为未来日期（REIT 合约存续期，如 180101.SZ=2071-06-07）⇒ **保留**。⚠️ **不可**按「非空即出」判定，否则会误杀全部 REITs。`build_lists.py` 重建时读取本名单并**跳过**对应 code（**历史数据不删**，仅移出展示清单；**删条目即恢复**）。该名单由脚本自动维护，也可手工增删。

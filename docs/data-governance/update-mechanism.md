@@ -39,7 +39,7 @@
 | yuebaoHistory | Wind 日频 | sync_yuebao_history | **每次**（动态 180 天）| 步骤 8 |
 | assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单）| Wind EDB（国债=Wind 债券发行记录）| sync_asset_macro | **每次** | 步骤 9 |
 | assetHistory · REITs 两类日频 | Wind 日频中位数 | sync_reits_daily | **每次**（增量；**2026-09-26 起覆盖 reitsData.json 全量**，分组由 projectType 推导）| 步骤 10 |
-| cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData / assetData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起；原用户 Excel 快照已弃用）| build_lists（跑两次）| **每周**（`data/curation/` 变更时才变化）| 步骤 4 / 11 |
+| cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData / assetData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起；原用户 Excel 快照已弃用）| build_lists（跑两次）| **每周**（`data/curation/` 变更时才变化）| 步骤 4 / 11（「出」由编号外 `sync_lifecycle.py` → `_retired.json` 负责）|
 | cnEtfData · 新 ETF、indexData · 新指数 | Wind 自动发现 | sync_new_etf | **每次**（检索近 30 天）| 步骤 12 |
 | reitsData · 新 REITs + 空字段补齐 | Wind 自动发现 / 补齐 | sync_new_reits | **每次**（全量检索已上市 REITs；并为字段为空的 REITs 补 分红次数·年化派息率·累计/年化派息额·收盘价，取不到留空不写 0；2026-09-26 起）| 步骤 13 |
 | divDate（fund / etf / cnEtf）**＋ 月月名单剔除超期成员** | Wind 最近分红 | sync_fund_divdate | **每次**（全量重拉；顺带把最近分红早于「上一个月」的 etfData/fundData 成员移出，2026-10-06）| 步骤 14 |
@@ -132,6 +132,12 @@
 - **「重建 → 重放」顺序（不可调整）**：`etfData/fundData/cnEtfData/hkEtfData` 的 Wind 字段依赖 step 15 `sync_wind_fields`、`divDate` 依赖 step 14 `sync_fund_divdate`；`reitsData.shortName`（扩位简称）依赖 step 13 `sync_new_reits`——均在 step 11 的第二次 `build_lists` 之后。
 - **手工修订通道（2026-09-27 用户约定；2026-10-06 excel-exit P1/P2 升级）**：手工修订**在对话里告知 AI**，由 AI 落到 `data/*.json` 并登记到 `manual-overrides.md` 台账，同时确保该项能扛住 rebuild（落到 `MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / 专用护栏）。**不要直接改最终 JSON 了事**（非白名单字段会被下轮重建覆盖）。**「标注」类现统一来源 = `data/curation/*.json`**（指数详情页/加权附加条件/调整周期/调整生效日、港ETF详情页/互联互通、港股红利税系数、每月千元投入、博客内容标签/相关指数）；P1 后 `build_lists.py`/`sync_blog.py` **只读 curation、不再读飞书表/标注 Excel**；**清单**亦于 P2 改读 curation（`build_lists.py` 已不读任何 xlsx）—— 至此彻底脱离 Excel（见 `excel-exit-plan.md`）。
 - **新增 Wind 自动字段时的检查清单**：① 写入方在 step 11 之前还是之后？② 之前 → 必须在 `build_lists` 加保留护栏或在 step 11 之后重放；③ 之后 → 确认该文件不被后续步骤重建。
+
+### 清单「出」机制 · 停用名单 `_retired.json`（2026-10-06 新增）
+- **范围**：境内红利ETF / 港交所红利ETF / REITs / 货币基金 四类清单。
+- **判据**：Wind **「基金到期日」≤ 今天** ⇒ 基金已结束（清盘）⇒ 移出清单。⚠️ **不可**按「非空即出」——公募 REITs 运作中也有**未来**的「到期日」（成立日 + 合约存续期，实测 `180101.SZ`=2071-06-07、`508000.SH`=2056-06-07），按「非空」判定会**误杀全部 REITs**。
+- **实现**：编号外步骤 `sync_lifecycle.py`（置于**步骤 3 之后、步骤 4 之前**；自带约 28 天节流 `SX_LIFECYCLE_DAYS`，平时秒退）逐只查询「基金到期日」，命中即写入 `data/curation/_retired.json`；`build_lists.py` 重建时**在全部「表外行护栏」之后**统一剔除该名单的 code（确保停用标的不会被重新并入）。**历史数据不删**，仅移出展示清单；**删条目即恢复**。
+- **已知限制**：港交所 ETF 的「基金到期日」Wind 未返回（仅含「存续期」）→ hk 侧暂不会命中；如确需，可另行接入港交所退市/终止上市数据。
 
 ### 本地数据库与离线保障
 1. `data/*.json` = 本地数据库（断源后继续可用）。
