@@ -39,6 +39,7 @@ rsync -a \
   --exclude='prototype' \
   --exclude='data/user' --exclude='user_upload' \
   --exclude='vercel.json' --exclude='.vercelignore' --exclude='.gitignore' --exclude='/*.md' \
+  --exclude='/.*' --exclude='/logs' \
   "./" "$DEPLOY_DIR/"
 
 echo "== 部署目录抽查 =="

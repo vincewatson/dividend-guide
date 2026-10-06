@@ -33,32 +33,10 @@ RETRY_SLEEP = float(os.environ.get('SX_DC_RETRY_SLEEP', '2'))
 WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '6')))
 TIMEOUT = int(os.environ.get('SX_WIND_TIMEOUT', '45'))
 
-# ---- 按市场的最新交易日（2026-10-07 阶段4）：已到「本市场最新交易日」的指数本次跳过 ---------------
-#   A股休市而港股开市时，A股指数（dailyDate 已 = A股最新交易日）不再被重复查询。正常交易日不跳过（全部需更新）。
-CAL_PATH = os.path.join(BASE, 'market_calendar.json')
-try:
-    with io.open(CAL_PATH, encoding='utf-8') as _f:
-        _CAL = json.load(_f)
-except Exception:
-    _CAL = {}
-
-
-def _last_trading_day(mkt):
-    d = datetime.date.today()
-    for _ in range(40):
-        if d.weekday() < 5 and d.isoformat() not in set(_CAL.get(mkt, {}).get(str(d.year), [])):
-            return d
-        d -= datetime.timedelta(days=1)
-    return datetime.date.today()
-
-
-def market_of(item):
-    m = str(item.get('market') or '')
-    if m == '港股':
-        return 'HK'
-    if m:
-        return 'CN'
-    return 'HK' if str(item.get('code') or '').endswith('.HI') else 'CN'
+# ---- 按市场的最新交易日（2026-10-07 阶段4；收盘时间见 trade_calendar）--------------------
+#   已到「本市场最新交易日」的指数本次跳过。目标日**考虑收盘时间**：A股 15:30 / 港股 16:30 前，
+#   今天还不算最新交易日（数据未生成）→ 取上一交易日。
+import trade_calendar
 
 
 def ts():
@@ -270,10 +248,11 @@ def _resolve_failed_batch(codes):
 def main():
     incremental = '--incremental' in sys.argv
     d = json.load(io.open(INDEX_FILE, encoding='utf-8'))
-    _cn_last, _hk_last = _last_trading_day('CN').isoformat(), _last_trading_day('HK').isoformat()
+    _cn_last = trade_calendar.latest_trading_day('CN').isoformat()
+    _hk_last = trade_calendar.latest_trading_day('HK').isoformat()
 
     def _mkt_latest(item):
-        return _hk_last if market_of(item) == 'HK' else _cn_last
+        return _hk_last if trade_calendar.market_of(item) == 'HK' else _cn_last
 
     todo = []
     for i, item in enumerate(d):

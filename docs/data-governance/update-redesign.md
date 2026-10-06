@@ -163,6 +163,8 @@
   - **`sync_div_history` 按市场补缺口**：目标日按各指数所属市场日历（A 股对 A 股、港股对港股）——**A 股休市时 A 股指数不再被当作「滞后」反复重查**（原目标只跳周末、不跳节假日，假期内白查数百次）。`fill_laggards` 同步按市场目标。
   - **删除 `fix_laggard_indexes.py`**（其逻辑早已并入 `sync_div_history.fill_laggards`；流水线第 5 步只留 div_history）。
   - **`sync_daily_change` 提速**：慢因 = ①每交易日全量重拉（新交易日必要）；②**批量失败后逐只单查且每次失败 `sleep 6s`×3**（长超时放大）；③慢在「等待」而非串行——正常路径已是 **12 只/批、6 并发**。改：重试等待 `SX_DC_RETRY_SLEEP` 默认 **2s**；批量失败**先对半拆批重试**再逐只兜底；并**按市场跳过**已到最新交易日的指数（如 A 股休市时跳过 A 股指数）。
+  - **收盘时间（2026-10-07 追加）**：新增共享模块 **`trade_calendar.py`**（交易日历单一真实来源）——**A 股 15:30 / 港股 16:30 前，「今天」不算最新交易日，取上一交易日**；`sync_div_history` / `sync_daily_change` / `preflight` / `check_data` 统一引用（此前各自实现、且未计收盘时间）。
+  - **部署排除（2026-10-07 追加）**：`deploy_cloudflare.sh` 的 rsync 增 `--exclude='/.*' --exclude='/logs'`，防止运行报告与 Wind 用量等隐藏文件/日志被部署到线上。
 
 - 🔧 **运行报告（每次运行生成）**（2026-10-07 · 代码完成）：`auto_sync_deploy.sh` 末尾 `make_run_report.py` 汇总 `.run_report.jsonl`（每步结果/原因）+ `.run_timings.jsonl`（耗时）+ `.wind_usage`（本次增量）+ `.wind_pending.json` → **`logs/update-YYYYMMDD-HHMM.md`**。报告逐项写明「已更新 / 本次不跑（原因）/ 失败」、Wind 次数与耗时。
 

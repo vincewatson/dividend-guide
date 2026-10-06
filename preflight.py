@@ -130,34 +130,26 @@ def _pad(s, n):
     return s + " " * max(1, n - _w(s))
 
 
-def load_calendar():
-    try:
-        return _load(CAL_PATH)
-    except Exception:
-        return {"CN": {}, "HK": {}}
-
-
-CAL = load_calendar()
+import trade_calendar   # 交易日历（含收盘时间；A股 15:30 / 港股 16:30 前今天不算最新交易日）
 
 
 def cal_covered(mkt, year):
-    return str(year) in CAL.get(mkt, {})
+    return trade_calendar.covered(mkt, year)
 
 
 def is_trading_day(mkt, dd):
-    if dd.weekday() >= 5:
-        return False
-    hols = set(CAL.get(mkt, {}).get(str(dd.year), []))
-    return dd.isoformat() not in hols
+    return trade_calendar.is_trading_day(mkt, dd)
 
 
 def last_trading_day(mkt, dd):
-    x = dd
-    for _ in range(40):
-        if is_trading_day(mkt, x):
-            return x
-        x -= datetime.timedelta(days=1)
-    return None
+    return trade_calendar.last_trading_day(mkt, dd)
+
+
+def _mkt_last(mkt, today):
+    """最新交易日：今天按**收盘时间**判定（未到收盘取上一交易日）；历史日期用纯日期口径。"""
+    if today == datetime.date.today():
+        return trade_calendar.latest_trading_day(mkt)
+    return trade_calendar.last_trading_day(mkt, today)
 
 
 def market_reason(mkt, dd):
@@ -248,8 +240,8 @@ def r_lists_newest():
 # 体检主逻辑
 # ----------------------------------------------------------------------------
 def build(today, mode="daily"):
-    cn_last = last_trading_day(CN, today)
-    hk_last = last_trading_day(HK, today)
+    cn_last = _mkt_last(CN, today)
+    hk_last = _mkt_last(HK, today)
     both = max([x for x in (cn_last, hk_last) if x], default=None)
 
     warn = []

@@ -35,10 +35,10 @@ import datetime
 #   日历来源 market_calendar.json（与 preflight 同源，单一真实来源）。
 # ---------------------------------------------------------------------------
 try:
-    from preflight import last_trading_day as _last_td
+    import trade_calendar   # 交易日历（含收盘时间：A股 15:30 / 港股 16:30 前今天不算最新交易日）
     _TODAY = datetime.date.today()
-    _cn = _last_td('CN', _TODAY)
-    _hk = _last_td('HK', _TODAY)
+    _cn = trade_calendar.latest_trading_day('CN')
+    _hk = trade_calendar.latest_trading_day('HK')
     CN_LATEST = _cn.isoformat() if _cn else None
     HK_LATEST = _hk.isoformat() if _hk else None
 except Exception:

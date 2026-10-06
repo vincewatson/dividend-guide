@@ -46,57 +46,21 @@ WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '8')))
 # 目的：只补「本市场最新交易日」之前的缺口。A股休市而港股开市时，A股指数不再被当作「滞后」反复重查
 #   （原 latest_trading_day 只跳周末、不跳节假日 → 假期内所有 A股指数都成 laggard，白白重查几百次）。
 CAL_PATH = os.path.join(BASE, 'market_calendar.json')
-try:
-    with io.open(CAL_PATH, encoding='utf-8') as _f:
-        _CAL = json.load(_f)
-except Exception:
-    _CAL = {}
+import trade_calendar   # 交易日历（含收盘时间：A股 15:30 / 港股 16:30 前今天不算最新交易日）
 _TARGETS = {}   # {'CN': date, 'HK': date}，在 main() 里按当日计算
 
 
-def _is_trading_day(mkt, dd):
-    if dd.weekday() >= 5:
-        return False
-    return dd.isoformat() not in set(_CAL.get(mkt, {}).get(str(dd.year), []))
-
-
-def market_last_trading_day(mkt):
-    d = datetime.date.today()
-    for _ in range(40):
-        if _is_trading_day(mkt, d):
-            return d
-        d -= datetime.timedelta(days=1)
-    return datetime.date.today()
-
-
-def market_of(item):
-    """指数所属日历市场：'港股' → HK；其余（沪深/沪市/深市/沪港深/未知）→ CN（未知按代码后缀兜底）。"""
-    m = str(item.get('market') or '')
-    if m == '港股':
-        return 'HK'
-    if m:
-        return 'CN'
-    return 'HK' if str(item.get('code') or '').endswith('.HI') else 'CN'
-
-
 def target_of(item):
-    """该指数应补到的最新交易日（按其市场）；日历缺失时回落到「仅跳周末」。"""
-    return _TARGETS.get(market_of(item)) or latest_trading_day()
+    """该指数应补到的最新交易日（按其市场，**考虑收盘时间**）。"""
+    m = trade_calendar.market_of(item)
+    return _TARGETS.get(m) or trade_calendar.latest_trading_day(m)
 
 
 def get_code_market():
     with io.open(INDEX_JSON, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    return {x['code']: market_of(x) for x in data}
+    return {x['code']: trade_calendar.market_of(x) for x in data}
 
-
-
-def latest_trading_day():
-    """最近工作日（跳过周末；不含节假日——节假日时境内指数会滞后 1 天，由覆盖检查 ≤2 天容差放行）"""
-    d = datetime.date.today()
-    while d.weekday() >= 5:
-        d -= datetime.timedelta(days=1)
-    return d
 
 
 def get_all_codes():
@@ -294,8 +258,8 @@ def main():
     if not os.path.exists(CLI):
         print('[ERROR] wind-mcp-skill 未找到:', WIND_SKILL)
         return
-    _TARGETS['CN'] = market_last_trading_day('CN')
-    _TARGETS['HK'] = market_last_trading_day('HK')
+    _TARGETS['CN'] = trade_calendar.latest_trading_day('CN')
+    _TARGETS['HK'] = trade_calendar.latest_trading_day('HK')
     codes = get_all_codes()
     code_mkt = get_code_market()
     print('指数数:', len(codes), '（A股最新 {} / 港股最新 {}）'.format(_TARGETS['CN'], _TARGETS['HK']))
