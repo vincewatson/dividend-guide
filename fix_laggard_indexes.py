@@ -9,7 +9,7 @@
   现改为与 sync_div_history 一致的**日频**查询 + **合并**（只补最后日期之后的缺口，
   旧数据全部保留），并按列名解析（兼容不同列顺序），原子写入。
 """
-import datetime, io, json, os, subprocess, tempfile
+import datetime, io, json, os, subprocess, tempfile, time
 from concurrent.futures import ThreadPoolExecutor
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -32,15 +32,28 @@ TARGET_DATE = latest_trading_day()
 
 
 def call_wind(code, start, end):
-    """按交易日拉取 [start, end] 的股息率，返回 [{'date','yield'}]。"""
+    """按交易日拉取 [start, end] 的股息率，返回 [{'date','yield'}]。
+
+    2026-10-06 加固：原实现对 subprocess.run **未捕获异常**，Wind 偶发挂起触发
+    subprocess.TimeoutExpired（45s 上限）时直接抛出 → 在并发 map 中冒泡 → 整个脚本非零退出 →
+    触发流水线 `set -e` 中止（当日实测复现）。现改为**3 次重试 + 6s 退避**，任何异常/超时
+    一律返回 []（= 保留旧值），与 sync_lifecycle / sync_div_history 一致，绝不中断流水线。"""
     env = dict(os.environ)
     env['NODE_EXTRA_CA_CERTS'] = '/etc/ssl/cert.pem'
     question = '{} {}至{}的股息率历史数据按交易日列出，给出每个交易日的值'.format(code, start, end)
-    r = subprocess.run(
-        ['node', CLI, 'call', 'index_data', 'get_index_fundamentals',
-         json.dumps({'question': question}, ensure_ascii=False)],
-        capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
-    if r.returncode != 0:
+    r = None
+    for _ in range(3):
+        try:
+            r = subprocess.run(
+                ['node', CLI, 'call', 'index_data', 'get_index_fundamentals',
+                 json.dumps({'question': question}, ensure_ascii=False)],
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
+        except Exception:          # 含 subprocess.TimeoutExpired（偶发挂起）
+            time.sleep(6); continue
+        if r.returncode != 0:
+            time.sleep(6); continue
+        break
+    if r is None or r.returncode != 0:
         return []
     try:
         outer = json.loads(r.stdout)

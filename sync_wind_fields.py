@@ -219,7 +219,7 @@ def update_fund_count():
             v = found.get(x['name'])
             if v is None:
                 # 兜底：唯一候选
-                cand = [k for k in found if k in (x['name'], x['fullname'])]
+                cand = [k for k in found if k in (x['name'], x.get('fullname'))]
                 v = found.get(cand[0]) if len(cand) == 1 else None
             if v is not None and x.get('fundCount') != v:
                 x['fundCount'] = v
@@ -499,7 +499,7 @@ def update_hk_etf():
     updated = 0
     _iname = _index_name_map()   # trackCode → 站内指数规范名（ETF.trackName 须与之对齐）
     batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
-    queries = [' '.join('%s %s' % (x['code'], x['fullname'] or x['name']) for x in b) +
+    queries = [' '.join('%s %s' % (x['code'], x.get('fullname') or x['name']) for x in b) +
                ' 这些基金的基金成立日 管理费率 基金规模合计 跟踪指数名称' for b in batches]
     results = _prefetch(queries)
     for bi, (batch, tbs) in enumerate(zip(batches, results)):

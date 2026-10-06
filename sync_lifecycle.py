@@ -22,6 +22,7 @@
       --only ...  只跑指定清单（hk=aastocks 港ETF；cn/reits/money=Wind 到期日）
 """
 import io, json, os, re, subprocess, sys, time, datetime, tempfile
+from concurrent.futures import ThreadPoolExecutor
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE, 'data')
@@ -37,8 +38,10 @@ UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
 # 港交所上市 ETF 全量名单（中央数据库导出，与「策略魔方」同源；由会话内 MCP 刷新）
 HK_UNIVERSE_PATH = os.path.join(CURATION_DIR, '_hk_etf_universe.json')
 
-SLEEP = float(os.environ.get('SX_LIFECYCLE_SLEEP', '0.4'))
+SLEEP = float(os.environ.get('SX_LIFECYCLE_SLEEP', '0.4'))  # 保留兼容（并发化后不再逐只 sleep）
 DAYS = int(os.environ.get('SX_LIFECYCLE_DAYS', '28'))
+# Wind「到期日」并发拉取路数（2026-10-06：原逐只串行 + 0.4s sleep，约 227 只 → >18min；并发后约 3min）
+WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '6')))
 
 # Wind「基金到期日」体检的清单：key -> (站点数据文件, 中文名)
 #   注：港交所ETF(hk) 不走 Wind（Wind 未返回其到期日），改由 aastocks 比对（见上）。
@@ -208,13 +211,19 @@ def fetch_maturity(code, name):
 
 
 def check_wind_maturity(retired, today, only):
-    """Wind 到期日体检（cn/reits/money）。返回 found 字典。"""
+    """Wind 到期日体检（cn/reits/money）。返回 found 字典。
+
+    2026-10-06：改为**批次并发预取 + 保序应用**（ThreadPoolExecutor，SX_WIND_WORKERS 默认 6）。
+    原为逐只串行 + 每只 sleep 0.4s，约 227 只 → 实测 >18 分钟（Wind 单次 ~4.5s）；并发后约 3 分钟。
+    单只异常按「取不到」处理（空到期日 = 保留），绝不误杀。"""
     lists = [(k, f, lb) for (k, f, lb) in WIND_LISTS if (only is None or k in only)]
     if not lists:
         return {}
     print('  — Wind 到期日体检：%s（判据：到期日 ≤ %s）' % (
         '、'.join(lb for _, _, lb in lists), today), flush=True)
-    found = {}
+
+    # 组装待查清单（跳过已停用），跨清单合并后一次并发拉取
+    jobs = []  # (label, code, name)
     for key, fname, label in lists:
         rows = load_json(os.path.join(DATA_DIR, fname), []) or []
         codes = [x for x in rows if isinstance(x, dict) and x.get('code')]
@@ -223,11 +232,26 @@ def check_wind_maturity(retired, today, only):
             code = x.get('code')
             if code in retired:
                 continue
-            mat, nm = fetch_maturity(code, x.get('name') or '')
-            time.sleep(SLEEP)
+            jobs.append((label, code, x.get('name') or ''))
+
+    found = {}
+    if not jobs:
+        return found
+    print('    → 并发 %d 路拉取 %d 只的「基金到期日」…' % (WORKERS, len(jobs)), flush=True)
+
+    def _probe(job):
+        label, code, name = job
+        try:
+            mat, nm = fetch_maturity(code, name)
+        except Exception:
+            mat, nm = '', name
+        return label, code, name, mat, nm
+
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        for label, code, name, mat, nm in ex.map(_probe, jobs):  # map 保序
             if mat and mat <= today:
                 found[code] = {
-                    'name': nm or x.get('name') or '',
+                    'name': nm or name or '',
                     'lists': [label],
                     'maturityDate': mat,
                     'retiredDate': today,

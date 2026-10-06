@@ -53,6 +53,49 @@ STEP_NAME = {
     16: "食息资讯 sync_daily", 17: "备份 backup_db", 18: "校验 check_data",
     19: "内嵌 embed_data", 20: "部署 deploy_cloudflare", 21: "线上验证",
 }
+# 流水线 .run_timings.jsonl 的 label → 步骤号（2026-10-06 新增）
+#   让「预计耗时」优先采用**上次实测值**（同一脚本多步会累加，如步骤 5 = div_history + fix_laggard）；
+#   未覆盖到的步骤仍回落 STEP_TIME 粗估。编号外步骤（lifecycle/港ETF/月月/产品行情）不计入步骤号。
+_TIMING_LABEL_STEP = (
+    ("sync_div_history.py", 5), ("fix_laggard_indexes.py", 5),
+    ("sync_daily_change.py", 6), ("sync_money_fund.py", 7),
+    ("sync_yuebao_history.py", 8), ("sync_asset_macro.py", 9),
+    ("sync_reits_daily.py", 10),
+    ("build_lists.py（第一次）", 4), ("build_lists.py（第二次）", 11),
+    ("sync_new_etf.py", 12), ("sync_new_reits.py", 13),
+    ("sync_fund_divdate.py", 14), ("sync_wind_fields.py", 15),
+    ("sync_daily.py", 16), ("backup_db.py", 17),
+    ("check_data.py", 18), ("embed_data.py", 19),
+)
+
+
+def _measured_step_seconds():
+    """回读 .run_timings.jsonl，把各步实测耗时归并到步骤号 → {step: 秒}；无文件/空则 {}。"""
+    p = os.path.join(BASE, ".run_timings.jsonl")
+    try:
+        rows = [json.loads(l) for l in open(p, encoding="utf-8") if l.strip()]
+    except Exception:
+        return {}
+    out = {}
+    for r in rows:
+        if r.get("rc"):          # 跳过失败步骤：耗时为中断值，不代表常态
+            continue
+        label = r.get("label", "")
+        try:
+            sec = int(r.get("sec", 0))
+        except Exception:
+            sec = 0
+        for sub, step in _TIMING_LABEL_STEP:
+            if sub in label:
+                out[step] = out.get(step, 0) + sec
+                break
+    return out
+
+
+def resolve_step_seconds():
+    """步骤耗时（秒）：优先上次实测（缺步骤回落 STEP_TIME 粗估）。返回 (dict, 是否含实测)。"""
+    m = _measured_step_seconds()
+    return {s: m.get(s, STEP_TIME[s]) for s in STEP_TIME}, bool(m)
 
 
 # ----------------------------------------------------------------------------
@@ -288,14 +331,15 @@ def build(today):
 
     all_steps = sorted(STEP_TIME.keys())
     skip_set = set(skip)
-    total_time = sum(STEP_TIME[s] for s in all_steps if s not in skip_set)
+    st_time, measured = resolve_step_seconds()
+    total_time = sum(st_time[s] for s in all_steps if s not in skip_set)
 
     return {
         "today": today, "cn_last": cn_last, "hk_last": hk_last, "both": both,
         "rows": rows, "step_status": step_status,
         "skip": sorted(skip), "run": sorted(run),
         "lists_new": lists_new, "lists_note": lists_note,
-        "warn": warn, "total_time": total_time,
+        "warn": warn, "total_time": total_time, "measured": measured,
     }
 
 
@@ -351,8 +395,9 @@ def print_report(rep):
     print("  需执行：%s" % " ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in all_steps if s not in skip_set))
     if rep["lists_new"]:
         print("  🔸 清单/标注（data/curation）有更新 → 步骤 4/11（重建数据）需重跑以套用")
-    print("  预计耗时：约 %d 分 %d 秒（粗估，可能偏大；已跳过 %d 个可跳步骤）"
-          % (rep["total_time"] // 60, rep["total_time"] % 60, len(rep["skip"])))
+    _src = "含上次实测，随运行自动更新" if rep.get("measured") else "粗估，可能偏大（尚无实测记录）"
+    print("  预计耗时：约 %d 分 %d 秒（%s；已跳过 %d 个可跳步骤）"
+          % (rep["total_time"] // 60, rep["total_time"] % 60, _src, len(rep["skip"])))
     _print_last_measured()
     print("  提示：如需按建议跳过，运行流水线前设置环境变量 SKIP_STEPS=\"%s\"" % " ".join(map(str, rep["skip"])))
     print("=" * 70)
