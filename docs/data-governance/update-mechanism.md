@@ -34,7 +34,7 @@
 |---|---|---|---|---|
 | indexData · divHistory | Wind 指数股息率（日频）| sync_div_history + fix_laggard_indexes | **每次**（增量补最新交易日）| 步骤 5 |
 | indexData · dailyChange / yrChange | Wind 涨跌幅 | sync_daily_change | **每次** | 步骤 6 |
-| productQuotes · 产品行情快照（当日涨跌幅/今年以来回报）| Wind `fund_data.get_fund_price_indicators` | sync_product_quotes | **每次**（按日期【追加】，同日仅补空值、绝不覆盖旧值）| 步骤 12 之后（**编号外**步骤）|
+| productQuotes · 产品行情快照（当日涨跌幅/今年以来回报）| Wind `fund_data.get_fund_price_indicators` | sync_product_quotes | **每次**（按日期【追加】，同日仅补空值、绝不覆盖旧值）| 「月月名单自动补入」之后（**编号外**步骤）|
 | moneyFundData · 头部 7 日年化 | Wind 实时 | sync_money_fund | **每次** | 步骤 7 |
 | yuebaoHistory | Wind 日频 | sync_yuebao_history | **每次**（动态 180 天）| 步骤 8 |
 | assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单）| Wind EDB（国债=Wind 债券发行记录）| sync_asset_macro | **每次** | 步骤 9 |
@@ -43,7 +43,7 @@
 | cnEtfData · 新 ETF、indexData · 新指数 | Wind 自动发现 | sync_new_etf | **每次**（检索近 30 天）| 步骤 12 |
 | reitsData · 新 REITs + 空字段补齐 | Wind 自动发现 / 补齐 | sync_new_reits | **每次**（全量检索已上市 REITs；并为字段为空的 REITs 补 分红次数·年化派息率·累计/年化派息额·收盘价，取不到留空不写 0；2026-09-26 起）| 步骤 13 |
 | divDate（fund / etf / cnEtf）**＋ 月月名单剔除超期成员** | Wind 最近分红 | sync_fund_divdate | **每次**（全量重拉；顺带把最近分红早于「上一个月」的 etfData/fundData 成员移出，2026-10-06）| 步骤 14 |
-| ETF 成立/上市/费率/规模/份额/持有人/分红次数、fundCount、N 前缀 | Wind | sync_wind_fields | **每次** | 步骤 15 |
+| ETF 成立/上市/费率/规模/份额/持有人/分红次数、fundCount、N 前缀、**fundData 分红金额补空白** | Wind | sync_wind_fields | **每次** | 步骤 15 |
 | dailyData / dailyTagColors | `digest-db.json`（生成端）| sync_daily | **每次**（数据源每日更新）| 步骤 16 |
 | assetHistory · 重点50城租金率 | 中指研究院季度报告 | 用户手动给值 + sync_asset_macro **保留** | **季度**（4/7/10/12 月下旬）| B2（`runbooks/quarterly-rent-sop.md`）|
 | 月月分红清单**新增**成员（etfData/fundData）| Wind 全市场检索`search_funds`（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly** | **每次** | 步骤 13 之后（**编号外**）|
@@ -64,7 +64,7 @@
 - **来源**：Wind `fund_data.get_fund_price_indicators`（`indexes=最新交易日,涨跌幅,年初至今涨跌幅`）；12 只/批、失败重试 4 次 + 单只回退；日期须 8 位数字，**绝不写入畸形日期**。
 - **独立于重建**：`productQuotes.json` **不在** `sync_excel.py` 的整表重建清单内 → 每周重建产品列表**不会**冲掉行情快照（这也是把它做成独立文件、而非写回产品字段的原因）。
 - **前端读取**：`/data/productQuotes.json` 运行时加载 → `productQuoteLatest`（各产品**最新日期**快照）；`embed_data.py` 额外内嵌 `productQuoteLatest` 作离线兜底。详情页「当日涨跌幅 / 今年以来回报」只读它。
-- **脚本**：`sync_product_quotes.py`（`--dry-run` 只打印不写、`--codes a,b` 调试单批）；已挂到 `auto_sync_deploy.sh`（步骤 12 后、**编号外**、失败不阻断）。
+- **脚本**：`sync_product_quotes.py`（`--dry-run` 只打印不写、`--codes a,b` 调试单批）；已挂到 `auto_sync_deploy.sh`（**「月月名单自动补入」之后**、**编号外**、失败不阻断）。⚠️ 位置 **2026-10-06 由「步骤 12 后」后移**至此 —— 使当轮「月月名单自动补入」的新产品**同轮即可取到行情快照**（否则新加产品要等下一周才有「当日涨跌幅/今年以来回报」）。
 
 ## 新 ETF / 新指数自动发现规则（2026-08-15 固化）
 
@@ -101,6 +101,7 @@
 2. **调出（自动移出）**：`sync_fund_divdate.prune_stale_monthly`（步骤 14）—— 最近一次分红**早于「上一个月」**（如 2026-10 运行要求 ≥ 2026-09-01）即移出 etfData/fundData；`divDate` 为空者不动（防误删）。Excel 仍会带回，若恢复月月分红则自动回归。
 3. **防回退**：`sync_excel.py` 重建 etfData/fundData 时**保留 Excel/用户表外的行**（新增表外行护栏，2026-10-06）—— 否则每周整表重建会冲掉自动补入成员；`check_data.py` 第 7b（无超期成员）/ 7c（行结构完整）为部署硬门槛。
 4. **顺序不可调**：`sync_new_monthly` 必须在 step 11 `sync_excel(2)` **之后**（产物是表外行，靠护栏保留）、step 14 之前（同轮紧接刷 divDate 并做连续性剔除）。
+5. **金额字段补空白（2026-10-06）**：自动补入的场外基金**不在 Excel 内**，其 `annualDivAmt`/`monthlyDivAmt`/`divTotalAmt` 由步骤 15 `sync_wind_fields` **仅在为空/0 时**用 Wind「最新单位年度分红」「最新年度分红总额（亿元）」补齐（**Excel 行已有值 → 不动**）；口径 `monthlyDivAmt = 年度单位分红 ÷ 年度分红次数(annualDiv)`。此前缺失表现为「有最近分红日、但月均分红 = 0」。
 
 ## 数据更新机制
 

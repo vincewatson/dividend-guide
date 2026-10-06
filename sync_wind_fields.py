@@ -410,9 +410,19 @@ def update_fund_data():
     queries = [' '.join('%s %s' % (x['code'], x['name']) for x in b) +
                ' 这些基金的基金成立日 管理费率 最新单位净值 最新基金规模 2026年分红次数 近12月分红收益率 跟踪指数名称 基金公司名称'
                for b in batches]
-    results = _prefetch(queries)
+    # 第二路：分红金额（**仅补空白** —— Excel 行已有值不动；自动补入/缺失行用 Wind 补）。
+    #   2026-10-06 新增：月月名单自动补入（sync_new_monthly）的场外基金不在 Excel 内，
+    #   否则 annualDivAmt/monthlyDivAmt/divTotalAmt 恒为 0（表现为「有最近分红日、但月均分红=0」）。
+    #   Wind「最新单位年度分红」= 站点「年度单位分红」(annualDivAmt，元/份)，实测 007466 = 0.045 与 Excel 一致；
+    #   「最新年度分红总额（亿元）」= divTotalAmt（亿元，与表头单位一致）。
+    #   monthlyDivAmt 按站点口径 = 年度单位分红 ÷ 年度分红次数（annualDiv）。
+    q2s = ['、'.join(x['code'] for x in b) + ' 最新单位年度分红 最新年度分红总额（亿元）'
+           for b in batches]
+    res = _prefetch(queries + q2s)
+    results, results2 = res[:len(batches)], res[len(batches):]
     for bi, (batch, tbs) in enumerate(zip(batches, results)):
         by_code = _rows_by_code(tbs)
+        by_code2 = _rows_by_code(results2[bi] if bi < len(results2) else [])
         for x in batch:
             hit = by_code.get(x['code'])
             if not hit:
@@ -449,6 +459,24 @@ def update_fund_data():
             _tn = str(gv('跟踪指数名称')).strip() if gv('跟踪指数名称') else ''
             _canon = _iname.get(x.get('trackCode') or '')
             upd('trackName', (_canon or _tn) or None)   # 站内指数库优先（ETF 跟踪指数名与指数库打通，2026-10-05）
+            # 分红金额补空白（2026-10-06）：仅当当前为空/0 时用 Wind 补（Excel 行已有值 → 不动）
+            _h2 = by_code2.get(x['code'])
+            if _h2:
+                _r2, _cm2 = _h2
+
+                def gv2b(c, r=_r2, m=_cm2):
+                    return r[m[c]] if c in m and len(r) > m[c] else None
+                _u = num(gv2b('最新单位年度分红'))
+                if _u is not None and not x.get('annualDivAmt'):
+                    x['annualDivAmt'] = round(_u, 4)
+                    _ad = x.get('annualDiv') or 0
+                    if _ad:
+                        x['monthlyDivAmt'] = round(_u / _ad, 4)
+                    chg += 1
+                _t = num(gv2b('最新年度分红总额'))
+                if _t is not None and not x.get('divTotalAmt') and 0 < _t < 1000:
+                    x['divTotalAmt'] = round(_t, 2)
+                    chg += 1
             yv = iy.get(x.get('trackCode') or '')
             if yv is not None and x.get('yieldNum') != yv:
                 x['yieldNum'] = round(yv, 4)

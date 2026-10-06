@@ -141,12 +141,6 @@ echo "===== [12/21] 新 ETF/新指数自动发现（Wind）====="
 run_py "sync_new_etf.py" sync_new_etf.py
 
 echo ""
-echo "===== [产品行情] 快照入库（Wind；2026-10-05 新增·编号外，不影响 1..21 计数）====="
-# 拉取各 ETF/基金【当日涨跌幅】【今年以来回报】，按日期打标签【追加】到 data/productQuotes.json
-# （只追加不覆盖：历史快照永久保留；产品回报绝不跨取跟踪指数）。Wind 抖动失败不阻断后续步骤。
-run_py "sync_product_quotes.py" sync_product_quotes.py || echo "  ⚠ 产品行情快照失败（Wind 抖动），保留已有快照，下次重试"
-
-echo ""
 echo "===== [13/21] 新 REITs 自动发现（Wind；2026-09-26 新增）====="
 run_py "sync_new_reits.py" sync_new_reits.py
 
@@ -156,6 +150,13 @@ echo "===== [月月名单] 自动补入（Wind；2026-10-06 新增·编号外，
 # 位置关键：必须在 step 11 sync_excel(2) 之后（产出的是 Excel 表外行，靠 sync_excel 表外行护栏保留）、
 #           且在 step 14 之前（同轮紧接刷 divDate + prune_stale_monthly 剔除超期成员）。Wind 抖动失败不阻断。
 run_py "sync_new_monthly.py" sync_new_monthly.py || echo "  ⚠ 月月名单自动补入失败（Wind 抖动），保留现有名单，下次重试"
+
+echo ""
+echo "===== [产品行情] 快照入库（Wind；2026-10-05 新增·编号外，不影响 1..21 计数）====="
+# 拉取各 ETF/基金【当日涨跌幅】【今年以来回报】，按日期打标签【追加】到 data/productQuotes.json
+# （只追加不覆盖：历史快照永久保留；产品回报绝不跨取跟踪指数）。Wind 抖动失败不阻断后续步骤。
+# ⚠️ 位置（2026-10-06 调整）：必须放在「月月名单自动补入」**之后** —— 补入的新产品才能在同轮拿到行情快照。
+run_py "sync_product_quotes.py" sync_product_quotes.py || echo "  ⚠ 产品行情快照失败（Wind 抖动），保留已有快照，下次重试"
 
 echo ""
 echo "===== [14/21] 恢复基金最近分红日期（Wind，覆盖被 Excel 覆盖的 divDate）====="

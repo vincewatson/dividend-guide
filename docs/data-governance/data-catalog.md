@@ -12,7 +12,7 @@
 |----------|--------|----------|--------------|----------|
 | indexData.json（divHistory）| Wind 指数股息率日频 | sync_div_history.py + fix_laggard | 增量补到最新交易日（2023-01 起全量）；fix_laggard 单查补缺口（**日频查询 + 合并**，2026-09-13 修订）| **绝不删除**（跳过做占位 + 写回兜底）|
 | indexData.json（dailyChange）| Wind 涨跌幅 | sync_daily_change.py | 每日最新交易日 | 仅更新两字段；**存小数**（-0.0204=-2.04%）|
-| productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 sync_excel 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）|
+| productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 sync_excel 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）；位置=「月月名单自动补入」之后（2026-10-06 后移，使新补入产品同轮取到行情）|
 | indexData.json（新指数）| Wind（自动发现）| sync_new_etf.py | 新 ETF 跟踪指数缺失时补入 | 自动纳入，含 divHistory |
 | cnEtfData/hkEtf/etf/fundData | Excel 快照 | sync_excel.py | 快照全量重建 | divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的**；**hkEtf 保留表外标的 + `active`/`shares` 字段（2026-10-05，如主动管理ETF 3555.HK）**；**etf/fund 保留表外标的（月月名单自动补入，2026-10-06）** |
 | cnEtfData（新 ETF）| Wind（自动发现）| sync_new_etf.py | 近 30 天成立红利类 ETF 自动补入 | 与 Excel 重建合并去重 |
@@ -75,6 +75,7 @@
 - 全部字段：② 快照「月月可分红ETF/月月可分红（场外）」。
 - **名单成员（月月分红）**：**新增**成员**自动化**——全市场检索「近 1 年分红次数 ≥ 11」的指数产品（A 类去重），由 `sync_new_monthly.py` 自动补入（2026-10-06 起；完整口径见 `update-mechanism.md`「月月分红名单『自动补入 + 自动移出』规则」）；**移出**已停止月月分红的成员**自动化**——步骤 14 `sync_fund_divdate.prune_stale_monthly`：最近一次分红早于「上一个月」（如 10 月运行要求 ≥ 9/1）即移出（2026-10-06 起）。
   - 当前 etfData **15** 只 / fundData **28** 只。fundData 演变：2026-10-06 由 26 移出 `022097.OF 长城中证红利低波100ETF联接A`（最近分红 2026-07-28，8/9 月均无分红，已非月月）→ 25；同日再自动补入 `021583.OF 中欧中证港股通央企红利指数A`、`022325.OF 长城中证港股通高股息投资指数A`、`021375.OF 中欧中证红利低波动100指数A` → 28。
+  - **金额字段（`annualDivAmt`/`monthlyDivAmt`/`divTotalAmt`）**：Excel 行取 Excel 快照；**自动补入行**（不在 Excel 内）由步骤 15 `sync_wind_fields` **补空白**（仅当为空/0 时用 Wind「最新单位年度分红」「最新年度分红总额（亿元）」；`monthlyDivAmt = 年度单位分红 ÷ 年度分红次数`，2026-10-06）。此前自动补入行的这些金额恒为 0（表现为「有最近分红日、但月均分红=0」）。
 - `name`（ETF 简称）：**统一 = Wind「基金扩位场内简称」**（快照「月月可分红ETF」表头 2026-09-20 由「ETF简称」更名为「ETF扩位场内简称」；取值本就是扩位简称，实测 15/15 与 Wind 一致）。**场外基金表「月月可分红（场外）」无场内概念，`fundData.name` 仍是基金简称，不受此规则约束**。
 - `divDate`：③ Wind（sync_fund_divdate，**多措辞兜底**，2026-09-13 起「最近分红情况」为主）。
 - `taxRate`（港股红利税系数）：① 用户（名称智能识别 0.8/1.0）。
