@@ -130,7 +130,7 @@
     - `hkEtfData`：人工补充字段 `active`（主动管理ETF 标记）/`shares`/`sharesUnit` 旧值非空则保留（Excel 表无此列，2026-10-05）。
   - 规模类（cnEtf/hkEtf 的 `size`、etf/fund 的 `fundSize`、moneyFund 的 `size`）：旧文件 `sizeDate` 比 Excel 快照新 → 保留 Wind 值与日期。
 - **「重建 → 重放」顺序（不可调整）**：`etfData/fundData/cnEtfData/hkEtfData` 的 Wind 字段依赖 step 15 `sync_wind_fields`、`divDate` 依赖 step 14 `sync_fund_divdate`；`reitsData.shortName`（扩位简称）依赖 step 13 `sync_new_reits`——均在 step 11 的第二次 `sync_excel` 之后。
-- **手工修订通道（2026-09-27 用户约定）**：手工修订**在对话里告知 AI**，由 AI 落到 `data/*.json` 并登记到 `manual-overrides.md` 台账，同时确保该项能扛住 rebuild（落到 `MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / 专用护栏）。**不要直接改 JSON 了事**（非白名单字段会被下轮重建覆盖），也**不要走飞书/Excel 表**——该表仅在「做全新表格、一次性批量提交数据」时使用。
+- **手工修订通道（2026-09-27 用户约定；2026-10-06 excel-exit P1 升级）**：手工修订**在对话里告知 AI**，由 AI 落到 `data/*.json` 并登记到 `manual-overrides.md` 台账，同时确保该项能扛住 rebuild（落到 `MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / 专用护栏）。**不要直接改最终 JSON 了事**（非白名单字段会被下轮重建覆盖）。**「标注」类现统一来源 = `data/curation/*.json`**（指数详情页/加权附加条件/调整周期/调整生效日、港ETF详情页/互联互通、港股红利税系数、每月千元投入、博客内容标签/相关指数）；P1 后 `sync_excel.py`/`sync_blog.py` **只读 curation、不再读飞书表/标注 Excel**，飞书/Excel 快照仅剩「清单」作用（P2 再移除，见 `excel-exit-plan.md`）。
 - **新增 Wind 自动字段时的检查清单**：① 写入方在 step 11 之前还是之后？② 之前 → 必须在 `sync_excel` 加保留护栏或在 step 11 之后重放；③ 之后 → 确认该文件不被后续步骤重建。
 
 ### 本地数据库与离线保障

@@ -23,7 +23,7 @@
    - `红利指数信息表`：指数代码/名称/**详情页**/全称/发布机构/发布日期/成分个数/目标市场/加权方式/**加权方式(附加条件)**/**样本调整周期**/**样本调整生效日**/股息率
    - `红利指数股息率`：港股红利税系数、每月千元分红需总投入
    - `港交所红利ETF`：**详情页**/互联互通ETF/跟踪指数/管理人/费率/规模/最近分红日
-2. **博客标注表 `user_upload/博客文章标注表*.xlsx`**（2026-10-05，**仍在用**）—— 内容标签 / 相关指数；由 `sync_blog.py` 合并、并**回写** `data/blogAnnotations.json`。
+2. **博客标注表 `user_upload/博客文章标注表*.xlsx`**（2026-10-05，**仍在用**）—— 内容标签 / 相关指数；由 `sync_blog.py` 合并、并**回写** `data/blogAnnotations.json`。 → **✅ P1 已迁移**：清单/标注冻结为 `data/curation/blog_articles.json` + `blog_annotations.json`，`sync_blog.py` 只读它们、**不再读写任何 xlsx**；旧镜像 `data/blogAnnotations.json` 已删除。
 3. **代码常量（`sync_excel.py`）**：`MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / `NOTE_OVERRIDE` / `BOND_OVERRIDE` / `EXTRA_ASSETS` / `ASSET_DESC` / `smart_tax_rate`。
 4. **对话落地通道**：用户在对话里告知的修正 → AI 落到 `data/*.json` + 登记 `docs/data-governance/manual-overrides.md`（**本身就是「无 Excel」通道**）。
 
@@ -55,8 +55,10 @@
 2. **移除力度 = 分阶段（P0→P3）**：先建 JSON 源并双跑校验，稳定后再删 Excel 层。
 
 ### 执行进度
-- **✅ P0 已完成（2026-10-06）**：新增一次性迁移工具 `export_curation.py`，把当前 Excel 快照的**清单 + 标注**导出为 `data/curation/` 下 **13 个 JSON**（+ `_manifest.json`），列按**表头名**存储（消除「按列下标取值」的隐性契约，见 backlog B-1）；已 git 版本化。**未改任何流水线**。
-  - 导出对照：indices（PRO 47 / 飞书信息表 48 / 飞书股息率 22 / 主表 22）、cn_etf 87、hk_etf（PRO 11 / 飞书 11）、monthly_etf 15、monthly_fund 26、money_fund 43、reits（产权 35 / 经营权 23）、assets 15。
-- **⏳ P1（下一步）**：让 `sync_excel.py` 的**标注类字段**改读 `data/curation/`（Excel 仅剩清单作用）；博客标注改 JSON。
-- **⏳ P2**：清单改由 curation + Wind 自动发现维护；`sync_excel` 不再读 xlsx。
-- **⏳ P3**：删除 `find_snapshot`/`load_sheet`/`SNAP*` 与 `pd`；`backup_db.py`/`preflight.py` 去 Excel；归档 xlsx 与文档章节。
+- **✅ P0 已完成（2026-10-06）**：新增一次性迁移工具 `export_curation.py`，把 Excel 快照 + 博客表的**清单 + 标注**导出为 `data/curation/` 下 **15 个 JSON**（+ `_manifest.json`），列按**表头名**存储（消除「按列下标取值」的隐性契约，见 backlog B-1）；已 git 版本化。**未改任何流水线**。
+  - 修 2 处导出缺陷：① **数据起始行 off-by-one**（PRO/飞书/总表实为第 1 行数据，非第 2 行）；② 飞书「红利指数信息表」**详情页为 `=HYPERLINK()` 公式**（pandas 读为 None）→ `openpyxl(data_only=False)` 正则补全 **49/49**。
+  - 导出对照（修正后）：indices（PRO 48 / 飞书信息表 49 / 飞书股息率 23 / 主表 22）、cn_etf 88、hk_etf（PRO 12 / 飞书 12）、monthly_etf 15、monthly_fund 26、money_fund 43、reits（产权 35 / 经营权 23）、assets 16；博客 `blog_articles.json` 289、`blog_annotations.json` 115。
+- **✅ P1 已完成（2026-10-06）**：`sync_excel.py` 的标注类字段（`load_user_index_info` / `load_user_hk_etf`）改读 `data/curation/`（**Excel 仅剩「清单」作用**）；`sync_blog.py` **完全脱离 Excel**——文章清单 + 标注均读 curation JSON，不再读 `user_upload/*.xlsx`、不再回写，**删除**冗余镜像 `data/blogAnnotations.json`。
+  - **一致性验证**：parity 工具逐字段比对「旧 Excel 载入器 vs 新 curation 载入器」→ `load_user_index_info` / `load_user_hk_etf` / `build_index_data` / `build_hk_etf_data` **端到端 0 差异**；`blogData.json` 仅 1 处预期订正（`上证红利`→`红利指数`）。`check_data` ✅。
+- **⏳ P2**：清单改由 curation + Wind 自动发现（`sync_new_etf` / `sync_new_reits` / `sync_new_monthly`）维护；`sync_excel` 不再读 xlsx（P1 后 Excel 仅剩清单角色）。
+- **⏳ P3**：删除 `find_snapshot` / `load_sheet` / `SNAP*` 与 `pd`、`openpyxl` 依赖（`export_curation.py` 除外，其保留为「核对工具」）；`backup_db.py` / `preflight.py` 去 Excel；归档 xlsx 与文档章节。

@@ -25,7 +25,7 @@
 | reitsDaily.json | Wind REITs 日频原始缓存（89 只逐只）| sync_reits_daily.py | **增量缓存**（每只续补新段 → 汇总两类中位数 → 写 assetHistory）| 纯缓存，可从 Wind 重建；断点续传落盘处 |
 | dailyData.json | digest-db.json（坚果云同步，稳定机器接口）| sync_daily.py | 最新一期前置 | 独立 |
 | dailyTagColors.json | digest-db.json → meta.tagColors | sync_daily.py | 10 标签浅底/深字配色，前端直接复用 | 独立 |
-| blogData.json（博客 · 子弹列车文章目录）| **用户提供**（`user_upload/公众号历史文章(20240123-20260919).xlsx`：发表日期 / 标题 / 文章链接 / 所属栏目）+ **标注表** `user_upload/博客文章标注表*.xlsx`（取最新一份；内容标签 / 相关指数，按 url 合并）+ 兜底 `data/blogAnnotations.json` | **手动**（`sync_blog.py`：xlsx + 标注表合并 + 按链接去重 + 空格规范）| 目标 = 公众号历史文章全量目录（当前 **289 篇**，含付费 **2** 篇；已标注内容标签 **114** 篇 / 相关指数 **86** 篇，其余留空待补；相关指数为 Wind 指数简称，前端按站点 `indexData` 匹配，命中者标蓝并可跳转其指数代码）| 独立（不参与自动流水线）|
+| blogData.json（博客 · 子弹列车文章目录）| **仓库内 curation JSON**（`data/curation/blog_articles.json` 文章清单 + `data/curation/blog_annotations.json` 内容标签/相关指数，按 url 合并）—— 原为用户 `user_upload/公众号历史文章*.xlsx` + `博客文章标注表*.xlsx`，2026-10-06 excel-exit P1 已冻结迁移 | **手动**（`sync_blog.py`：读 curation → 按链接去重 + 空格规范；**已不再依赖 Excel**）| 目标 = 公众号历史文章全量目录（当前 **289 篇**，含付费 **2** 篇；已标注内容标签 **114** 篇 / 相关指数 **86** 篇，其余留空待补；相关指数为 Wind 指数简称，前端按站点 `indexData` 匹配，命中者标蓝并可跳转其指数代码）| 独立（不参与自动流水线）|
 | etfData/fundData/cnEtfData/hkEtf/indexData（Wind 化字段）| Wind get_fund_financials / get_index_fundamentals | **sync_wind_fields.py** | 步骤 15，在 sync_excel(2)（步骤 11）之后（不被覆盖）| **fundCount/yrChange/divDate/yield=指数股息率 均保护**；N 前缀摘除不恢复（fix_n_prefix + sync_excel 保护）|
 
 ## 数据文件清单（data/）
@@ -47,7 +47,7 @@
 | productQuotes.json | 135 产品 / 135 条快照（逐日累积）| **sync_product_quotes.py** | ③ Wind MCP（`get_fund_price_indicators`）| 流水线（步骤 12 后·编号外；只追加不覆盖）|
 | dailyData.json | 期数随 digest-db.json 累积 | sync_daily.py | digest-db.json | 流水线 |
 | dailyTagColors.json | 10 标签 | sync_daily.py | digest-db.json → meta.tagColors | 流水线 |
-| blogData.json | 289 篇 | sync_blog.py（手动）| 用户提供（`user_upload/公众号历史文章*.xlsx`）+ 标注表 `user_upload/博客文章标注表*.xlsx`（兜底 `data/blogAnnotations.json`）| 手动（随用户补充而更新）|
+| blogData.json | 289 篇 | sync_blog.py（手动）| 仓库内 `data/curation/blog_articles.json` + `blog_annotations.json`（excel-exit P1 后不再依赖 Excel）| 手动（随补充而更新）|
 | backup/ + index.html 内嵌 | — | backup_db.py / embed_data.py | 本地 | 同步后自动 |
 
 ## 数据来源明细（按数据域）

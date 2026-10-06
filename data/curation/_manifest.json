@@ -1,5 +1,5 @@
 {
- "exportedAt": "2026-10-06 10:49:10",
+ "exportedAt": "2026-10-06 11:00:10",
  "snapshots": {
   "main": "食息指南(EXCEL-Wind)-快照2.xlsx",
   "pro": "食息指南PRO(EXCEL-Wind)-快照2.xlsx",
@@ -16,24 +16,27 @@
    "domain": "indices",
    "source": "食息指南PRO(EXCEL-Wind)-快照2.xlsx",
    "sheet": "境内红利指数",
-   "rows": 47,
-   "columns": 13
+   "rows": 48,
+   "columns": 13,
+   "formulaLinksFilled": 0
   },
   {
    "file": "indices_feishu_info.json",
    "domain": "indices",
    "source": "食息指南Pro-飞书.xlsx",
    "sheet": "红利指数信息表",
-   "rows": 48,
-   "columns": 13
+   "rows": 49,
+   "columns": 13,
+   "formulaLinksFilled": 49
   },
   {
    "file": "indices_feishu_yield.json",
    "domain": "indices",
    "source": "食息指南Pro-飞书.xlsx",
    "sheet": "红利指数股息率",
-   "rows": 22,
-   "columns": 6
+   "rows": 23,
+   "columns": 6,
+   "formulaLinksFilled": 0
   },
   {
    "file": "indices_main.json",
@@ -41,31 +44,35 @@
    "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
    "sheet": "红利指数",
    "rows": 22,
-   "columns": 8
+   "columns": 8,
+   "formulaLinksFilled": 0
   },
   {
    "file": "cn_etf.json",
    "domain": "cn_etf",
    "source": "食息指南PRO(EXCEL-Wind)-快照2.xlsx",
    "sheet": "境内红利ETF",
-   "rows": 87,
-   "columns": 19
+   "rows": 88,
+   "columns": 19,
+   "formulaLinksFilled": 0
   },
   {
    "file": "hk_etf_pro.json",
    "domain": "hk_etf",
    "source": "食息指南PRO(EXCEL-Wind)-快照2.xlsx",
    "sheet": "港交所红利ETF",
-   "rows": 11,
-   "columns": 11
+   "rows": 12,
+   "columns": 11,
+   "formulaLinksFilled": 0
   },
   {
    "file": "hk_etf_feishu.json",
    "domain": "hk_etf",
    "source": "食息指南Pro-飞书.xlsx",
    "sheet": "港交所红利ETF",
-   "rows": 11,
-   "columns": 11
+   "rows": 12,
+   "columns": 11,
+   "formulaLinksFilled": 0
   },
   {
    "file": "monthly_etf.json",
@@ -73,7 +80,8 @@
    "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
    "sheet": "月月可分红ETF",
    "rows": 15,
-   "columns": 19
+   "columns": 19,
+   "formulaLinksFilled": 0
   },
   {
    "file": "monthly_fund.json",
@@ -81,7 +89,8 @@
    "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
    "sheet": "月月可分红（场外）",
    "rows": 26,
-   "columns": 17
+   "columns": 17,
+   "formulaLinksFilled": 0
   },
   {
    "file": "money_fund.json",
@@ -89,7 +98,8 @@
    "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
    "sheet": "货币基金",
    "rows": 43,
-   "columns": 6
+   "columns": 6,
+   "formulaLinksFilled": 0
   },
   {
    "file": "reits_equity.json",
@@ -97,7 +107,8 @@
    "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
    "sheet": "REITs（产权类）",
    "rows": 35,
-   "columns": 13
+   "columns": 13,
+   "formulaLinksFilled": 0
   },
   {
    "file": "reits_concession.json",
@@ -105,15 +116,17 @@
    "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
    "sheet": "REITs（经营权类）",
    "rows": 23,
-   "columns": 13
+   "columns": 13,
+   "formulaLinksFilled": 0
   },
   {
    "file": "assets.json",
    "domain": "assets",
    "source": "食息指南(EXCEL-Wind)-快照2.xlsx",
    "sheet": "总表",
-   "rows": 15,
-   "columns": 6
+   "rows": 16,
+   "columns": 6,
+   "formulaLinksFilled": 0
   }
  ]
 }

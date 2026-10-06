@@ -5,7 +5,8 @@
  "sheet": "REITs（经营权类）",
  "headerRow": 0,
  "unitsRow": 1,
- "exportedAt": "2026-10-06 10:49:10",
+ "dataStartRow": 2,
+ "exportedAt": "2026-10-06 11:00:10",
  "columns": [
   "REITs代码",
   "REITs简称",

@@ -5,7 +5,8 @@
  "sheet": "月月可分红ETF",
  "headerRow": 0,
  "unitsRow": 1,
- "exportedAt": "2026-10-06 10:49:10",
+ "dataStartRow": 2,
+ "exportedAt": "2026-10-06 11:00:10",
  "columns": [
   "ETF代码",
   "ETF扩位场内简称",

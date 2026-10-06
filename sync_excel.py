@@ -55,71 +55,73 @@ SNAP1 = find_snapshot('食息指南(EXCEL-Wind)')
 SNAP2 = find_snapshot('食息指南PRO(EXCEL-Wind)')
 SNAP_USER = find_snapshot('食息指南Pro-飞书')
 
+# ── 标注来源：data/curation/*.json（excel-exit P1，2026-10-06）──────────────────────
+# 用户「个性化标注 / 口径修正」不再读 Excel，改读仓库内、git 版本化的 curation JSON
+# （由一次性迁移工具 export_curation.py 从原飞书表冻结而来，之后手工维护）。
+# Excel 快照在本阶段仅剩「清单」作用（P2 再移除）。
+CURATION_DIR = os.path.join(DATA_DIR, 'curation')
+
+
+def load_curation(name):
+    """读取 data/curation/<name>.json。缺失/损坏返回 None。"""
+    path = os.path.join(CURATION_DIR, name)
+    if not os.path.exists(path):
+        print('[WARN] curation 文件缺失:', name)
+        return None
+    try:
+        with io.open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print('[WARN] curation 读取失败 %s: %s' % (name, e))
+        return None
+
+
+def curation_rows(name):
+    """返回 curation JSON 的行列表（dict 列表，键=列名）。"""
+    obj = load_curation(name)
+    return (obj or {}).get('rows') or []
+
 
 def load_user_index_info():
-    """加载用户修订表「红利指数信息表」：以指数代码为键，用户字段优先"""
-    if not SNAP_USER:
-        return {}, {}
-    try:
-        df = load_sheet(SNAP_USER, '红利指数信息表')
-    except Exception as e:
-        print('[WARN] 读取用户红利指数信息表失败:', e)
-        return {}, {}
-    info = {}      # code -> {字段: 值}
-    div = {}       # code -> {股息率, 税系数, 每月千元分红}
-    try:
-        dfd = load_sheet(SNAP_USER, '红利指数股息率')
-        for i in range(1, len(dfd)):
-            r = dfd.iloc[i]
-            code = clean_code(r[0])
-            if not code:
-                continue
-            div[code] = {
-                'yieldNum': round(clean_num(r[3]), 4) if clean_num(r[3]) else 0.0,
-                'taxRate': clean_num(r[4], 1) if len(r) > 4 else 1.0,
-                'investMonthly': round(clean_num(r[5]), 2) if len(r) > 5 and clean_num(r[5]) else 0.0,
-            }
-    except Exception as e:
-        print('[WARN] 读取用户红利指数股息率表失败:', e)
-
-    # 读取公式版本以解析详情页 HYPERLINK（data_only=False 保留公式）
-    detail_links = {}
-    try:
-        wb_f = openpyxl.load_workbook(SNAP_USER, data_only=False)
-        ws_f = wb_f['红利指数信息表']
-        for row in ws_f.iter_rows(min_row=2, max_row=100, max_col=3):
-            code = clean_code(row[0].value)
-            if not code:
-                continue
-            v = row[2].value
-            m = re.search(r'HYPERLINK\("([^"]+)"', str(v)) if v else None
-            detail_links[code] = m.group(1) if m else None
-    except Exception as e:
-        print('[WARN] 解析详情页链接失败:', e)
-
-    for i in range(1, len(df)):
-        r = df.iloc[i]
-        code = clean_code(r[0])
+    """加载用户标注「红利指数信息表 / 红利指数股息率」：以指数代码为键，用户标注优先。
+    来源：data/curation/indices_feishu_info.json + indices_feishu_yield.json（原飞书表）。"""
+    info, div = {}, {}   # code -> {字段: 值}
+    # ① 指数股息率表（股息率/港股红利税系数/每月千元分红需总投入）—— 先加载，供 ② 并入
+    for row in curation_rows('indices_feishu_yield.json'):
+        code = clean_code(row.get('指数代码'))
+        if not code:
+            continue
+        _im = clean_num(row.get('每月千元分红需总投入（万元）'))
+        div[code] = {
+            'yieldNum': round(clean_num(row.get('股息率')), 4) if clean_num(row.get('股息率')) else 0.0,
+            'taxRate': clean_num(row.get('港股红利税系数'), 1),
+            'investMonthly': round(_im, 2) if _im else 0.0,
+        }
+    # ② 指数信息表（全称/发布机构/发布日期/成分个数/目标市场/加权方式/加权附加条件/调整周期/
+    #    调整生效日/股息率/详情页）—— 详情页在原 Excel 里是 HYPERLINK 公式，导出时已解析为 URL。
+    for row in curation_rows('indices_feishu_info.json'):
+        code = clean_code(row.get('指数代码'))
         if not code:
             continue
         info[code] = {
-            'name': clean_str(r[1]) or '',
-            'fullname': clean_str(r[3]) or '',
-            'publisher': clean_str(r[4]) or '',
-            'listedDate': date_str(r[5]) if len(r) > 5 else '',
-            'components': int(clean_num(r[6])) if clean_num(r[6]) else 0,
-            'market': clean_str(r[7]) or '',
-            'weight': clean_str(r[8]) if len(r) > 8 else '',
-            'weightExtra': clean_str(r[9]) if len(r) > 9 else '',
-            'adjustCycle': clean_str(r[10]) if len(r) > 10 else '',
-            'adjustDate': clean_str(r[11]) if len(r) > 11 else '',
-            'yieldNum': round(clean_num(r[12]), 4) if len(r) > 12 and clean_num(r[12]) else 0.0,
-            'detailUrl': detail_links.get(code) or '',
+            'name': clean_str(row.get('指数名称')) or '',
+            'fullname': clean_str(row.get('指数全称')) or '',
+            'publisher': clean_str(row.get('发布机构')) or '',
+            'listedDate': date_str(row.get('发布日期')),
+            'components': int(clean_num(row.get('成分个数'))) if clean_num(row.get('成分个数')) else 0,
+            'market': clean_str(row.get('目标市场')) or '',
+            'weight': clean_str(row.get('加权方式')),
+            'weightExtra': clean_str(row.get('加权方式（附加条件）')),
+            'adjustCycle': clean_str(row.get('样本调整周期')),
+            'adjustDate': clean_str(row.get('样本调整生效日')),
+            'yieldNum': round(clean_num(row.get('股息率')), 4) if clean_num(row.get('股息率')) else 0.0,
+            'detailUrl': clean_str(row.get('详情页')) or '',
         }
-        if code in div:
+        if code in div:              # 与迁移前一致：股息率表字段并入 info（税系数/每月投入）
             info[code].update(div[code])
-    print('[INFO] 用户修订表已加载: 红利指数信息表 {} 条, 股息率 {} 条'.format(len(info), len(div)))
+    print('[INFO] 用户标注已加载(curation): 红利指数信息表 {} 条, 股息率 {} 条'.format(len(info), len(div)))
     return info, div
+
 
 
 # 常用繁转简映射（Wind 源数据为繁体，网站统一显示简体）
@@ -158,33 +160,26 @@ def norm_hk_name(s):
 
 
 def load_user_hk_etf():
-    """加载用户修订表「港交所红利ETF」：以ETF简称为键（归一化后）"""
-    if not SNAP_USER:
-        return {}
-    try:
-        df = load_sheet(SNAP_USER, '港交所红利ETF')
-    except Exception as e:
-        print('[WARN] 读取用户港交所红利ETF失败:', e)
-        return {}
+    """加载用户标注「港交所红利ETF」：以ETF简称为键（归一化后）。
+    来源：data/curation/hk_etf_feishu.json（原飞书表）。"""
     out = {}
-    for i in range(1, len(df)):
-        r = df.iloc[i]
-        name = norm_hk_name(clean_str(r[0]))
+    for row in curation_rows('hk_etf_feishu.json'):
+        name = norm_hk_name(clean_str(row.get('ETF简称')))
         if not name:
             continue
         out[name] = {
-            'fullname': clean_str(r[1]) or '',
-            'detailUrl': clean_str(r[2]) if len(r) > 2 else '',  # 官方详情页（飞书表第3列）
-            'connect': clean_str(r[3]) == '是' if len(r) > 3 else False,
-            'trackCode': clean_code(r[4]) if len(r) > 4 else '',
-            'trackName': clean_str(r[5]) if len(r) > 5 else '',
-            'manager': clean_str(r[6]) if len(r) > 6 else '',
-            'listedDate': date_str(r[7]) if len(r) > 7 else '',
-            'fee': clean_num(r[8]) if len(r) > 8 else 0,
-            'size': round(clean_num(r[9]), 2) if len(r) > 9 else 0,
-            'divDate': date_str(r[10]) if len(r) > 10 else '',
+            'fullname': clean_str(row.get('ETF全称')) or '',
+            'detailUrl': clean_str(row.get('详情页')),          # 官方详情页（curation 第3列）
+            'connect': clean_str(row.get('互联互通ETF')) == '是',
+            'trackCode': clean_code(row.get('跟踪指数代码')),
+            'trackName': clean_str(row.get('跟踪指数名称')),
+            'manager': clean_str(row.get('基金管理人')),
+            'listedDate': date_str(row.get('成立日期')),
+            'fee': clean_num(row.get('管理费率')),
+            'size': round(clean_num(row.get('管理规模(亿港元)')), 2),
+            'divDate': date_str(row.get('最近分红日期')),
         }
-    print('[INFO] 用户修订表已加载: 港交所红利ETF {} 条'.format(len(out)))
+    print('[INFO] 用户标注已加载(curation): 港交所红利ETF {} 条'.format(len(out)))
     return out
 
 
