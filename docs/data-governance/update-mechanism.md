@@ -135,7 +135,7 @@
 
 ### 清单「出」机制 · 停用名单 `_retired.json`（2026-10-06 新增）
 - **范围**：境内红利ETF / 港交所红利ETF / REITs / 货币基金 四类清单。
-- **港交所红利ETF 的判据 = 阿斯达克财经网（aastocks）**：抓 `aastocks.com/en/stocks/etf/default.aspx`（全量港股 ETF 代码直接内嵌在 HTML，约 450 个），标的**不在**该列表 ⇒ 退市/终止 ⇒ 停用。每周执行（仅 1 次 HTTP 请求）。抓取失败/结果异常（<100 个代码）则**跳过**，绝不误判。
+- **港交所红利ETF 的判据 = 中央数据库「港交所上市 ETF」全量名单**（与「策略魔方」同源）：名单冻结在 `data/curation/_hk_etf_universe.json`（451 只，由**会话内 MCP** 从中央库 `fund.product` 导出：`SELECT security_id FROM fund.product WHERE sec_type='ETF' AND security_id LIKE '%.HK'`）；标的**不在**该名单 ⇒ 退市/终止 ⇒ 停用。该文件缺失时**自动退回**抓 aastocks 港股 ETF 列表（`default.aspx`，全量代码内嵌 HTML，实测约 450 个）作后备；两路失败则跳过，绝不误判。
 - **其余三类（境内红利ETF/REITs/货币基金）的判据 = Wind「基金到期日」≤ 今天** ⇒ 已结束 ⇒ 移出。⚠️ **不可**按「非空即出」——公募 REITs 运作中也有**未来**的「到期日」（成立日 + 合约存续期，实测 `180101.SZ`=2071-06-07、`508000.SH`=2056-06-07），按「非空」判定会**误杀全部 REITs**。约 28 天节流（`SX_LIFECYCLE_DAYS`）。
 - **实现**：编号外步骤 `sync_lifecycle.py`（置于**步骤 3 之后、步骤 4 之前**）；命中即写入 `data/curation/_retired.json`；`build_lists.py` 重建时**在全部「表外行护栏」之后**统一剔除该名单的 code（确保停用标的不会被重新并入）。**历史数据不删**，仅移出展示清单；**删条目即恢复**。
 - **说明**：港交所ETF 之所以不走 Wind，是因为 Wind 未返回其「到期日」（仅「存续期」）——故改用 aastocks 列表比对。

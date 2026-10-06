@@ -36,7 +36,7 @@
 | 1 | （任务准备）| 修订文档：读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/` 对应文件 |
 | 2 | （任务准备）| 确认任务逻辑：核对定时任务 / `auto_sync_deploy.sh` / `update-mechanism.md` 三者步骤数·顺序·脚本清单一致 |
 | 3 | （语法预检）| 全部 .py 语法检查（防 // 注释类错误）|
-| 3.5 | **sync_lifecycle**（编号外）| **生命周期体检（「出」机制）**：① **港交所红利ETF** 用 **aastocks 港股ETF列表**比对（不在列表=退市，每周，1 次请求）；② **境内红利ETF/REITs/货币基金** 用 Wind「基金到期日」**≤ 今天**=已结束（REIT 未来到期日不误杀；约 28 天节流）。命中写入 `data/curation/_retired.json`，`build_lists` 重建时剔除（2026-10-06）|
+| 3.5 | **sync_lifecycle**（编号外）| **生命周期体检（「出」机制）**：① **港交所红利ETF** 用**中央数据库**的「港交所上市ETF」全量名单（`data/curation/_hk_etf_universe.json`，451 只，与策略魔方同源）比对，不在名单=退市（文件缺失则退回 aastocks）；② **境内红利ETF/REITs/货币基金** 用 Wind「基金到期日」**≤ 今天**=已结束（REIT 未来到期日不误杀；约 28 天节流）。命中写入 `data/curation/_retired.json`，`build_lists` 重建时剔除（2026-10-06）|
 | 4 | build_lists(1) | **从 `data/curation/*.json` 重建**（assetData/indexData/cnEtf/hkEtf/etf/fund/moneyFund/reits；2026-10-06 P2 起不再读 Excel）|
 | 5 | sync_div_history + fix_laggard | 指数股息率日频补最新交易日（57 指数）|
 | 6 | sync_daily_change | 每日涨跌幅 + **本年涨跌幅 yrChange**（Wind 实时）|

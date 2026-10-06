@@ -6,10 +6,10 @@
 由 build_lists.py 重建时跳过（历史数据不删，仅移出展示清单；删条目即恢复）。
 
 两条判据（分别适用不同清单）：
-  ① 港交所红利ETF —— 用 **阿斯达克财经网（aastocks）** 的港股 ETF 列表比对：
-       抓 https://www.aastocks.com/en/stocks/etf/default.aspx（全量 ETF 代码直接内嵌在 HTML）；
-       我们的标的若**不在**该列表 → 视为已退市/终止 → 停用。
-       每周执行（仅 1 次 HTTP 请求，成本极低）。
+  ① 港交所红利ETF —— 用 **中央数据库**（与「策略魔方」同源）的「港交所上市 ETF」全量名单比对：
+       名单冻结在 data/curation/_hk_etf_universe.json（由会话内 MCP 从中央库 fund.product 导出）；
+       我们的标的若**不在**该名单 → 视为已退市/终止 → 停用。
+       该文件缺失时**自动退回**抓 aastocks 港股 ETF 列表（default.aspx，全量代码内嵌 HTML）作后备。
   ② 境内红利ETF / REITs / 货币基金 —— 用 Wind「基金到期日」判定：
        空（ETF/货基常青）或未来（REIT 合约存续期）⇒ 保留；**≤ 今天 ⇒ 已结束 ⇒ 停用**。
        ⚠️ 不可按「非空即出」——公募 REITs 运作中亦有未来到期日（如 180101.SZ=2071-06-07）。
@@ -33,6 +33,9 @@ CLI = os.path.join(WIND_SKILL, 'scripts', 'cli.mjs')
 
 AASTOCKS_URL = 'https://www.aastocks.com/en/stocks/etf/default.aspx'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+
+# 港交所上市 ETF 全量名单（中央数据库导出，与「策略魔方」同源；由会话内 MCP 刷新）
+HK_UNIVERSE_PATH = os.path.join(CURATION_DIR, '_hk_etf_universe.json')
 
 SLEEP = float(os.environ.get('SX_LIFECYCLE_SLEEP', '0.4'))
 DAYS = int(os.environ.get('SX_LIFECYCLE_DAYS', '28'))
@@ -99,7 +102,21 @@ def save_json(path, obj):
     os.replace(tmp, path)
 
 
-# ── 判据 ①：aastocks 港股 ETF 列表 ───────────────────────────────────────────
+# ── 判据 ①：港交所上市 ETF 名单（中央数据库；后备 aastocks）────────────────────
+def load_hk_universe():
+    """读取中央数据库导出的港交所上市 ETF 名单（站点代码形式，如 '3070.HK'）。
+    返回 (set, fetchedAt)；缺失/异常返回 None。"""
+    try:
+        obj = load_json(HK_UNIVERSE_PATH, None)
+        if obj:
+            codes = [c.strip() for c in str(obj.get('codes') or '').split(',') if c.strip()]
+            if len(codes) >= 100:
+                return set(codes), str(obj.get('fetchedAt') or '')
+    except Exception:
+        pass
+    return None
+
+
 def fetch_aastocks_universe():
     """抓 aastocks 港股 ETF 列表页，返回 5 位数字代码集合（如 {'03070','03555',...}）。
     失败或结果异常（< 100 个）返回 None —— 避免因抓取失败误判全部退市。"""
@@ -126,34 +143,50 @@ def to5(code):
         return None
 
 
-def check_hk_etf_aastocks(retired, today):
-    """aastocks 比对：hkEtfData 中标的不在 aastocks 列表 → 停用。返回 found 字典。"""
+def check_hk_etf(retired, today):
+    """港交所红利ETF「出」：标的若不在（中央数据库 / aastocks）港股ETF全量名单 → 停用。"""
     fname, label = HK_ETF
     rows = load_json(os.path.join(DATA_DIR, fname), []) or []
     codes = [x for x in rows if isinstance(x, dict) and x.get('code')]
-    print('  — %s：%d 只（判据：aastocks 港股ETF列表）' % (label, len(codes)), flush=True)
-    universe = fetch_aastocks_universe()
-    if universe is None:
-        print('    [WARN] aastocks 列表抓取失败（或结果异常）→ 本次跳过港ETF退市核对', flush=True)
-        return {}
-    print('    aastocks 返回 %d 个 ETF 代码' % len(universe), flush=True)
+    print('  — %s：%d 只' % (label, len(codes)), flush=True)
+
+    uni = load_hk_universe()
+    if uni:
+        universe, fetched = uni
+        print('    判据：中央数据库「港交所上市ETF」名单 %d 只（导出日 %s）' % (len(universe), fetched), flush=True)
+        src = 'central-db'
+        reason = '中央数据库「港交所上市ETF」名单中已不存在（退市/终止）'
+
+        def present(code):
+            return code in universe
+    else:
+        print('    [i] 未找到中央数据库名单文件（%s）→ 退回 aastocks 抓取' % os.path.basename(HK_UNIVERSE_PATH), flush=True)
+        au = fetch_aastocks_universe()
+        if au is None:
+            print('    [WARN] aastocks 抓取失败（或结果异常）→ 本次跳过港ETF退市核对', flush=True)
+            return {}
+        print('    aastocks 返回 %d 个 ETF 代码' % len(au), flush=True)
+        src = 'aastocks'
+        reason = 'Aastocks 港股ETF列表中已不存在（退市/终止）'
+
+        def present(code):
+            c5 = to5(code)
+            return c5 is not None and c5 in au
+
     found = {}
     for x in codes:
         code = x['code']
-        c5 = to5(code)
-        if c5 is None or c5 in universe:
-            continue
-        if code in retired:
+        if present(code) or code in retired:
             continue
         found[code] = {
             'name': x.get('name') or '',
             'lists': [label],
             'maturityDate': '',
             'retiredDate': today,
-            'reason': 'Aastocks 港股ETF列表中已不存在（退市/终止）',
-            'source': 'aastocks',
+            'reason': reason,
+            'source': src,
         }
-        print('    ⚠ 命中：%s %s → 拟移出（aastocks 已无此代码）' % (code, x.get('name') or ''), flush=True)
+        print('    ⚠ 命中：%s %s → 拟移出（%s 已无此代码）' % (code, x.get('name') or '', src), flush=True)
     return found
 
 
@@ -219,9 +252,9 @@ def main():
     print('[生命周期体检] [%s]' % ts(), flush=True)
     found = {}
 
-    # ① 港交所ETF（aastocks，每周；1 次请求）
+    # ① 港交所ETF（中央数据库名单；后备 aastocks）
     if only is None or 'hk' in only:
-        found.update(check_hk_etf_aastocks(retired, today))
+        found.update(check_hk_etf(retired, today))
     else:
         print('  — 港交所红利ETF：本次跳过（--only 未含 hk）', flush=True)
 
