@@ -46,6 +46,7 @@
 | 10 | sync_reits_daily | REITs 日频增量（产权/特许中位数）|
 | 11 | build_lists(2) | 重建（assetData 取最新 divHistory；来源 = `data/curation/*.json`）|
 | 12 | sync_new_etf | 新 ETF/新指数自动发现（近 30 天红利类）|
+| — | **sync_new_hk_etf** | **【编号外】新港交所红利ETF 发现（「进」机制）**：数据源 = `data/curation/_hk_etf_universe.json` 的 `dividend_funds`（中央数据库，与策略魔方同源）；关键词筛红利类 + 排除 REIT，按 ETF 全称归并多柜台（保留港元主柜台），与 hkEtfData + `_retired.json` 对照**报告**新标的（位于 step 12 后；**默认仅报告**，`--add` 才补入 hkEtfData；2026-10-06 起）|
 | 13 | sync_new_reits | 新 REITs 自动发现（全部已上市公募 REITs：508xxx.SH / 180xxx.SZ）|
 | — | **sync_new_monthly** | **【编号外】月月名单自动补入**：全市场检索「近 1 年分红次数 ≥ 11」的指数产品（A 类去重），自动补入 etfData/fundData（位于 step 13 后、step 14 前；2026-10-06 起；`--dry-run` 可先只读核对）|
 | 14 | sync_fund_divdate | 恢复最近分红日期（fund/etf/cnEtf）+ **月月名单剔除超期成员**（最近分红早于「上一个月」者移出 etfData/fundData；2026-10-06）|
