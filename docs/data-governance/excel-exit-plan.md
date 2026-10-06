@@ -5,7 +5,10 @@
 
 ---
 
-## 一、现状核查（结论：**网站目前仍在每周依赖 Excel**，尚未退出）
+## 一、现状核查（**历史快照 · 迁移前状态**；P0→P2 已完成，见文末「执行进度」）
+
+> **P0/P1/P2 完成后现状（2026-10-06）**：`sync_excel.py` **已不读任何 xlsx**（8 个 builder 全读 `data/curation/*.json`）；`sync_blog.py` 亦完全脱离 Excel。Excel 快照文件**已无脚本引用**，可随时归档（P3）。下表为迁移前的原始核查记录，保留以备追溯。
+
 
 - `sync_excel.py`（**1139 行**）在 `auto_sync_deploy.sh` 的 **step 4 / step 11 每周各跑一次**，从 3 个 Excel 快照**按列下标**重建 **8 个**数据文件：
   `assetData / indexData / cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData`。
@@ -60,5 +63,6 @@
   - 导出对照（修正后）：indices（PRO 48 / 飞书信息表 49 / 飞书股息率 23 / 主表 22）、cn_etf 88、hk_etf（PRO 12 / 飞书 12）、monthly_etf 15、monthly_fund 26、money_fund 43、reits（产权 35 / 经营权 23）、assets 16；博客 `blog_articles.json` 289、`blog_annotations.json` 115。
 - **✅ P1 已完成（2026-10-06）**：`sync_excel.py` 的标注类字段（`load_user_index_info` / `load_user_hk_etf`）改读 `data/curation/`（**Excel 仅剩「清单」作用**）；`sync_blog.py` **完全脱离 Excel**——文章清单 + 标注均读 curation JSON，不再读 `user_upload/*.xlsx`、不再回写，**删除**冗余镜像 `data/blogAnnotations.json`。
   - **一致性验证**：parity 工具逐字段比对「旧 Excel 载入器 vs 新 curation 载入器」→ `load_user_index_info` / `load_user_hk_etf` / `build_index_data` / `build_hk_etf_data` **端到端 0 差异**；`blogData.json` 仅 1 处预期订正（`上证红利`→`红利指数`）。`check_data` ✅。
-- **⏳ P2**：清单改由 curation + Wind 自动发现（`sync_new_etf` / `sync_new_reits` / `sync_new_monthly`）维护；`sync_excel` 不再读 xlsx（P1 后 Excel 仅剩清单角色）。
-- **⏳ P3**：删除 `find_snapshot` / `load_sheet` / `SNAP*` 与 `pd`、`openpyxl` 依赖（`export_curation.py` 除外，其保留为「核对工具」）；`backup_db.py` / `preflight.py` 去 Excel；归档 xlsx 与文档章节。
+- **✅ P2 已完成（2026-10-06）**：`sync_excel.py` **不再读任何 xlsx** —— 8 个 builder（asset/index/cnEtf/hkEtf/etf/fund/moneyFund/reits）全部改读 `data/curation/*.json`，按【列名】取值（**消除「按列下标取值」隐性契约 → backlog B-1 关闭**）；删除 `find_snapshot` / `load_sheet` / `SNAP1·2·USER` 与 `pandas` / `openpyxl` 依赖；`sizeDate` 改取 curation `sourceMtime`（= 原 xlsx mtime）。Wind 自动发现（`sync_new_etf` / `sync_new_reits` / `sync_new_monthly`）继续以「表外行护栏」并入重建结果，**逻辑不变**。
+  - **一致性验证**：parity 工具比对「HEAD(P1: Excel 清单) vs 新(P2: curation 清单)」→ **8 个 builder 输出 0 差异**（顺序 + 逐字段）；`sizeDate` 来源 5 项全部一致；`main()` 输出与 P1 逐字节一致；`check_data` ✅。
+- **⏳ P3（下一步）**：`backup_db.py` / `preflight.py` 去 Excel；把 `sync_excel.py` 更名为更贴切的名称；归档 xlsx 与相关文档章节。

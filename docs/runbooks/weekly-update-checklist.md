@@ -36,14 +36,14 @@
 | 1 | （任务准备）| 修订文档：读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/` 对应文件 |
 | 2 | （任务准备）| 确认任务逻辑：核对定时任务 / `auto_sync_deploy.sh` / `update-mechanism.md` 三者步骤数·顺序·脚本清单一致 |
 | 3 | （语法预检）| 全部 .py 语法检查（防 // 注释类错误）|
-| 4 | sync_excel(1) | Excel 快照重建（assetData/indexData/cnEtf/hkEtf/etf/fund/moneyFund/reits）|
+| 4 | sync_excel(1) | **从 `data/curation/*.json` 重建**（assetData/indexData/cnEtf/hkEtf/etf/fund/moneyFund/reits；2026-10-06 P2 起不再读 Excel）|
 | 5 | sync_div_history + fix_laggard | 指数股息率日频补最新交易日（57 指数）|
 | 6 | sync_daily_change | 每日涨跌幅 + **本年涨跌幅 yrChange**（Wind 实时）|
 | 7 | sync_money_fund | 货基头部实时 7 日年化 |
 | 8 | sync_yuebao_history | 余额宝日频历史（动态 180 天）|
 | 9 | sync_asset_macro | 宏观资产历史（LPR/国债/存款/预定利率/同业存单 931059/租金率保留）|
 | 10 | sync_reits_daily | REITs 日频增量（产权/特许中位数）|
-| 11 | sync_excel(2) | 重建（assetData 取最新 divHistory）|
+| 11 | sync_excel(2) | 重建（assetData 取最新 divHistory；来源 = `data/curation/*.json`）|
 | 12 | sync_new_etf | 新 ETF/新指数自动发现（近 30 天红利类）|
 | 13 | sync_new_reits | 新 REITs 自动发现（全部已上市公募 REITs：508xxx.SH / 180xxx.SZ）|
 | — | **sync_new_monthly** | **【编号外】月月名单自动补入**：全市场检索「近 1 年分红次数 ≥ 11」的指数产品（A 类去重），自动补入 etfData/fundData（位于 step 13 后、step 14 前；2026-10-06 起；`--dry-run` 可先只读核对）|

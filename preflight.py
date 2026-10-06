@@ -46,9 +46,9 @@ STEP_TIME = {
 SKIPPABLE = [5, 6, 7, 8, 9, 10, 16]
 # 步骤 → 中文名（报告用）
 STEP_NAME = {
-    3: "语法预检", 4: "sync_excel(1)", 5: "股息率 div_history", 6: "涨跌幅 daily_change",
+    3: "语法预检", 4: "重建数据(1)", 5: "股息率 div_history", 6: "涨跌幅 daily_change",
     7: "货基 money_fund", 8: "余额宝 yuebao_history", 9: "宏观 asset_macro",
-    10: "REITs reits_daily", 11: "sync_excel(2)", 12: "新ETF/指数 new_etf",
+    10: "REITs reits_daily", 11: "重建数据(2)", 12: "新ETF/指数 new_etf",
     13: "新REITs new_reits", 14: "分红日 fund_divdate", 15: "Wind字段 wind_fields",
     16: "食息资讯 sync_daily", 17: "备份 backup_db", 18: "校验 check_data",
     19: "内嵌 embed_data", 20: "部署 deploy_cloudflare", 21: "线上验证",
@@ -184,9 +184,11 @@ def r_asset(key):
     return _d(s[-1].get("date")) if s else None
 
 
-def r_excel_newest():
-    files = glob.glob(os.path.join(DATA, "user", "*.xlsx")) + glob.glob(os.path.join(DATA, "*.xlsx"))
-    files = [f for f in files if not os.path.basename(f).startswith("~$")]
+def r_lists_newest():
+    """清单/标注来源（data/curation/*.json）的最新修改时间。
+    excel-exit P2（2026-10-06）起不再看 xlsx —— sync_excel 已不读 Excel。"""
+    files = [f for f in glob.glob(os.path.join(DATA, "curation", "*.json"))
+             if not os.path.basename(f).startswith("_")]
     if not files:
         return None, None
     newest = max(files, key=os.path.getmtime)
@@ -249,19 +251,19 @@ def build(today):
     add("宏观·低频(存单/LPR/存款/预定利率)", 9, None, None, "exempt", "周/月/不定期")
     add("重点50城租金率", "B2", r_asset("重点50城租金率"), None, "exempt", "季度")
 
-    # --- Excel 快照类（事件驱动）---
-    xls_name, xls_mt = r_excel_newest()
+    # --- 清单/标注类（事件驱动；excel-exit P2 起来源 = data/curation/*.json）---
+    cur_name, cur_mt = r_lists_newest()
     data_mt = None
     p = os.path.join(DATA, "etfData.json")
     if os.path.exists(p):
         data_mt = datetime.datetime.fromtimestamp(os.path.getmtime(p))
-    if xls_mt and data_mt and xls_mt > data_mt + datetime.timedelta(seconds=60):
-        snap_note = "发现较新 Excel 快照：%s（%s）→ 需重跑" % (xls_name, xls_mt.strftime("%Y-%m-%d %H:%M"))
+    if cur_mt and data_mt and cur_mt > data_mt + datetime.timedelta(seconds=60):
+        snap_note = "发现较新的清单/标注（curation）：%s（%s）→ 需重跑" % (cur_name, cur_mt.strftime("%Y-%m-%d %H:%M"))
         snap_new = True
     else:
-        snap_note = "无新 Excel 快照（data/user 未更新）" + ("" if xls_mt else "／未找到")
+        snap_note = "清单/标注（curation）无更新" + ("" if cur_mt else "／未找到")
         snap_new = False
-    add("Excel快照类(6 文件重建)", "4/11", None, None, "event", snap_note)
+    add("清单/标注类(7 文件重建)", "4/11", None, None, "event", snap_note)
 
     # ------------------------------------------------------------------
     # 汇总：可跳过 / 需执行
@@ -331,7 +333,7 @@ def print_report(rep):
     print("  可跳过（已是最新交易日）：%s" % (" ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in rep["skip"]) or "无"))
     print("  需执行：%s" % " ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in all_steps if s not in skip_set))
     if rep["excel_new"]:
-        print("  🔸 Excel 快照有更新 → 步骤 4/11 (sync_excel) 需重跑以套用新快照")
+        print("  🔸 清单/标注（data/curation）有更新 → 步骤 4/11（重建数据）需重跑以套用")
     print("  预计耗时：约 %d 分 %d 秒（已跳过 %d 个可跳步骤）"
           % (rep["total_time"] // 60, rep["total_time"] % 60, len(rep["skip"])))
     print("  提示：如需按建议跳过，运行流水线前设置环境变量 SKIP_STEPS=\"%s\"" % " ".join(map(str, rep["skip"])))

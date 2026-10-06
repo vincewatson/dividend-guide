@@ -14,10 +14,10 @@
 | indexData.json（dailyChange）| Wind 涨跌幅 | sync_daily_change.py | 每日最新交易日 | 仅更新两字段；**存小数**（-0.0204=-2.04%）|
 | productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 sync_excel 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）；位置=「月月名单自动补入」之后（2026-10-06 后移，使新补入产品同轮取到行情）|
 | indexData.json（新指数）| Wind（自动发现）| sync_new_etf.py | 新 ETF 跟踪指数缺失时补入 | 自动纳入，含 divHistory |
-| cnEtfData/hkEtf/etf/fundData | Excel 快照 | sync_excel.py | 快照全量重建 | divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的**；**hkEtf 保留表外标的 + `active`/`shares` 字段（2026-10-05，如主动管理ETF 3555.HK）**；**etf/fund 保留表外标的（月月名单自动补入，2026-10-06）** |
-| cnEtfData（新 ETF）| Wind（自动发现）| sync_new_etf.py | 近 30 天成立红利类 ETF 自动补入 | 与 Excel 重建合并去重 |
-| reitsData.json（新 REITs）| Wind（自动发现）| sync_new_reits.py | 全部已上市公募 REITs（508xxx.SH / 180xxx.SZ）对照补入；明细字段本次取不到**留空不填 0**（数值 null / 字符串 ''）| 与 Excel 重建合并去重（sync_excel 保留 Wind 自动发现标的，2026-09-26 起）|
-| etfData/fundData（月月名单**新增**成员）| Wind `search_funds` 全市场检索（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly.py** | 每次自动补入（2026-10-06 起；编号外步骤，位于 step 13 后）| 与 Excel 重建合并去重（sync_excel 保留表外行，2026-10-06 起）|
+| cnEtfData/hkEtf/etf/fundData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起，原 Excel 快照已弃用）| sync_excel.py | 全量重建（按【列名】取值）| divHistory/dailyChange/divDate/yieldDate 保护；**cnEtf 保留 Wind 自动发现标的**；**hkEtf 保留表外标的 + `active`/`shares` 字段（2026-10-05，如主动管理ETF 3555.HK）**；**etf/fund 保留表外标的（月月名单自动补入，2026-10-06）** |
+| cnEtfData（新 ETF）| Wind（自动发现）| sync_new_etf.py | 近 30 天成立红利类 ETF 自动补入 | 与 curation 重建合并去重 |
+| reitsData.json（新 REITs）| Wind（自动发现）| sync_new_reits.py | 全部已上市公募 REITs（508xxx.SH / 180xxx.SZ）对照补入；明细字段本次取不到**留空不填 0**（数值 null / 字符串 ''）| 与 curation 重建合并去重（sync_excel 保留 Wind 自动发现标的，2026-09-26 起）|
+| etfData/fundData（月月名单**新增**成员）| Wind `search_funds` 全市场检索（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly.py** | 每次自动补入（2026-10-06 起；编号外步骤，位于 step 13 后）| 与 curation 重建合并去重（sync_excel 保留表外行，2026-10-06 起）|
 | divDate | Wind 最近分红 | sync_fund_divdate.py | 全量重拉 | 无数据保留原值；**必须在 sync_excel 之后**；措辞**多路兜底**（最近分红情况→最近分红发放日期→基金分红 分红发放日）|
 | moneyFundData（yield7d/yieldDate）| Wind 实时 | sync_money_fund.py | 最新交易日 | 重建时保留 yieldDate；**必须早于 sync_excel(2)** |
 | yuebaoHistory.json | Wind 日频 | sync_yuebao_history.py | **动态：divHistory 最早日期向前 180 天** | 每段重试 3 次 + 写回前与现有文件**合并**兜底（2026-09-13 加固，防瞬时失败丢段）|
@@ -106,11 +106,11 @@
   - 原**周报**线路（`dividend-guide-weekly-digest.html` → sync_weekly.py → weeklyData.json）已于 2026-09-20 退役，
     完整实现归档在 `archive/weekly-feed-2026-09/`（可回滚，未删除）。
 
-## 规范数据库（Wind Excel 快照）表头结构（2026-09-20 统一）
+## 清单/标注来源（`data/curation/`）列结构与编辑约定（2026-10-06 excel-exit P2 后）
 
-> **规范数据库 = `data/user/食息指南(EXCEL-Wind)-*.xlsx`（主表）与 `data/user/食息指南PRO(EXCEL-Wind)-*.xlsx`（PRO 表）**，由用户从 Wind 导出。
-> `sync_excel.py` 用 `pd.read_excel(header=None)` **按列下标取值**，故列顺序是硬约束：**改表头文字不影响解析，但增删/移动列必须同步改脚本下标**。
-> ⚠️ 这是一条**只能靠人记住**的隐性契约（挪列忘改代码会静默错位）；解方（改为**按表头名称取值**）已立项为中期改进项，见 `docs/backlog.md` B-1。
+> **规范数据库（2026-10-06 excel-exit P2 后）**：清单 + 标注的单一事实来源 = **`data/curation/*.json`**（仓库内、git 版本化；结构与编辑约定见 `data/curation/README.md`）。原 Excel 快照（`data/user/食息指南*`）**已无脚本引用**。
+> `sync_excel.py` 各 builder **按【列名】取值**（不再有 `pd.read_excel` / 列下标）→ 增删/移动列不再有「静默错位」风险（backlog **B-1 已关闭**）。
+> ⚠️ 若改动 curation 的**列名**（`columns` 数组）或字段名，需同步改 `sync_excel.py` 里对应的 `row.get('列名')`；仅改**行值**则无需动代码。
 
 ### ETF 简称的唯一口径
 
@@ -149,8 +149,8 @@ ETF代码 | ETF扩位场内简称 | 跟踪指数代码 | 跟踪指数名称 | �
 
 ### 防回退要点
 
-- 修改 JSON 简称后，**必须同时更新规范数据库对应单元格**，否则下次 `sync_excel.py`（每周步骤 4/11）会按旧值重建并回退。
-- 新 ETF（`sync_new_etf.py` 自动发现）不走 Excel，其简称由 `fetch_ext_short_names()` 从 Wind 取「基金扩位场内简称」，已内置，无需人工干预。
+- 修改 JSON 简称后，**必须同时更新 `data/curation/` 里对应行的简称**（清单/标注来源），否则下次 `sync_excel.py`（每周步骤 4/11）会按 curation 旧值重建并回退。
+- 新 ETF（`sync_new_etf.py` 自动发现）不走 curation 清单，其简称由 `fetch_ext_short_names()` 从 Wind 取「基金扩位场内简称」，已内置，无需人工干预。
 
 ## 数据源优先级
 

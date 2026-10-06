@@ -7,7 +7,8 @@
 #   - 步骤 3：全部 .py 语法预检（防 // 注释类错误）
 #   - sync_excel 跑两次：第二次在 div_history/daily_change/money_fund/yuebao 之后，
 #     build_asset_data 才能取到最新 divHistory（红利指数）与 moneyFundData.yieldDate（余额宝）
-#   - sync_fund_divdate 必须在最后一次 sync_excel 之后（sync_excel 会用 Excel 覆盖 divDate）
+#   - sync_fund_divdate 必须在最后一次 sync_excel 之后（sync_excel 重建会覆盖 divDate）
+#   - sync_excel.py 自 2026-10-06（excel-exit P2）起**不再读 Excel**，清单/标注一律来自 data/curation/*.json
 #   - check_data.py 验证全部 ✅ 才允许部署（硬门槛）
 # 三条铁律：写回绝不删除旧数据；历史序列起点早于图表起点；check_data 必须全 ✅
 # ============================================================
@@ -92,7 +93,7 @@ for f in *.py; do
 done
 echo "✅ 全部 $(ls *.py | wc -l | tr -d ' ') 个脚本语法 OK"
 
-echo "===== [4/21] 同步 Excel 数据（第一次）====="
+echo "===== [4/21] 从 curation 重建数据（第一次；原 sync_excel，现不读 Excel）====="
 run_py "sync_excel.py（第一次）" sync_excel.py
 
 echo ""
@@ -133,7 +134,7 @@ run_py "sync_reits_daily.py" sync_reits_daily.py
 fi
 
 echo ""
-echo "===== [11/21] 同步 Excel 数据（第二次！assetData 取最新 divHistory/yieldDate）====="
+echo "===== [11/21] 从 curation 重建数据（第二次！assetData 取最新 divHistory/yieldDate）====="
 run_py "sync_excel.py（第二次）" sync_excel.py
 
 echo ""

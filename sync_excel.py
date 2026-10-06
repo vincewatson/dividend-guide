@@ -1,69 +1,56 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-食息指南 数据同步脚本
+食息指南 数据重建脚本（原 sync_excel；excel-exit P2 后**不再读 Excel**）
 ====================================
-从 Wind 导出的 Excel 快照生成网站数据 JSON 文件。
+从 data/curation/*.json（清单 + 标注）+ 其它 data/*.json 重建 8 个站点数据文件。
 
 用法:
-    python3 sync_excel.py
+    python3 sync_excel.py     # 文件名保留以兼容流水线；P3 归档 Excel 层时再改名
 
-数据源（放在 data/ 目录，文件名自动按前缀识别，快照后缀可为任意数字/文本）:
-    「食息指南(EXCEL-Wind)」开头的 xlsx → 总表/红利指数/月月可分红ETF/月月可分红(场外)/货币基金/REITs
-    「食息指南PRO(EXCEL-Wind)」开头的 xlsx → 境内红利指数/境内红利ETF/港交所红利ETF
-    多个匹配文件时自动选择修改时间最新的一个。
+数据源（仓库内、git 版本化；本脚本不再读任何 xlsx）:
+    data/curation/assets.json                             → assetData（首页总表）
+    data/curation/indices_pro.json                        → indexData（境内红利指数清单）
+    data/curation/indices_main.json                        → indexData（主表红利指数补充）
+    data/curation/indices_feishu_info.json / _yield.json   → indexData（用户标注：详情页/加权/调整周期/税系数…）
+    data/curation/cn_etf.json                              → cnEtfData
+    data/curation/hk_etf_pro.json                          → hkEtfData（清单）
+    data/curation/hk_etf_feishu.json                       → hkEtfData（用户标注：详情页/互联互通）
+    data/curation/monthly_etf.json                         → etfData
+    data/curation/monthly_fund.json                        → fundData
+    data/curation/money_fund.json                          → moneyFundData
+    data/curation/reits_equity.json / reits_concession.json→ reitsData
 
-用户修订优先机制（重要）:
-    「食息指南Pro-飞书」开头的 xlsx 是用户手动整理的表（基于 Wind 数据但含手动修订）：
-      - 红利指数信息表：加权方式、加权方式（附加条件）、样本调整周期、样本调整生效日、
-                       目标市场、成分个数、股息率 等字段以用户表为准
-      - 红利指数股息率：股息率、港股红利税系数、每月千元分红需总投入 以用户表为准
-      - 港交所红利ETF：互联互通、跟踪指数代码/名称 等以用户表为准（用户手动修订 Wind 缺失数据）
-    生成 JSON 时用户表字段优先，Wind 表仅补充用户表没有的字段/指数。
+用户标注优先机制（重要）:
+    curation 里的「用户标注」（indices_feishu_info / indices_feishu_yield / hk_etf_feishu）优先于
+    Wind 清单值：详情页、加权方式（附加条件）、样本调整周期/生效日、目标市场、成分个数、股息率、
+    港股红利税系数、互联互通、跟踪指数… 以标注为准；清单表仅补充标注没有的字段/标的。
 
 港股红利税系数规则（重要）:
-    优先读取用户表「红利指数股息率」中的税系数列（手动整理，可信）；
-    用户表没有的基金按名称智能识别：名称含「港股」或「沪港深」→ 0.8，其他 → 1.0。
+    优先读标注「红利指数股息率」的税系数列（手动整理，可信）；
+    标注没有的按名称智能识别：名称含「港股」或「沪港深」→ 0.8，其他 → 1.0。
 
 输出:
     data/*.json    (index.html 通过 fetch 加载)
 """
-import os, io, json, math, glob, re, datetime
-import pandas as pd
+import os, io, json, math, datetime
 
 # 指数币种变体归并（数据治理 · 单一事实来源；见 index_variants.py 顶部说明）
 # 用户口径（2026-09-20）：同一指数的港币/人民币两版站内只保留一条，取「基准版」，不并列。
 from index_variants import normalize as iv_norm
-import openpyxl
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE, 'data')
 
-def find_snapshot(prefix):
-    """按文件名前缀查找快照，多个匹配时选修改时间最新的。
-    搜索范围：data/ 根目录 + data/user/ 子目录（用户上传区，优先取最新）。"""
-    files = glob.glob(os.path.join(DATA_DIR, prefix + '*.xlsx'))
-    user_dir = os.path.join(DATA_DIR, 'user')
-    if os.path.isdir(user_dir):
-        files += glob.glob(os.path.join(user_dir, prefix + '*.xlsx'))
-    if not files:
-        return None
-    files.sort(key=lambda p: os.path.getmtime(p), reverse=True)
-    return files[0]
-
-SNAP1 = find_snapshot('食息指南(EXCEL-Wind)')
-SNAP2 = find_snapshot('食息指南PRO(EXCEL-Wind)')
-SNAP_USER = find_snapshot('食息指南Pro-飞书')
-
-# ── 标注来源：data/curation/*.json（excel-exit P1，2026-10-06）──────────────────────
-# 用户「个性化标注 / 口径修正」不再读 Excel，改读仓库内、git 版本化的 curation JSON
-# （由一次性迁移工具 export_curation.py 从原飞书表冻结而来，之后手工维护）。
-# Excel 快照在本阶段仅剩「清单」作用（P2 再移除）。
+# ── 清单 + 标注来源：data/curation/*.json（excel-exit P2，2026-10-06）────────────────
+# 本脚本不再读任何 xlsx：清单与用户「个性化标注 / 口径修正」统一来自仓库内、git 版本化的
+# curation JSON（由一次性迁移工具 export_curation.py 从原 Excel 冻结而来，之后手工维护）。
+# 各 builder 按【列名】取值 —— 消除「按列下标取值」的隐性契约（backlog B-1）。
 CURATION_DIR = os.path.join(DATA_DIR, 'curation')
 
 
 def load_curation(name):
-    """读取 data/curation/<name>.json。缺失/损坏返回 None。"""
+    """读取 data/curation/<name>.json（整个对象）。缺失/损坏返回 None。"""
     path = os.path.join(CURATION_DIR, name)
     if not os.path.exists(path):
         print('[WARN] curation 文件缺失:', name)
@@ -80,6 +67,39 @@ def curation_rows(name):
     """返回 curation JSON 的行列表（dict 列表，键=列名）。"""
     obj = load_curation(name)
     return (obj or {}).get('rows') or []
+
+
+def curation_cols(name):
+    """返回 curation JSON 的列名列表（用于动态列检测）。"""
+    obj = load_curation(name)
+    return (obj or {}).get('columns') or []
+
+
+def curation_snapshot_date(name):
+    """curation 来源快照日期（= 原 xlsx mtime 的日期部分 YYYY-MM-DD），用于 sizeDate。"""
+    obj = load_curation(name) or {}
+    sm = str(obj.get('sourceMtime') or '')[:10]
+    return sm or None
+
+
+def _find_col(cols, names):
+    """按列名查找列（动态检测 curation 列），找不到返回 None。"""
+    for c in cols:
+        for n in names:
+            if c and n in str(c):
+                return c
+    return None
+
+
+# 「规模 as-of 日期」的来源 curation 文件（= 原 Excel 快照的等价物）：
+# 用于 sizeDate —— 清单来源快照日期（冻结在 curation 的 sourceMtime）。
+_SIZE_ASOF = {
+    'cnEtfData': 'cn_etf.json',
+    'hkEtfData': 'hk_etf_pro.json',
+    'etfData': 'monthly_etf.json',
+    'fundData': 'monthly_fund.json',
+    'moneyFundData': 'money_fund.json',
+}
 
 
 def load_user_index_info():
@@ -242,10 +262,6 @@ def smart_tax_rate(name):
     return 1.0
 
 
-def load_sheet(path, sheet):
-    return pd.read_excel(path, sheet_name=sheet, header=None)
-
-
 # 非指数类资产的指标详情介绍（静态说明，不随行情变化）
 ASSET_DESC = {
     '5年期LPR': '贷款市场报价利率，由报价行报价计算得出，是银行对最优质客户贷款利率的基准，每月20日公布。',
@@ -291,7 +307,6 @@ EXTRA_ASSETS = [
 
 
 def build_asset_data():
-    df = load_sheet(SNAP1, '总表')
     rows = []
     # 尝试从 assetHistory.json 读取国债最新值（更准确）
     bond_latest = {}
@@ -368,9 +383,8 @@ def build_asset_data():
                 yuebao_latest_date = s[-1]['date']
         except Exception:
             pass
-    for i in range(1, len(df)):
-        r = df.iloc[i]
-        t = clean_str(r[0]); name = clean_str(r[1])
+    for row in curation_rows('assets.json'):
+        t = clean_str(row.get('资产类型')); name = clean_str(row.get('资产/指数名称'))
         if not t or not name:
             continue
         # 国债条目覆盖（储蓄国债票面利率；原注明「iFind 中债收益率」有误，2026-10-05 更正）
@@ -406,7 +420,7 @@ def build_asset_data():
         if _map_name and _map_name in index_latest or name in index_latest or _match:
             rows.append({
                 'type': t, 'name': name, 'yield': '{:.2f}%'.format(latest_yield),
-                'date': latest_date, 'note': clean_str(r[4]) or '',
+                'date': latest_date, 'note': clean_str(row.get('利率说明')) or '',
                 'source': 'Wind', 'desc': ASSET_DESC.get(name, '')
             })
             continue
@@ -417,11 +431,11 @@ def build_asset_data():
             rows.append({
                 'type': t, 'name': name,
                 'yield': '{:.2f}%'.format(_mf['yield7dNum'] * 100),  # 余额宝统一 2 位小数（数据规则）
-                'date': _yb_date, 'note': clean_str(r[4]) or '7日年化收益率',
+                'date': _yb_date, 'note': clean_str(row.get('利率说明')) or '7日年化收益率',
                 'source': 'Wind', 'desc': ASSET_DESC.get(name, '')
             })
             continue
-        note = clean_str(r[4]) or ''
+        note = clean_str(row.get('利率说明')) or ''
         # REITs 口径统一为"名义派息率（中位数）"（2026-08-11 用户指定，不随 Excel 变更）
         if name in ('REITs产权类', 'REITs特许经营权类'):
             note = '名义派息率（中位数）'
@@ -438,7 +452,7 @@ def build_asset_data():
         # 来源统一 Wind（2026-10-04 用户要求：这些序列均由 sync_asset_macro.py 经 Wind MCP 取得，原「Wind/iFind」有误）
         if name in hist_latest:
             _d, _y = hist_latest[name]
-            _note = NOTE_OVERRIDE.get(name) or clean_str(r[4]) or ''
+            _note = NOTE_OVERRIDE.get(name) or clean_str(row.get('利率说明')) or ''
             rows.append({
                 'type': t, 'name': name, 'yield': '{:.2f}%'.format(_y),
                 'date': _d, 'note': _note,
@@ -446,9 +460,9 @@ def build_asset_data():
             })
             continue
         rows.append({
-            'type': t, 'name': name, 'yield': pct_str(r[2]),
-            'date': date_str(r[3]) or '', 'note': note,
-            'source': clean_str(r[5]) or 'Wind',
+            'type': t, 'name': name, 'yield': pct_str(row.get('食息率')),
+            'date': date_str(row.get('更新日期')) or '', 'note': note,
+            'source': clean_str(row.get('数据来源')) or 'Wind',
             'desc': ASSET_DESC.get(name, '')
         })
     # 手工补加资产（EXTRA_ASSETS，2026-10-06）：不在 Excel 总表内，按 type 追加到同组末尾；
@@ -510,26 +524,28 @@ def norm_market(v):
 
 
 def build_index_data():
-    """红利指数：用户修订表（飞书）字段优先，Wind 补充缺失字段"""
+    """红利指数：curation 用户标注（原飞书表）字段优先，清单补充缺失字段。
+    来源：indices_pro.json（境内红利指数清单）+ indices_main.json（主表红利指数补充）。"""
     user_info, user_div = load_user_index_info()
     out = {}
-    df2 = load_sheet(SNAP2, '境内红利指数')
-    for i in range(1, len(df2)):
-        r = df2.iloc[i]
-        code = clean_code(r[0])
+    for row in curation_rows('indices_pro.json'):
+        code = clean_code(row.get('指数代码'))
         if not code:
             continue
-        # 基础字段先取 Wind
+        # 基础字段先取清单（列名见 data/curation/indices_pro.json）
         item = {
-            'code': code, 'name': clean_str(r[1]) or '', 'fullname': clean_str(r[2]) or '',
-            'publisher': clean_str(r[3]) or '', 'listedDate': date_str(r[4]) or '',
-            'market': norm_market(r[5]), 'components': int(clean_num(r[6])) if clean_num(r[6]) else 0,
-            'currency': clean_str(r[7]) or '', 'weight': clean_str(r[8]) or '',
-            'fundCount': int(clean_num(r[9])) if clean_num(r[9]) else 0,
-            'yield': pct_str(r[10]),
-            'yieldNum': round(clean_num(r[10]), 4) if clean_num(r[10]) else 0.0,
-            'yrChange': clean_num(r[11]) if clean_num(r[11]) else 0.0,
-            'fullReturn': clean_str(r[12]) or '',
+            'code': code, 'name': clean_str(row.get('指数名称')) or '',
+            'fullname': clean_str(row.get('指数全称')) or '',
+            'publisher': clean_str(row.get('发布机构')) or '',
+            'listedDate': date_str(row.get('发布日期')) or '',
+            'market': norm_market(row.get('目标市场')),
+            'components': int(clean_num(row.get('成分个数'))) if clean_num(row.get('成分个数')) else 0,
+            'currency': clean_str(row.get('交易币种')) or '', 'weight': clean_str(row.get('加权方式')) or '',
+            'fundCount': int(clean_num(row.get('跟踪标的基金数量'))) if clean_num(row.get('跟踪标的基金数量')) else 0,
+            'yield': pct_str(row.get('股息率TTM')),
+            'yieldNum': round(clean_num(row.get('股息率TTM')), 4) if clean_num(row.get('股息率TTM')) else 0.0,
+            'yrChange': clean_num(row.get('年涨跌幅')) if clean_num(row.get('年涨跌幅')) else 0.0,
+            'fullReturn': clean_str(row.get('全收益指数')) or '',
         }
         # 用户表字段覆盖（用户手动修订优先）
         if code in user_info:
@@ -559,33 +575,27 @@ def build_index_data():
             item.setdefault('investMonthly', 0.0)
         out[code] = item
 
-    # 补：用户表有但 Wind 境内红利指数表没有的指数（如港股指数的股息率/税系数）
-    df1 = load_sheet(SNAP1, '红利指数')
-    for i in range(2, len(df1)):
-        r = df1.iloc[i]
-        code = clean_code(r[0])
+    # 补：清单「主表红利指数」里有、境内红利指数表没有的指数（如港股指数的股息率/税系数）
+    for row in curation_rows('indices_main.json'):
+        code = clean_code(row.get('指数代码'))
         if not code:
             continue
         if code in out:
             item = out[code]
-            # 未覆盖的字段补 Wind 默认
+            # 未覆盖的字段补默认（列名见 data/curation/indices_main.json）
             item.setdefault('taxRate', 1.0)
             item.setdefault('investMonthly', 0.0)
-            if item['yieldNum'] == 0 and len(r) > 3 and clean_num(r[3]):
-                item['yieldNum'] = round(clean_num(r[3]), 4)
-                item['yield'] = pct_str(r[3])
-            if item['yrChange'] == 0 and len(r) > 7 and clean_num(r[7]):
-                item['yrChange'] = round(clean_num(r[7]), 4)
+            if item['yieldNum'] == 0 and clean_num(row.get('股息率')):
+                item['yieldNum'] = round(clean_num(row.get('股息率')), 4)
+                item['yield'] = pct_str(row.get('股息率'))
+            if item['yrChange'] == 0 and clean_num(row.get('年涨跌幅')):
+                item['yrChange'] = round(clean_num(row.get('年涨跌幅')), 4)
             if not item.get('name'):
-                item['name'] = clean_str(r[1]) or ''
+                item['name'] = clean_str(row.get('指数简称')) or ''
             if not item.get('fullname'):
-                item['fullname'] = clean_str(r[2]) or ''
+                item['fullname'] = clean_str(row.get('指数全称')) or ''
             if not item.get('components'):
-                item['components'] = int(clean_num(r[6])) if len(r) > 6 else 0
-            if not item.get('publisher'):
-                item['publisher'] = clean_str(r[3]) if len(r) > 3 else ''
-            if not item.get('listedDate'):
-                item['listedDate'] = date_str(r[4]) if len(r) > 4 else ''
+                item['components'] = int(clean_num(row.get('成分股数量')))
             if not item.get('market'):
                 hk = 'HK' in code or code.endswith('.HI')
                 item['market'] = '港股' if hk else ''
@@ -595,13 +605,14 @@ def build_index_data():
         else:
             hk = 'HK' in code or code.endswith('.HI')
             item = {
-                'code': code, 'name': clean_str(r[1]) or '', 'fullname': clean_str(r[2]) or '',
+                'code': code, 'name': clean_str(row.get('指数简称')) or '',
+                'fullname': clean_str(row.get('指数全称')) or '',
                 'publisher': '', 'listedDate': '', 'market': '港股' if hk else '',
-                'components': int(clean_num(r[6])) if len(r) > 6 else 0,
+                'components': int(clean_num(row.get('成分股数量'))),
                 'currency': 'HKD' if hk else 'CNY', 'weight': '',
-                'fundCount': 0, 'yield': pct_str(r[3]) if len(r) > 3 else '0.00%',
-                'yieldNum': round(clean_num(r[3]), 4) if len(r) > 3 else 0.0,
-                'yrChange': round(clean_num(r[7]), 4) if len(r) > 7 else 0.0,
+                'fundCount': 0, 'yield': pct_str(row.get('股息率')),
+                'yieldNum': round(clean_num(row.get('股息率')), 4),
+                'yrChange': round(clean_num(row.get('年涨跌幅')), 4),
                 'fullReturn': '', 'taxRate': 1.0,
                 'investMonthly': 0.0,
             }
@@ -631,58 +642,56 @@ def build_index_data():
 
 
 def build_cn_etf_data():
-    # 列序（「境内红利ETF」表头，2026-09-20 规范数据库已统一）：
-    #   ETF代码 | ETF扩位场内简称 | 跟踪指数代码 | 跟踪指数名称 | 基金管理人 | 成立日期 | 上市日期 | 管理费率 | ...
-    # ⚠️ r[1] 必须取「ETF扩位场内简称」（站点 ETF 简称唯一口径 = 场内扩位简称，取自 Wind，2026-09-20 用户要求）；
-    #    若今后该表新增/移动列，须同步改此处下标。
-    df = load_sheet(SNAP2, '境内红利ETF')
+    # 取「ETF扩位场内简称」为站点 ETF 简称唯一口径（2026-09-20 用户要求，取自 Wind）。
+    # 列名见 data/curation/cn_etf.json（按名取值，挪列不再受影响）。
     rows = []
-    for i in range(1, len(df)):
-        r = df.iloc[i]
-        code = clean_code(r[0])
+    for row in curation_rows('cn_etf.json'):
+        code = clean_code(row.get('ETF代码'))
         if not code:
             continue
-        fee = clean_num(r[7]) if len(r) > 7 else 0
+        fee = clean_num(row.get('管理费率'))
         rows.append({
-            'code': code, 'name': clean_str(r[1]) or '',
-            'trackCode': clean_code(r[2]) or '', 'trackName': clean_str(r[3]) or '',
-            'manager': clean_str(r[4]) or '', 'listedDate': date_str(r[5]) if len(r) > 5 else '',
-            'listedMarketDate': date_str(r[6]) if len(r) > 6 else '',
+            'code': code, 'name': clean_str(row.get('ETF扩位场内简称')) or '',
+            'trackCode': clean_code(row.get('跟踪指数代码')) or '',
+            'trackName': clean_str(row.get('跟踪指数名称')) or '',
+            'manager': clean_str(row.get('基金管理人')) or '',
+            'listedDate': date_str(row.get('成立日期')),
+            'listedMarketDate': date_str(row.get('上市日期')),
             'fee': '{:.2f}%'.format(fee * 100) if fee else '0.00%',
             'feeNum': round(fee, 4) if fee else 0.0,
-            'divCount': int(clean_num(r[9])) if len(r) > 9 else 0,
-            'size': round(clean_num(r[13]), 2) if len(r) > 13 else 0,
-            'shares': round(clean_num(r[10]), 2) if len(r) > 10 else 0,
-            'holders': round(clean_num(r[11]), 2) if len(r) > 11 else 0,
-            'divDate': date_str(r[8]) if len(r) > 8 else '',
+            'divCount': int(clean_num(row.get('年度分红次数(2026)'))),
+            'size': round(clean_num(row.get('管理规模(最新,亿元)')), 2),
+            'shares': round(clean_num(row.get('场内流通份额(亿份)')), 2),
+            'holders': round(clean_num(row.get('持有人户数(2025,万)')), 2),
+            'divDate': date_str(row.get('最近分红日期')),
         })
     return rows
 
 
 def build_hk_etf_data():
-    """港交所红利ETF：用户修订表（飞书）字段优先，Wind 补充缺失"""
+    """港交所红利ETF：curation 用户标注优先，清单补充缺失。
+    来源：hk_etf_pro.json（清单）+ hk_etf_feishu.json（标注）。"""
     user_hk = load_user_hk_etf()
-    df = load_sheet(SNAP2, '港交所红利ETF')
     rows = []
-    for i in range(1, len(df)):
-        r = df.iloc[i]
-        code = clean_code(r[0])
+    for row in curation_rows('hk_etf_pro.json'):
+        code = clean_code(row.get('ETF代码'))
         if not code:
             continue
-        name = to_simple(clean_str(r[1]) or '')  # 统一显示简体（Wind 源为繁体）
-        name_key = norm_hk_name(name)  # 匹配用户表时繁简归一化
-        fee = clean_num(r[8]) if len(r) > 8 else 0
-        connect = clean_str(r[3]) if len(r) > 3 else ''
+        name = to_simple(clean_str(row.get('ETF简称')) or '')  # 统一显示简体（源为繁体）
+        name_key = norm_hk_name(name)  # 匹配标注时繁简归一化
+        fee = clean_num(row.get('管理费率'))
+        connect = clean_str(row.get('是否互联互通ETF'))
         item = {
-            'code': code, 'name': name, 'fullname': clean_str(r[2]) or '',
-            'connect': connect == '是', 'trackCode': clean_code(r[4]) if len(r) > 4 else '',
-            'trackName': clean_str(r[5]) if len(r) > 5 else '',
-            'manager': clean_str(r[6]) if len(r) > 6 else '',
-            'listedDate': date_str(r[7]) if len(r) > 7 else '',
+            'code': code, 'name': name, 'fullname': clean_str(row.get('ETF全称')) or '',
+            'connect': connect == '是',
+            'trackCode': clean_code(row.get('跟踪指数代码')),
+            'trackName': clean_str(row.get('跟踪指数名称')),
+            'manager': clean_str(row.get('基金管理人')),
+            'listedDate': date_str(row.get('成立日期')),
             'fee': '{:.2f}%'.format(fee * 100) if fee else '0.00%',
             'feeNum': round(fee, 4) if fee else 0.0,
-            'size': round(clean_num(r[9]), 2) if len(r) > 9 else 0,
-            'divDate': date_str(r[10]) if len(r) > 10 else '',
+            'size': round(clean_num(row.get('管理规模(亿港元)')), 2),
+            'divDate': date_str(row.get('最近分红日期')),
         }
         # 用户表覆盖（用户手动修订：互联互通、跟踪指数等）
         if name_key in user_hk:
@@ -702,108 +711,81 @@ def build_hk_etf_data():
     return rows
 
 
-def _find_col(df, names):
-    """按列名查找列索引（动态检测 Excel 列），找不到返回 None"""
-    for i in range(min(len(df.columns), 30)):
-        h = str(df.columns[i]) if df.columns[i] is not None else ''
-        for n in names:
-            if h and n in h:
-                return i
-    # 第二行（子表头）兜底
-    try:
-        row1 = df.iloc[0]
-        for i in range(min(len(row1), 30)):
-            h = str(row1[i]) if row1[i] is not None else ''
-            for n in names:
-                if h and n in h:
-                    return i
-    except Exception:
-        pass
-    return None
-
 def build_etf_data():
-    # 列序（「月月可分红ETF」表头）：
-    #   ETF代码 | ETF扩位场内简称 | 基金公司 | 上市日期 | 管理费率 | ...
-    # ⚠️ r[1] = 场内扩位简称（2026-09-20 规范数据库表头由「ETF简称」统一为「ETF扩位场内简称」，
-    #    取值本就是 Wind 扩位简称；站点 ETF 简称唯一口径，勿改回基金简称）。
-    df = load_sheet(SNAP1, '月月可分红ETF')
+    # 取「ETF扩位场内简称」为站点 ETF 简称唯一口径（2026-09-20 用户要求）。
+    # 列名见 data/curation/monthly_etf.json。
     rows = []
-    div_date_col = _find_col(df, ['最近分红日期', '最近分红'])
-    for i in range(2, len(df)):
-        r = df.iloc[i]
-        code = clean_code(r[0])
+    _div_col = _find_col(curation_cols('monthly_etf.json'), ['最近分红日期', '最近分红'])
+    for row in curation_rows('monthly_etf.json'):
+        code = clean_code(row.get('ETF代码'))
         if not code:
             continue
-        fee = clean_num(r[4]) if len(r) > 4 else 0
-        _div_date = ''
-        if div_date_col is not None and div_date_col < len(r):
-            _div_date = date_str(r[div_date_col])
+        fee = clean_num(row.get('管理费率'))
+        _div_date = date_str(row.get(_div_col)) if _div_col else ''
         rows.append({
-            'code': code, 'name': clean_str(r[1]) or '', 'fundCompany': clean_str(r[2]) or '',
-            'listedDate': date_str(r[3]) if len(r) > 3 else '',
+            'code': code, 'name': clean_str(row.get('ETF扩位场内简称')) or '',
+            'fundCompany': clean_str(row.get('基金公司')) or '',
+            'listedDate': date_str(row.get('上市日期')),
             'divDate': _div_date,
             'fee': '{:.2f}%'.format(fee * 100) if fee else '0.00%',
             'feeNum': round(fee, 4) if fee else 0.0,
-            'totalDiv': int(clean_num(r[5])) if len(r) > 5 else 0,
-            'annualDiv': int(clean_num(r[6])) if len(r) > 6 else 0,
-            'annualDivAmt': round(clean_num(r[7]), 4) if len(r) > 7 else 0.0,
-            'monthlyDivAmt': round(clean_num(r[8]), 4) if len(r) > 8 else 0.0,
-            'price': round(clean_num(r[9]), 3) if len(r) > 9 else 0.0,
-            'cumDiv': round(clean_num(r[10]), 4) if len(r) > 10 else 0.0,
-            'trackCode': clean_code(r[12]) if len(r) > 12 else '',
-            'trackName': clean_str(r[13]) if len(r) > 13 else '',
-            'divTotalAmt': round(clean_num(r[14]), 2) if len(r) > 14 else 0.0,
-            'yield': pct_str(r[15]) if len(r) > 15 else '0.00%',
-            'yieldNum': round(clean_num(r[15]), 4) if len(r) > 15 else 0.0,
-            'taxRate': smart_tax_rate(clean_str(r[1])),
-            'investMonthly': round(clean_num(r[17]), 2) if len(r) > 17 else 0.0,
+            'totalDiv': int(clean_num(row.get('累计分红次数'))),
+            'annualDiv': int(clean_num(row.get('年度分红次数'))),
+            'annualDivAmt': round(clean_num(row.get('年度单位分红')), 4),
+            'monthlyDivAmt': round(clean_num(row.get('年度月均分红')), 4),
+            'price': round(clean_num(row.get('当前场内价格')), 3),
+            'cumDiv': round(clean_num(row.get('单位累计分红')), 4),
+            'trackCode': clean_code(row.get('对应指数代码')),
+            'trackName': clean_str(row.get('对应指数简称')),
+            'divTotalAmt': round(clean_num(row.get('累计分红总额')), 2),
+            'yield': pct_str(row.get('对应指数股息率')),
+            'yieldNum': round(clean_num(row.get('对应指数股息率')), 4),
+            'taxRate': smart_tax_rate(clean_str(row.get('ETF扩位场内简称'))),
+            'investMonthly': round(clean_num(row.get('每月千元收益需总投入')), 2),
         })
     return rows
 
 
 def build_fund_data():
-    df = load_sheet(SNAP1, '月月可分红（场外）')
+    # 列名见 data/curation/monthly_fund.json。
     rows = []
-    div_date_col = _find_col(df, ['最近分红日期', '最近分红'])
-    for i in range(2, len(df)):
-        r = df.iloc[i]
-        code = clean_code(r[0])
+    _div_col = _find_col(curation_cols('monthly_fund.json'), ['最近分红日期', '最近分红'])
+    for row in curation_rows('monthly_fund.json'):
+        code = clean_code(row.get('基金代码'))
         if not code:
             continue
-        fee = clean_num(r[3]) if len(r) > 3 else 0
-        _div_date = ''
-        if div_date_col is not None and div_date_col < len(r):
-            _div_date = date_str(r[div_date_col])
+        fee = clean_num(row.get('管理费率'))
+        _div_date = date_str(row.get(_div_col)) if _div_col else ''
         rows.append({
-            'code': code, 'name': clean_str(r[1]) or '',
-            'fundCompany': clean_str(r[10]) if len(r) > 10 else '',
-            'establishDate': date_str(r[2]) if len(r) > 2 else '',
+            'code': code, 'name': clean_str(row.get('基金简称')) or '',
+            'fundCompany': clean_str(row.get('基金公司')),
+            'establishDate': date_str(row.get('成立日期')),
             'divDate': _div_date,
             'fee': '{:.2f}%'.format(fee * 100) if fee else '0.00%',
             'feeNum': round(fee, 4) if fee else 0.0,
-            'annualDiv': int(clean_num(r[4])) if len(r) > 4 else 0,
-            'annualDivAmt': round(clean_num(r[5]), 4) if len(r) > 5 else 0.0,
-            'monthlyDivAmt': round(clean_num(r[6]), 4) if len(r) > 6 else 0.0,
-            'nav': round(clean_num(r[7]), 4) if len(r) > 7 else 0.0,
-            'trackCode': clean_code(r[8]) if len(r) > 8 else '',
-            'trackName': clean_str(r[9]) if len(r) > 9 else '',
-            'fundSize': round(clean_num(r[11]), 2) if len(r) > 11 else 0.0,
-            'divTotalAmt': round(clean_num(r[12]), 2) if len(r) > 12 else 0.0,
-            'yield': pct_str(r[13]) if len(r) > 13 else '0.00%',
-            'yieldNum': round(clean_num(r[13]), 4) if len(r) > 13 else 0.0,
-            'taxRate': smart_tax_rate(clean_str(r[1])),
-            'investMonthly': round(clean_num(r[15]), 2) if len(r) > 15 else 0.0,
+            'annualDiv': int(clean_num(row.get('年度分红次数'))),
+            'annualDivAmt': round(clean_num(row.get('单位年度分红')), 4),
+            'monthlyDivAmt': round(clean_num(row.get('年度月均分红')), 4),
+            'nav': round(clean_num(row.get('最新净值')), 4),
+            'trackCode': clean_code(row.get('对应指数代码')),
+            'trackName': clean_str(row.get('对应指数简称')),
+            'fundSize': round(clean_num(row.get('基金规模')), 2),
+            'divTotalAmt': round(clean_num(row.get('年度分红总额')), 2),
+            'yield': pct_str(row.get('对应指数股息率')),
+            'yieldNum': round(clean_num(row.get('对应指数股息率')), 4),
+            'taxRate': smart_tax_rate(clean_str(row.get('基金简称'))),
+            'investMonthly': round(clean_num(row.get('每月千元收益需总投入')), 2),
         })
     return rows
 
 
 def build_money_fund_data():
-    df = load_sheet(SNAP1, '货币基金')
+    # 列名见 data/curation/money_fund.json。
     rows = []
-    # 保留已有「Wind 实时」字段（sync_money_fund.py 写入，Excel 无 yieldDate 列）：
+    # 保留已有「Wind 实时」字段（sync_money_fund.py 写入，清单无 yieldDate 列）：
     #   有 yieldDate 即说明该行是 Wind 实时值 —— 值(yield7d/yield7dNum/dailyWan)必须与日期
-    #   成对保留。2026-09-27 修复：此前只保留 yieldDate，值被 Excel 旧值覆盖 → 出现
-    #   「日期是 Wind 的、数值是 Excel 的」口径不一致（每周把 Wind 的有效收益率冲掉）。
+    #   成对保留。2026-09-27 修复：此前只保留 yieldDate，值被快照旧值覆盖 → 出现
+    #   「日期是 Wind 的、数值是快照的」口径不一致（每周把 Wind 的有效收益率冲掉）。
     old_wind = {}
     old_path = os.path.join(DATA_DIR, 'moneyFundData.json')
     if os.path.exists(old_path):
@@ -819,71 +801,74 @@ def build_money_fund_data():
                         }
         except Exception:
             pass
-    for i in range(2, len(df)):
-        r = df.iloc[i]
-        code = clean_code(r[0])
+    for row in curation_rows('money_fund.json'):
+        code = clean_code(row.get('基金代码'))
         if not code:
             continue
-        fee = clean_num(r[3]) if len(r) > 3 else 0
-        row = {
-            'code': code, 'name': clean_str(r[1]) or '',
-            'size': round(clean_num(r[2]), 2) if len(r) > 2 else 0.0,
+        fee = clean_num(row.get('管理费率'))
+        _r = {
+            'code': code, 'name': clean_str(row.get('基金简称')) or '',
+            'size': round(clean_num(row.get('基金规模')), 2),
             'fee': '{:.2f}%'.format(fee * 100) if fee else '0.00%',
             'feeNum': round(fee, 4) if fee else 0.0,
-            'yield7d': pct_str(r[4]) if len(r) > 4 else '0.00%',
-            'yield7dNum': round(clean_num(r[4]), 4) if len(r) > 4 else 0.0,
-            'dailyWan': round(clean_num(r[5]), 4) if len(r) > 5 else 0.0,
+            'yield7d': pct_str(row.get('7日年化收益率')),
+            'yield7dNum': round(clean_num(row.get('7日年化收益率')), 4),
+            'dailyWan': round(clean_num(row.get('日万份收益')), 4),
             'yieldDate': '',
         }
-        # Wind 实时值优先于 Excel 快照（与 yieldDate 一并保留）
+        # Wind 实时值优先于清单快照（与 yieldDate 一并保留）
         if code in old_wind:
-            row.update(old_wind[code])
-        rows.append(row)
+            _r.update(old_wind[code])
+        rows.append(_r)
     return rows
 
 
 def build_reits_data():
+    # 列名见 data/curation/reits_equity.json / reits_concession.json。
     rows = []
-    for sheet in ['REITs（产权类）', 'REITs（经营权类）']:
-        df = load_sheet(SNAP1, sheet)
-        for i in range(2, len(df)):
-            r = df.iloc[i]
-            code = clean_code(r[0])
+    for _f in ['reits_equity.json', 'reits_concession.json']:
+        for row in curation_rows(_f):
+            code = clean_code(row.get('REITs代码'))
             if not code:
                 continue
             rows.append({
-                'code': code, 'name': clean_str(r[1]) or '',
-                'assetType': clean_str(r[2]) or '',
-                'listedDate': date_str(r[3]) if len(r) > 3 else '',
-                'totalDiv': int(clean_num(r[4])) if len(r) > 4 else 0,
-                'annualDiv': round(clean_num(r[5]), 2) if len(r) > 5 else 0.0,
-                'cumDivAmt': round(clean_num(r[6]), 4) if len(r) > 6 else 0.0,
-                'annualDivAmt': round(clean_num(r[7]), 4) if len(r) > 7 else 0.0,
-                'yield': pct_str(r[8]) if len(r) > 8 else '0.00%',
-                'yieldNum': round(clean_num(r[8]), 4) if len(r) > 8 else 0.0,
-                'volatility': round(clean_num(r[9]), 4) if len(r) > 9 else 0.0,
-                'shortName': clean_str(r[10]) if len(r) > 10 else '',
-                'projectType': clean_str(r[11]) if len(r) > 11 else '',
-                'prevClose': round(clean_num(r[12]), 3) if len(r) > 12 else 0.0,
+                'code': code, 'name': clean_str(row.get('REITs简称')) or '',
+                'assetType': clean_str(row.get('资产类型')) or '',
+                'listedDate': date_str(row.get('上市日期')),
+                'totalDiv': int(clean_num(row.get('累计分红次数'))),
+                'annualDiv': round(clean_num(row.get('年化分红次数')), 2),
+                'cumDivAmt': round(clean_num(row.get('单位累计分红')), 4),
+                'annualDivAmt': round(clean_num(row.get('单位年化分红')), 4),
+                'yield': pct_str(row.get('年化派息率')),
+                'yieldNum': round(clean_num(row.get('年化派息率')), 4),
+                'volatility': round(clean_num(row.get('年化波动率')), 4),
+                'shortName': clean_str(row.get('REITs场内简称')),
+                'projectType': clean_str(row.get('项目属性')),
+                'prevClose': round(clean_num(row.get('前收盘价')), 3),
             })
     return rows
 
 
 def main():
-    if not SNAP1 or not SNAP2:
-        print('[ERROR] 未找到快照文件（data 目录下应存在「食息指南(EXCEL-Wind)」和「食息指南PRO(EXCEL-Wind)」开头的 xlsx）')
-        print('  SNAP1 =', SNAP1)
-        print('  SNAP2 =', SNAP2)
+    # P2（2026-10-06）：不再依赖 Excel 快照 —— 改为校验 curation 清单/标注是否齐备。
+    _need = ['assets.json', 'indices_pro.json', 'indices_main.json', 'cn_etf.json',
+             'hk_etf_pro.json', 'monthly_etf.json', 'monthly_fund.json',
+             'money_fund.json', 'reits_equity.json', 'reits_concession.json',
+             'indices_feishu_info.json', 'indices_feishu_yield.json', 'hk_etf_feishu.json']
+    _miss = [n for n in _need if not os.path.exists(os.path.join(CURATION_DIR, n))]
+    if _miss:
+        print('[ERROR] data/curation/ 清单文件缺失，无法重建：', _miss)
+        print('  （应从 git 拉取 data/curation/；如需从旧 Excel 重新冻结，运行 export_curation.py）')
         return
 
     os.makedirs(DATA_DIR, exist_ok=True)
-    # 保留旧的手动修订字段（用户手动输入，Excel/Wind 不应覆盖）+ divHistory/dailyChange
+    # 保留旧的手动修订字段（用户手动输入，清单/Wind 不应覆盖）+ divHistory/dailyChange
     # 手动字段清单：publisher(指数公司)、listedDate(发布日期)、weight(加权方式)、
     #   weightExtra(加权附加条件)、yield/yieldNum(股息率，以 Wind divHistory 最新值或用户修正为准)、
     #   components、market、currency、fullReturn
     MANUAL_FIELDS = ['publisher', 'listedDate', 'weight', 'weightExtra',
                      'yield', 'yieldNum', 'components', 'market', 'currency', 'fullReturn']
-    # 权威手动值（用户确认/页面标准）：sync 时强制固定，不随 Excel/Wind 覆盖。
+    # 权威手动值（用户确认/页面标准）：sync 时强制固定，不随清单/Wind 覆盖。
     # 这些是用户手动核对的字段，尤其针对 Wind 缺失的小众指数。
     AUTHORITATIVE_MANUAL = {
         '000922.CSI': {'listedDate': '2008-05-09'},
@@ -1096,8 +1081,7 @@ def main():
                     print('  [合并] reitsData 保留 Excel 外的 REITs {} 只'.format(len(_kept)))
             _sk = _mkey[key]
             if _sk and _prev:
-                _snap = SNAP2 if key in ('cnEtfData', 'hkEtfData') else SNAP1
-                _snap_date = datetime.date.fromtimestamp(os.path.getmtime(_snap)).isoformat() if _snap else ''
+                _snap_date = curation_snapshot_date(_SIZE_ASOF[key]) or ''
                 _n = 0
                 for _it in data:
                     _o = _prev.get(_it.get('code')) or {}
@@ -1105,14 +1089,13 @@ def main():
                         _it[_sk], _it['sizeDate'] = _o[_sk], _o['sizeDate']
                         _n += 1
                 if _n:
-                    print('  [合并] {} 保留比 Excel 更新的 Wind 规模 {} 条'.format(key, _n))
+                    print('  [合并] {} 保留比 curation 清单更新的 Wind 规模 {} 条'.format(key, _n))
         # 规模日期（2026-09-26，中央数据库 data_center 要求：规模必须带日期，前端不展示）：
-        # Excel 快照里的规模用快照文件的修改日期；之后 sync_wind_fields.py 取到 Wind 规模时会改成 Wind 取数日期
+        # 清单来源（curation sourceMtime）里的规模用快照日期；之后 sync_wind_fields.py 取到 Wind 规模时会改成 Wind 取数日期
         _size_key = {'cnEtfData': 'size', 'hkEtfData': 'size', 'etfData': 'fundSize',
                      'fundData': 'fundSize', 'moneyFundData': 'size'}.get(key)
         if _size_key:
-            _snap = SNAP2 if key in ('cnEtfData', 'hkEtfData') else SNAP1
-            _snap_date = datetime.date.fromtimestamp(os.path.getmtime(_snap)).isoformat() if _snap else None
+            _snap_date = curation_snapshot_date(_SIZE_ASOF[key])
             for _it in data:
                 if isinstance(_it, dict) and _it.get(_size_key) and not _it.get('sizeDate'):
                     _it['sizeDate'] = _snap_date

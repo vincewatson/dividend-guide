@@ -9,8 +9,10 @@
 - **✅ P0 已完成（2026-10-06）**：由 `export_curation.py` 把 Excel 快照 + 博客表的**清单 + 标注**
   一次性冻结为下列 JSON（迁移基线）。
 - **✅ P1 已完成（2026-10-06）**：`sync_excel.py` 的**标注类字段**（`load_user_index_info` /
-  `load_user_hk_etf`）与 `sync_blog.py`（清单 + 标注）均已改读本目录；**Excel 快照仅剩「清单」作用**。
-- **⏳ P2/P3 待做**：清单改由 curation + Wind 自动发现维护；最终删除 `sync_excel.py` 的 `read_excel` 路径。
+  `load_user_hk_etf`）与 `sync_blog.py`（清单 + 标注）均已改读本目录。
+- **✅ P2 已完成（2026-10-06）**：`sync_excel.py` **不再读任何 xlsx** —— 8 个 builder 全部改读本目录，
+  按【列名】取值；Excel 快照文件**已无脚本引用**。`sync_blog.py` 亦已完全脱离 Excel。
+- **⏳ P3 待做**：`backup_db.py` / `preflight.py` 去 Excel；归档 xlsx 与相关文档章节。
 
 ## 文件
 
@@ -46,7 +48,7 @@
 ```
 
 - 列为**表头名**（非下标）—— 消除「挪列忘改下标」的隐性契约（backlog B-1）。
-- `dataStartRow` = 首个数据行在**原表**中的 0 基下标（PRO/飞书/总表 = 1；主表 红利指数/月月*/货币基金/REITs = 2，因其第 1 行是单位行）。必须与 `sync_excel.py` 各 builder 的行偏移一致。
+- `dataStartRow` = 首个数据行在**原表**中的 0 基下标（PRO/飞书/总表 = 1；主表 红利指数/月月*/货币基金/REITs = 2，因其第 1 行是单位行）。导出时用它定位首个数据行（`rows` 已按此裁剪）；**P2 后 builder 直接遍历 `rows`，不再涉及行偏移**。
 - 日期统一 `YYYY-MM-DD`；空值 `null`；重复表头追加 ` #2`。
 - Excel 里的 `=HYPERLINK("url",...)` 公式列（如「详情页」）已由 `export_curation.py` 用 `openpyxl(data_only=False)` 解析为纯 URL。
 
