@@ -32,7 +32,7 @@
 
 | 文件 | 当前数量 | 生成脚本 | 主来源 | 更新方式 |
 |------|---------|---------|--------|---------|
-| indexData.json | 57 指数 | sync_excel.py + sync_new_etf | ②+① 混合 | 流水线 |
+| indexData.json | 58 指数 | sync_excel.py + sync_new_etf | ②+① 混合 | 流水线 |
 | cnEtfData.json | 95 ETF | sync_excel.py + sync_new_etf + sync_fund_divdate | ② Wind 快照（divDate/新 ETF 由 ③）| 流水线 |
 | hkEtfData.json | 13 | sync_excel.py（表外行保留）| ① 用户表优先；人工补充（3555.HK 主动管理ETF，2026-10-05）| 流水线 |
 | etfData.json | 15 | sync_excel.py + sync_fund_divdate | ② Wind 快照 | 流水线 |
@@ -56,6 +56,9 @@
 - ① 用户手动（受保护，不更新）：`publisher/listedDate/weight/weightExtra/components/market/currency/fullReturn/adjustCycle/adjustDate`。
 - ③ Wind：`yield/yieldNum`（divHistory 最新值覆盖）、`divHistory`（日频，2023-01 起，只补不删）、`dailyChange/dailyDate`（独立脚本，存小数）。
 - 新指数：sync_new_etf 自动补入（基础信息 + divHistory）。
+- **详情页补充指数（`trackOnly: true`）**：**不进「红利指数浏览器」列表**（前端 `renderIndices` 用 `!x.trackOnly` 过滤；`check_data` 第 2 项亦跳过），仅供 ETF/基金**详情页图表**按 `trackCode` 取用（`findIndexForTrack` 按 code 精确命中 → 取其 `divHistory` 画「跟踪指数股息率」曲线）。其 `divHistory` 亦由 `sync_div_history`（遍历**全部** indexData 代码）每周自动维护，并由 `sync_excel` 表外行护栏保留。
+  - 既有 7 个：`930782.CSI`(500SNLV)、`930915.CSI`(港股通高股息CNY)、`399433.SZ`(国证交运)、`000510.SH`(中证A500)、`888888.FI`(富时A股自由现金流聚焦)、`932365.CSI`(中证现金流)、`932368.CSI`(800现金流)。
+  - **2026-10-06 新增** `HSSSCHD.HI`（恒生沪深港(特选企业)高股息率，挂钩港交所 `3190.HK 富邦沪深港高股息`）——用户要求把港交所红利 ETF 的挂钩指数股息率数据补入、并展示在对应详情页（不入浏览器）。divHistory 504 点（2024-09-13 起）。
 
 ### A股红利ETF（cnEtfData.json）
 - 基本信息（名称/管理人/费率/跟踪指数/上市日）：② Wind 快照「境内红利ETF」；**新 ETF 由 sync_new_etf 用 ③ Wind 自动补入**。
