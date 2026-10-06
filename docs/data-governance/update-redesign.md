@@ -158,8 +158,10 @@
 
 | 档位 | Wind 次数 | 耗时 | 预算 | check_data |
 |---|---|---|---|---|
-| **日更** | **232** | **≈567s（9.5 min）** | ≤300 ✅ | ✅ |
+| **日更** | **232** | **≈567s（9.5 min）** | ≤300 ✅ | ✅ ※ |
 | **周更** | **644** | **577s（9.6 min）** | ≤800 ✅ | ✅ |
+
+> ※ **日更首跑** 的 `check_data` 未过（仅 2 项：`etfData`/`fundData` 的 `divDate` 覆盖）——根因是 `build_lists` 重建清空 `divDate`，而恢复它的 `sync_fund_divdate` 已移至周更。定位后已修（`build_lists` 重建保留旧 `divDate`），并**无 Wind 复验**：`python3 build_lists.py` + `check_data` → **✅ 全部通过**。**周更 run** 的 `check_data` 直接 **✅**（其 `fund_divdate` 亦恢复了 divDate）。
 
 日更分步（2026-10-07 实测）：
 
