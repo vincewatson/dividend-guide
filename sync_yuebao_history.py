@@ -20,7 +20,8 @@ DATA_DIR = os.path.join(BASE, 'data')
 OUT_FILE = os.path.join(DATA_DIR, 'yuebaoHistory.json')
 
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
 WINDCODE = '000198.OF'
 
@@ -38,7 +39,7 @@ def call_wind(question):
         env.pop(k, None)
     for attempt in range(3):   # 瞬时失败重试 3 次（2026-09-13 加固）
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'fund_data', 'get_fund_performance',
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)

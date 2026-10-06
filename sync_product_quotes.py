@@ -33,7 +33,8 @@ from concurrent.futures import ThreadPoolExecutor
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 QUOTES_FILE = os.path.join(DATA, 'productQuotes.json')
 
 # 产品清单来源（与 embed_data.py / 前端 DATA_FILES 对齐）
@@ -134,7 +135,7 @@ def call_wind_batch(codes):
     q = json.dumps({'windcode': ','.join(codes), 'indexes': INDEXES}, ensure_ascii=False)
     for attempt in range(4):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'fund_data', 'get_fund_price_indicators', q],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(), cwd=WIND_SKILL)
             if r.returncode != 0:

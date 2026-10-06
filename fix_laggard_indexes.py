@@ -15,7 +15,8 @@ from concurrent.futures import ThreadPoolExecutor
 BASE = os.path.dirname(os.path.abspath(__file__))
 INDEX_JSON = os.path.join(BASE, 'data', 'indexData.json')
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 SEG_DAYS = 90  # 单段最多 90 天（Wind 单次返回 ≤100 行）
 # 并发路数（2026-09-26 提速：滞后指数单查并发，8 路实测 ~7.6×；逻辑已并入 sync_div_history，本脚本通常已无滞后）
 WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '8')))
@@ -44,7 +45,7 @@ def call_wind(code, start, end):
     r = None
     for _ in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_fundamentals',
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)

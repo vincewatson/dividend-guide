@@ -14,7 +14,8 @@ from concurrent.futures import ThreadPoolExecutor
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 INDEX_FILE = os.path.join(DATA, 'indexData.json')
 
 # 2026-09-19 优化：get_index_price_indicators 支持逗号分隔多代码（空格分隔只返回第一个，实测）。
@@ -75,7 +76,7 @@ def call_wind_batch(codes):
     q = json.dumps({'windcode': ','.join(codes), 'indexes': '最新交易日,涨跌幅'}, ensure_ascii=False)
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_price_indicators', q],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(), cwd=WIND_SKILL)
             if r.returncode != 0:
@@ -96,7 +97,7 @@ def call_wind(windcode):
     env = _wind_env()
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_price_indicators',
                  json.dumps({'windcode': windcode, 'indexes': '最新交易日,涨跌幅'}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
@@ -125,7 +126,7 @@ def call_wind_kline(windcode):
                     'end_date': end.isoformat(), 'period': '1d'}, ensure_ascii=False)
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_kline', q],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(), cwd=WIND_SKILL)
             if r.returncode != 0:
@@ -164,7 +165,7 @@ def call_wind_yr(question):
         env.pop(k, None)
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_fundamentals',
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)

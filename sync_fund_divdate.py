@@ -33,7 +33,8 @@ BASE = os.path.dirname(os.path.abspath(__file__)) + '/data'
 # 1.5s 足够。若出现 Wind 限流（连续返回空表/没找到数据），可用 SX_WIND_INTERVAL=3 调回（2026-09-19 优化）。
 INTERVAL = float(os.environ.get('SX_WIND_INTERVAL', '1.5'))
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
 # 分红日期查询措辞（按优先级尝试；2026-09-13：主措辞改为「最近分红情况」）
 PHRASINGS = ['{} 最近分红情况', '{} 最近分红发放日期', '{} 基金分红 分红发放日']
@@ -75,7 +76,7 @@ def call_wind(question):
         env.pop(k, None)
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'fund_data', 'get_fund_financials',
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)

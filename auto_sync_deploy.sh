@@ -66,6 +66,8 @@ run_py() {
   local label="$1"; shift
   local t0=$(date +%s)
   echo "  ⏱  [$(date '+%H:%M:%S')] 开始：$label"
+  # 注入步骤名：wind_client.py 据此把本步的 Wind 调用数记入 .wind_usage/<date>.json（阶段 0 计数）
+  export SX_WIND_STEP="$label"
   # 后台运行以便心跳探测；PYTHONUNBUFFERED=1 已导出，脚本自身输出实时可见
   python3 "$@" &
   local pid=$!

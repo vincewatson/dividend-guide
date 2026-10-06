@@ -29,7 +29,8 @@ from concurrent.futures import ThreadPoolExecutor
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 REITS = os.path.join(DATA_DIR, 'reitsData.json')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 # 并发路数（2026-09-26 提速：扩位简称批 / 新档案件 / 补字段 并发；单批仍 ≤12 只，Wind 批量契约不变）
 WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '8')))
 
@@ -74,7 +75,7 @@ def call_wind_params(server, tool, params):
     """Wind 查询（任意参数 dict），返回 [(columns, rows), ...]（3 次重试 + 6s 退避）。失败返回 []。"""
     for _attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', server, tool, json.dumps(params, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(),
                 cwd=os.path.expanduser('~/.agents/skills/wind-mcp-skill'))

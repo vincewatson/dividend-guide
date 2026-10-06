@@ -30,7 +30,8 @@ CURATION_DIR = os.path.join(DATA_DIR, 'curation')
 RETIRED_PATH = os.path.join(CURATION_DIR, '_retired.json')
 
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
 AASTOCKS_URL = 'https://www.aastocks.com/en/stocks/etf/default.aspx'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
@@ -69,7 +70,7 @@ def call_wind_tbl(tool, question):
     """Wind 查询，返回 [(columns, rows), ...]（3 次重试 + 6s 退避）。失败返回 []。"""
     for _ in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'fund_data', tool,
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_clean_env(), cwd=WIND_SKILL)

@@ -20,7 +20,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 CN_ETF = os.path.join(DATA_DIR, 'cnEtfData.json')
 INDEX = os.path.join(DATA_DIR, 'indexData.json')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
 KEYWORDS = ['红利', '高股息', '股东回报', '央企回报']
 DAYS = 30
@@ -47,7 +48,7 @@ def call_wind_tbl(server, tool, question):
     """Wind 查询，返回 [(columns, rows), ...]（按列名取值用；3 次重试 + 6s 退避 + 代理变量清理）。失败返回 []。"""
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', server, tool,
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(),

@@ -32,3 +32,12 @@
 5. **本站自己的 `data/` 目录目前仍是网站的数据来源**，本规则不改变现有的取数、同步和部署流程。
 6. **和 data_center 重叠的数据**：红利 ETF、红利指数股息率、利率序列（见 `exports/dividend/`）。修改这几类数据的取数口径时，要同步考虑 data_center。
 7. **已知口径问题**：`cnEtfData.json` 的规模字段没有标注日期，和资管棱镜的数据有出入（见 data_center 的 `docs/build-report.md`）。修改取数脚本时请补上日期字段。
+
+## 数据更新流程重构（2026-10-06 起）
+
+**数据更新流程一律以 `docs/data-governance/update-redesign.md` 为唯一目标规范**（重构期间其优先级高于 `update-mechanism.md`；重构完成后把现行规则并入 `update-mechanism.md`，本规范归档）。
+
+- 按该规范的「实施顺序」**分阶段进行，一次只做一个阶段**；每阶段完成后必须：`check_data.py` 全部通过、与改造前 `data/*.json` 对比除日期外无意外差异、在该规范附录记一行「阶段 N 完成：耗时 / Wind 次数 前→后」。
+- **额度不足时停在当前阶段**，下次继续；**不为赶进度跳过验收**。
+- 自阶段 0 起新增统一 Wind 客户端 **`wind_client.py`**：**所有 Wind 调用只经它**（按日/按步计数，写 `.wind_usage/YYYY-MM-DD.json`），各脚本不再直接 `subprocess.run(['node', <cli.mjs>, ...])`。新增取数脚本必须走 `wind_client`。
+- Wind 额度保护（2026-10-06）：`wind_guard_cli.mjs`（调用级每日硬上限）+ `run_gate.py`（每日整跑闸，`SX_FORCE_RUN=1` 可强制）。

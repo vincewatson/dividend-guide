@@ -24,7 +24,8 @@ from concurrent.futures import ThreadPoolExecutor
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 BATCH = 5          # 基金批量查询数量
 FC_BATCH = 4       # 指数批量查询数量（4 个/批更稳）
 # 并发路数（2026-09-26 提速：批次并发；单批仍 ≤BATCH/FC_BATCH 只、字段数不变，Wind 批量契约不变）
@@ -48,7 +49,7 @@ def call_wind(question, server='fund_data', tool='get_fund_financials'):
         env.pop(k, None)
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', server, tool,
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)

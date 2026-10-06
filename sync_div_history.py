@@ -28,7 +28,8 @@ DATA_DIR = os.environ.get('SX_DATA_DIR') or os.path.join(BASE, 'data')
 INDEX_JSON = os.path.join(DATA_DIR, 'indexData.json')
 
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
 # 每批查询的指数数量（Wind 自然语言一次可查多个，顿号连接；返回表含「Wind代码」列）
 BATCH_SIZE = 3
@@ -71,7 +72,7 @@ def call_wind(question):
         env.pop(k, None)
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_fundamentals',
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env,

@@ -24,7 +24,8 @@ CURATION_DIR = os.path.join(DATA_DIR, 'curation')
 UNIVERSE = os.path.join(CURATION_DIR, '_hk_etf_universe.json')
 HK_ETF = os.path.join(DATA_DIR, 'hkEtfData.json')
 RETIRED = os.path.join(CURATION_DIR, '_retired.json')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
 # 红利类关键词（港交所口径：红利/高息/高股息/股息率/股东回报/央企回报）
 KEYWORDS = ['红利', '高息', '高股息', '股息率', '股东回报', '央企回报']
@@ -130,7 +131,7 @@ def _wind_env():
 def call_wind_tbl(server, tool, question):
     for _ in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', server, tool,
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(),

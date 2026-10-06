@@ -17,6 +17,7 @@ __pycache__/
 .run_timings.jsonl
 .run_state.json
 .wind_calls_*
+.wind_usage/
 
 # ---- 仓库为 public：用户原始数据与上传文件禁止入库 ----
 data/user/

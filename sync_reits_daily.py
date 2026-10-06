@@ -28,7 +28,8 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 CACHE = os.path.join(DATA_DIR, 'reitsDaily.json')
 HIST = os.path.join(DATA_DIR, 'assetHistory.json')
 REITS = os.path.join(DATA_DIR, 'reitsData.json')
-CLI = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wind_guard_cli.mjs')  # Wind 额度守卫包装器（2026-10-06；真实 cli.mjs 见 SX_WIND_CLI_REAL）
+import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 SEG_DAYS = 135          # 每段日历天数（≤100 交易日/次）
 BASE_START = '2023-01-01'   # 历史序列统一起点（早于此无意义）
 WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '8')))   # 并发路数（2026-09-26）
@@ -55,7 +56,7 @@ def call_wind(question):
         env.pop(k, None)
     for attempt in range(3):
         try:
-            r = subprocess.run(
+            r = wind_client.run(
                 ['node', CLI, 'call', 'fund_data', 'get_fund_performance',
                  json.dumps({'question': question}, ensure_ascii=False)],
                 capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env,
