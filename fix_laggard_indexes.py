@@ -39,7 +39,7 @@ def call_wind(code, start, end):
     r = subprocess.run(
         ['node', CLI, 'call', 'index_data', 'get_index_fundamentals',
          json.dumps({'question': question}, ensure_ascii=False)],
-        capture_output=True, text=True, timeout=90, env=env, cwd=WIND_SKILL)
+        capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
     if r.returncode != 0:
         return []
     try:

@@ -69,7 +69,7 @@ def call_wind_tbl(tool, question):
             r = subprocess.run(
                 ['node', CLI, 'call', 'fund_data', tool,
                  json.dumps({'question': question}, ensure_ascii=False)],
-                capture_output=True, text=True, timeout=120, env=_clean_env(), cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_clean_env(), cwd=WIND_SKILL)
         except Exception:
             time.sleep(6); continue
         if r.returncode != 0:

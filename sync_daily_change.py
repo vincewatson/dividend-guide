@@ -74,7 +74,7 @@ def call_wind_batch(codes):
         try:
             r = subprocess.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_price_indicators', q],
-                capture_output=True, text=True, timeout=90, env=_wind_env(), cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(), cwd=WIND_SKILL)
             if r.returncode != 0:
                 time.sleep(6); continue
             outer = json.loads(r.stdout)
@@ -96,7 +96,7 @@ def call_wind(windcode):
             r = subprocess.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_price_indicators',
                  json.dumps({'windcode': windcode, 'indexes': '最新交易日,涨跌幅'}, ensure_ascii=False)],
-                capture_output=True, text=True, timeout=90, env=env, cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
             if r.returncode != 0:
                 time.sleep(6); continue
             outer = json.loads(r.stdout)
@@ -124,7 +124,7 @@ def call_wind_kline(windcode):
         try:
             r = subprocess.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_kline', q],
-                capture_output=True, text=True, timeout=90, env=_wind_env(), cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(), cwd=WIND_SKILL)
             if r.returncode != 0:
                 time.sleep(6); continue
             outer = json.loads(r.stdout)
@@ -164,7 +164,7 @@ def call_wind_yr(question):
             r = subprocess.run(
                 ['node', CLI, 'call', 'index_data', 'get_index_fundamentals',
                  json.dumps({'question': question}, ensure_ascii=False)],
-                capture_output=True, text=True, timeout=90, env=env, cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
             if r.returncode != 0:
                 time.sleep(6); continue
             outer = json.loads(r.stdout)

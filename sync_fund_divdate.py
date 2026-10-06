@@ -78,7 +78,7 @@ def call_wind(question):
             r = subprocess.run(
                 ['node', CLI, 'call', 'fund_data', 'get_fund_financials',
                  json.dumps({'question': question}, ensure_ascii=False)],
-                capture_output=True, text=True, timeout=90, env=env, cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
         except subprocess.TimeoutExpired:
             time.sleep(6); continue
         except Exception:

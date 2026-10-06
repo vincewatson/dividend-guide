@@ -64,7 +64,7 @@ def call_wind(server, tool, params):
         try:
             r = subprocess.run(
                 ['node', CLI, 'call', server, tool, json.dumps(params, ensure_ascii=False)],
-                capture_output=True, text=True, timeout=90, env=env, cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
         except Exception:
             time.sleep(5); continue
         if r.returncode != 0:

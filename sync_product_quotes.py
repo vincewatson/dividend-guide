@@ -133,7 +133,7 @@ def call_wind_batch(codes):
         try:
             r = subprocess.run(
                 ['node', CLI, 'call', 'fund_data', 'get_fund_price_indicators', q],
-                capture_output=True, text=True, timeout=90, env=_wind_env(), cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=_wind_env(), cwd=WIND_SKILL)
             if r.returncode != 0:
                 time.sleep(5)
                 continue

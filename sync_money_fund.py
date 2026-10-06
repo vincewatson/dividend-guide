@@ -36,7 +36,7 @@ def call_wind_price(code):
             r = subprocess.run(
                 ['node', CLI, 'call', 'fund_data', 'get_fund_price_indicators',
                  json.dumps({'windcode': code, 'indexes': '七日年化收益率,万份基金收益,最新交易日'}, ensure_ascii=False)],
-                capture_output=True, text=True, timeout=90, env=env, cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
         except Exception:
             time.sleep(4); continue
         if r.returncode != 0:

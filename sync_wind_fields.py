@@ -51,7 +51,7 @@ def call_wind(question, server='fund_data', tool='get_fund_financials'):
             r = subprocess.run(
                 ['node', CLI, 'call', server, tool,
                  json.dumps({'question': question}, ensure_ascii=False)],
-                capture_output=True, text=True, timeout=90, env=env, cwd=WIND_SKILL)
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env, cwd=WIND_SKILL)
             if r.returncode != 0:
                 time.sleep(6)
                 continue

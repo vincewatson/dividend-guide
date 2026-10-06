@@ -58,7 +58,7 @@ def call_wind(question):
             r = subprocess.run(
                 ['node', CLI, 'call', 'fund_data', 'get_fund_performance',
                  json.dumps({'question': question}, ensure_ascii=False)],
-                capture_output=True, text=True, timeout=90, env=env,
+                capture_output=True, text=True, timeout=int(os.environ.get('SX_WIND_TIMEOUT', '45')), env=env,
                 cwd=os.path.expanduser('~/.agents/skills/wind-mcp-skill'))
         except Exception:
             time.sleep(4)
