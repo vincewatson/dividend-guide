@@ -45,6 +45,11 @@ export PYTHONUNBUFFERED=1
 #   目的：每个 Python 步骤打印「开始/结束 + 耗时」；单步运行超过 30s 时每 30s 打一次心跳，
 #   避免长时间无输出被误判为"卡死"。兼容 macOS 自带 bash 3.2（不使用 wait -n / wait -p）。
 # ------------------------------------------------------------
+# 每步耗时落盘（2026-10-06 新增）：此前耗时只打印、不留存，无法事后定位瓶颈。
+#   每次运行清空重建；格式 = 每行一个 JSON {label,sec,rc}。流水线末尾打印降序汇总。
+TIMINGS_FILE=".run_timings.jsonl"
+: > "$TIMINGS_FILE"
+
 run_py() {
   local label="$1"; shift
   local t0=$(date +%s)
@@ -65,10 +70,12 @@ run_py() {
   done
   local rc=0
   wait "$pid" || rc=$?
+  local dur=$(( $(date +%s) - t0 ))
+  printf '{"label":"%s","sec":%s,"rc":%s}\n' "$label" "$dur" "$rc" >> "$TIMINGS_FILE"
   if [ $rc -eq 0 ]; then
-    echo "  ✅ [$(date '+%H:%M:%S')] 完成：$label（耗时 $(( $(date +%s) - t0 ))s）"
+    echo "  ✅ [$(date '+%H:%M:%S')] 完成：$label（耗时 ${dur}s）"
   else
-    echo "  ❌ [$(date '+%H:%M:%S')] 失败：$label（耗时 $(( $(date +%s) - t0 ))s，退出码 $rc）"
+    echo "  ❌ [$(date '+%H:%M:%S')] 失败：$label（耗时 ${dur}s，退出码 $rc）"
   fi
   return $rc
 }
@@ -212,6 +219,29 @@ echo ""
 echo "===== [21/21] 线上验证（最多等待 20 秒，避免网络被拦截时无限挂起）====="
 env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u NODE_USE_ENV_PROXY \
   curl -s --connect-timeout 10 --max-time 20 "https://divlab.net/?cmp=$(date +%s)" | grep -o '数据更新于[^<]*' | head -1 || echo "（线上验证被网络拦截或页面文案已改版，请手动确认）"
+
+echo ""
+echo "===== [耗时汇总] 本次各步耗时（降序 · 供优化定位）====="
+python3 - "$TIMINGS_FILE" <<'PY'
+import json, sys
+p = sys.argv[1]
+rows = []
+try:
+    for line in open(p, encoding='utf-8'):
+        line = line.strip()
+        if line:
+            rows.append(json.loads(line))
+except Exception:
+    pass
+if rows:
+    for r in sorted(rows, key=lambda x: -x.get('sec', 0)):
+        print("  %6ds  %s%s" % (r.get('sec', 0), r.get('label', '?'),
+                                '' if r.get('rc', 0) == 0 else '   <-- 失败 rc=%s' % r.get('rc')))
+    tot = sum(r.get('sec', 0) for r in rows)
+    print("  ------ 合计 %ds（约 %.1f 分钟，共 %d 步）；已写入 %s" % (tot, tot / 60.0, len(rows), p))
+else:
+    print("  （无耗时记录）")
+PY
 
 echo ""
 echo "✅ 同步完成！请访问 https://divlab.net"

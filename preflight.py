@@ -304,6 +304,23 @@ def _status_label(st):
             "exempt": "➖ 豁免", "unknown": "❓ 未知"}.get(st, st)
 
 
+def _print_last_measured():
+    """读取上次流水线实测耗时（auto_sync_deploy.sh 写的 .run_timings.jsonl），用于校准上面的粗估。
+    2026-10-06 新增：此前只有基于旧观察的粗估，无实测留存；现每次运行都会落盘，这里回读。"""
+    p = os.path.join(BASE, ".run_timings.jsonl")
+    try:
+        rows = [json.loads(l) for l in open(p, encoding="utf-8") if l.strip()]
+    except Exception:
+        return
+    if not rows:
+        return
+    tot = sum(r.get("sec", 0) for r in rows)
+    top = sorted(rows, key=lambda x: -x.get("sec", 0))[:6]
+    print("  上次实测：合计 %d 分 %d 秒（%d 步）；最慢：%s"
+          % (tot // 60, tot % 60, len(rows),
+             "、".join("%s %ds" % (r.get("label", "?"), r.get("sec", 0)) for r in top)))
+
+
 def print_report(rep):
     print("=" * 70)
     print("  食息指南 · 更新前体检（preflight）")
@@ -334,8 +351,9 @@ def print_report(rep):
     print("  需执行：%s" % " ".join("步骤%d(%s)" % (s, STEP_NAME[s]) for s in all_steps if s not in skip_set))
     if rep["lists_new"]:
         print("  🔸 清单/标注（data/curation）有更新 → 步骤 4/11（重建数据）需重跑以套用")
-    print("  预计耗时：约 %d 分 %d 秒（已跳过 %d 个可跳步骤）"
+    print("  预计耗时：约 %d 分 %d 秒（粗估，可能偏大；已跳过 %d 个可跳步骤）"
           % (rep["total_time"] // 60, rep["total_time"] % 60, len(rep["skip"])))
+    _print_last_measured()
     print("  提示：如需按建议跳过，运行流水线前设置环境变量 SKIP_STEPS=\"%s\"" % " ".join(map(str, rep["skip"])))
     print("=" * 70)
 
