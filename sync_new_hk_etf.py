@@ -126,11 +126,15 @@ def detect():
         cur = best.get(key)
         if cur is None or _code_int(code) < _code_int(cur.get('code')):
             best[key] = f
-    # 3) 与现有成员 + 停用名单对照
-    exist_codes = {x.get('code') for x in load_json(HK_ETF, []) if isinstance(x, dict)}
-    retired = set((load_json(RETIRED, {}) or {}).get('retired', {}).keys())
+    # 3) 与现有成员 + 停用名单对照（**按数字归一比对**：站点用 5 位 '03070.HK'、
+    #    中央库导出用 4 位 '3070.HK'，数字部分相同即同一只，避免误判为新标的）
+    exist_nums = {lc.hk_num(x.get('code')) for x in load_json(HK_ETF, []) if isinstance(x, dict)}
+    exist_nums.discard('')
+    retired_nums = {lc.hk_num(k) for k in (load_json(RETIRED, {}) or {}).get('retired', {}).keys()}
+    retired_nums.discard('')
     new = [f for f in best.values()
-           if f.get('code') not in exist_codes and f.get('code') not in retired]
+           if lc.hk_num(f.get('code')) not in exist_nums
+           and lc.hk_num(f.get('code')) not in retired_nums]
     new.sort(key=lambda x: _code_int(x.get('code')))
     return new, len(best), skipped
 
@@ -239,7 +243,7 @@ def build_row(fund, detail, size, today):
     # 跟踪指数：优先 Wind，Wind 缺则回退中央数据库导出的 track_name
     # （Wind 对部分新港ETF 不返回跟踪指数代码/名称，中央库仅有名称。）
     return {
-        'code': fund['code'],
+        'code': lc.hk_site(fund['code']) or fund['code'],
         'name': fund.get('name') or '',
         'fullname': fund.get('full_name') or '',
         'connect': bool(fund.get('hk_connect')),
@@ -257,7 +261,8 @@ def build_row(fund, detail, size, today):
 
 def add_to_hk_etf(row):
     rows = load_json(HK_ETF, [])
-    if any(isinstance(x, dict) and x.get('code') == row['code'] for x in rows):
+    _rc = lc.hk_num(row.get('code'))
+    if any(isinstance(x, dict) and lc.hk_num(x.get('code')) == _rc for x in rows):
         return False
     rows.append(row)   # 只追加、不重排：保持现有展示顺序（curation 顺序 + 表外行追加）
     save_json(HK_ETF, rows)

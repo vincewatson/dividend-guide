@@ -290,6 +290,15 @@ def hk_num(v):
     return str(int(m.group(1)))
 
 
+def hk_site(v):
+    """港交所代码 → 站点代码形式（5 位 + .HK，与中央库 sec_code 对齐）。
+
+    '3070.HK' / '03070' / '3070' → '03070.HK'；取不到返回 ''。
+    """
+    n = hk_num(v)
+    return ('%05d.HK' % int(n)) if n else ''
+
+
 # ── 清盘名单（fund-liquidated.json）────────────────────────────────────────
 def load_liquidated_codes():
     """读取中央库清盘名单 → (set_of_code6, 导出说明)。

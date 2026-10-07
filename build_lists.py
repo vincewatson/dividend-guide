@@ -260,6 +260,18 @@ def clean_str(v):
     return s if s else None
 
 
+def hk_code5(v):
+    """港交所代码 → 站点代码形式（5 位 + .HK，与中央库 sec_code 对齐）。
+
+    '3070.HK' / '03070' / '03070.HK' → '03070.HK'；取不到返回 None。
+    """
+    s = clean_code(v)                    # 去空白、转大写
+    if not s:
+        return None
+    num = s.split('.')[0]
+    return ('%05d.HK' % int(num)) if num.isdigit() else s
+
+
 def clean_num(v, default=0):
     if v is None or (isinstance(v, float) and math.isnan(v)):
         return default
@@ -717,7 +729,7 @@ def build_hk_etf_data():
     user_hk = load_user_hk_etf()
     rows = []
     for row in curation_rows('hk_etf_pro.json'):
-        code = clean_code(row.get('ETF代码'))
+        code = hk_code5(row.get('ETF代码'))
         if not code:
             continue
         name = to_simple(clean_str(row.get('ETF简称')) or '')  # 统一显示简体（源为繁体）
