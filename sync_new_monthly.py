@@ -38,6 +38,7 @@ ETF = os.path.join(DATA_DIR, 'etfData.json')
 FUND = os.path.join(DATA_DIR, 'fundData.json')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
+import lifecycle_common as lc  # 清单进出机制 · 共享工具（自动补入登记 / 变动日志）
 SKILL_DIR = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
 
 THRESHOLD = 11
@@ -299,6 +300,24 @@ def main():
     if adds_etf or adds_fund:
         save_json(ETF, etf)
         save_json(FUND, fund)
+        # 清单进出机制（2026-10-07）：登记自动补入 + 追加「进」事件
+        try:
+            _reason = '月月分红（近1年分红≥%d次）自动纳入' % THRESHOLD
+            _entries, _events = [], []
+            for store, disp, _cnt, _tc, _tn in adds_etf:
+                _entries.append({'code': store, 'list': 'etf', 'reason': _reason,
+                                 'source': 'sync_new_monthly'})
+                _events.append({'action': 'add', 'list': 'etf', 'code': store,
+                                'name': disp, 'reason': _reason, 'source': 'sync_new_monthly'})
+            for store, disp, _cnt, _tc, _tn in adds_fund:
+                _entries.append({'code': store, 'list': 'fund', 'reason': _reason,
+                                 'source': 'sync_new_monthly'})
+                _events.append({'action': 'add', 'list': 'fund', 'code': store,
+                                'name': disp, 'reason': _reason, 'source': 'sync_new_monthly'})
+            lc.record_auto_added(_entries)
+            lc.record_list_changes(_events)
+        except Exception as e:
+            print('[i] 自动补入登记失败（不影响补入）：%s' % e, flush=True)
         print('\n[完成] [%s] 已写入 etfData(+%d) / fundData(+%d)；'
               '随后由步骤 14 刷 divDate、步骤 15 Wind 化补齐字段。'
               % (ts(), len(adds_etf), len(adds_fund)), flush=True)

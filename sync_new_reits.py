@@ -31,6 +31,7 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 REITS = os.path.join(DATA_DIR, 'reitsData.json')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
+import lifecycle_common as lc  # 清单进出机制 · 共享工具（自动补入登记 / 变动日志）
 # 并发路数（2026-09-26 提速：扩位简称批 / 新档案件 / 补字段 并发；单批仍 ≤12 只，Wind 批量契约不变）
 WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '8')))
 
@@ -493,6 +494,18 @@ def main():
     site.extend(built)
     site.sort(key=lambda x: x.get('code', ''))
     save_json(REITS, site)
+    # 清单进出机制（2026-10-07）：登记自动补入 + 追加「进」事件
+    if built:
+        try:
+            lc.record_auto_added([{'code': it.get('code', ''), 'list': 'reits',
+                                   'reason': '新上市公募REITs自动发现',
+                                   'source': 'sync_new_reits'} for it in built if it.get('code')])
+            lc.record_list_changes([{'action': 'add', 'list': 'reits', 'code': it.get('code', ''),
+                                     'name': it.get('name') or '',
+                                     'reason': '新上市公募REITs自动发现',
+                                     'source': 'sync_new_reits'} for it in built if it.get('code')])
+        except Exception as e:
+            print('  [i] 自动补入登记失败（不影响补入）：%s' % e, flush=True)
     print('\n[完成] [%s] 新增 %d 只、刷新 shortName %d 条、补齐空字段 %d 只；reitsData.json 现 %d 行'
           % (ts(), len(built), len(sn_changes), filled_cnt, len(site)), flush=True)
     return 0

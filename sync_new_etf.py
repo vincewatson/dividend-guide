@@ -22,6 +22,7 @@ CN_ETF = os.path.join(DATA_DIR, 'cnEtfData.json')
 INDEX = os.path.join(DATA_DIR, 'indexData.json')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
+import lifecycle_common as lc  # 清单进出机制 · 共享工具（自动补入登记 / 变动日志）
 
 KEYWORDS = ['红利', '高股息', '股东回报', '央企回报']
 DAYS = 30
@@ -444,6 +445,17 @@ def main():
         if add_to_cn_etf(f, detail, scale):
             print('    ✅ 已补入 cnEtfData（%s，跟踪 %s %s）' % (
                 f['name'], detail.get('trackCode', '?'), detail.get('trackName', '?')), flush=True)
+            # 清单进出机制（2026-10-07）：登记自动补入 + 追加「进」事件
+            _code = f['code'] + '.OF'
+            _reason = '新红利ETF自动发现（检索近%d天）' % days
+            try:
+                lc.record_auto_added([{'code': _code, 'list': 'cnEtf',
+                                       'reason': _reason, 'source': 'sync_new_etf'}])
+                lc.record_list_changes([{'action': 'add', 'list': 'cnEtf', 'code': _code,
+                                         'name': f.get('name') or '',
+                                         'reason': _reason, 'source': 'sync_new_etf'}])
+            except Exception as e:
+                print('    [i] 自动补入登记失败（不影响补入）：%s' % e, flush=True)
         # 新指数检查
         track_code = detail.get('trackCode', '')
         if track_code:

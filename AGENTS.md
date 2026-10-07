@@ -41,3 +41,4 @@
 - **额度不足时停在当前阶段**，下次继续；**不为赶进度跳过验收**。
 - 自阶段 0 起新增统一 Wind 客户端 **`wind_client.py`**：**所有 Wind 调用只经它**（按日/按步计数，写 `.wind_usage/YYYY-MM-DD.json`），各脚本不再直接 `subprocess.run(['node', <cli.mjs>, ...])`。新增取数脚本必须走 `wind_client`。
 - Wind 额度保护（2026-10-06）：`wind_guard_cli.mjs`（调用级每日硬上限）+ `run_gate.py`（每日整跑闸，`SX_FORCE_RUN=1` 可强制）。
+- **测试与额度规矩（2026-10-07）**：见 `./.trae/rules/project_rules.md`「数据更新 · 测试与额度规矩」——一天最多真实整跑一次；改代码先用模拟/单项检查；不用 `SX_FORCE_RUN=1`（除非用户明确同意）；日更 ≤300 / 周更 ≤650 / 当天合计 ≤1600；开跑前用 1 次最轻调用确认账号可用。

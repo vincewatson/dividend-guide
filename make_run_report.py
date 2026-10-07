@@ -23,6 +23,7 @@ import sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 import wind_client  # noqa  提供 load()/used_mode()/MODE/BUDGET/load_pending()
+import lifecycle_common as lc  # 清单进出机制 · 共享工具（.list_changes.json 读取）
 
 REPORT_JSONL = os.path.join(BASE, '.run_report.jsonl')
 BASELINE = os.path.join(BASE, '.run_usage_baseline.json')
@@ -53,6 +54,7 @@ def _baseline():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--mode', default='daily')
+    ap.add_argument('--reason', default='')     # 本次档位说明（auto_sync_deploy.sh 传入 MODE_REASON）
     ap.add_argument('--deploy', default='skipped')
     ap.add_argument('--rc-checks', default='')
     args = ap.parse_args()
@@ -71,13 +73,15 @@ def main():
         return int(cur_by_step.get(label, {}).get('n', 0)) - int(base_by_step.get(label, {}).get('n', 0))
 
     run_total = int(cur.get('total', 0)) - int(base.get('total', 0))
-    mode_name = '周更' if args.mode == 'weekly' else '日更'
+    # 档位名（--mode 值可能是 daily / weekly / daily+weekly）
+    mode_name = {'daily': '日更', 'weekly': '周更', 'daily+weekly': '日更+周更'}.get(args.mode, args.mode)
     budget = wind_client.BUDGET
 
     lines = []
     lines.append('# 食息指南 · 数据更新运行报告\n')
     lines.append('- 生成时间：%s' % now.strftime('%Y-%m-%d %H:%M:%S'))
     lines.append('- 档位：**%s**（`SX_WIND_MODE=%s`）' % (mode_name, args.mode))
+    lines.append('- 本次档位：**%s**%s' % (mode_name, ('（%s）' % args.reason) if args.reason else ''))
     lines.append('- Wind 调用：**本次 %d 次**；当日该档位累计 %d / 预算 %d；当日合计 %d / 硬上限 %d'
                  % (run_total, wind_client.used_mode(), budget,
                     int(cur.get('total', 0)), wind_client.CAP))
@@ -112,10 +116,29 @@ def main():
     lines.append('')
     lines.append('> 说明：「本次不跑」的原因包括 **非本档位步骤**（如周更不含日更步骤）与 **预检判定已是最新交易日**（无新数据）。')
 
+    # 清单变动（2026-10-07）：列出 .list_changes.json 中 date==今天 的条目（无则写「无」）
+    lines.append('')
+    lines.append('## 清单变动')
+    _ACT = {'add': '自动补入', 'retire': '移出', 'observe': '待观察'}
+    _LIST = {'cnEtf': '境内红利ETF', 'hkEtf': '港交所红利ETF', 'reits': 'REITs',
+             'etf': '月月分红ETF', 'fund': '月月分红基金', 'money': '货币基金'}
+    _chg = lc.today_events()
+    if not _chg:
+        lines.append('无')
+    else:
+        lines.append('| 动作 | 清单 | 代码 | 名称 | 原因 | 来源 |')
+        lines.append('|---|---|---|---|---|---|')
+        for e in _chg:
+            lines.append('| %s | %s | %s | %s | %s | %s |' % (
+                _ACT.get(e.get('action'), e.get('action') or ''),
+                _LIST.get(e.get('list'), e.get('list') or ''),
+                e.get('code') or '', e.get('name') or '',
+                e.get('reason') or '', e.get('source') or ''))
+
     os.makedirs(LOGS_DIR, exist_ok=True)
     out = os.path.join(LOGS_DIR, 'update-%s.md' % now.strftime('%Y%m%d-%H%M'))
     with io.open(out, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines) + '\n')
+        f.write('\n'.join(lines).encode('utf-8', 'replace').decode('utf-8') + '\n')
     print('[运行报告] 已生成：%s' % os.path.relpath(out, BASE))
     return 0
 

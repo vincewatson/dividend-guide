@@ -1,0 +1,6 @@
+{
+ "schema": "auto_added: { <code>: {addedDate,list,reason,source} }",
+ "note": "清单「进」机制（2026-10-07）：sync_new_etf / sync_new_reits / sync_new_hk_etf(--add) / sync_new_monthly 自动补入成功后登记于此；build_lists.py 读取本文件，把其中 code 并入各清单的「表外行保留」护栏（防每周整表重建冲掉自动发现的成员）。**本文件入库（不 gitignore）**。",
+ "updatedAt": "",
+ "added": {}
+}

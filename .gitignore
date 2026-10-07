@@ -27,3 +27,8 @@ logs/
 data/user/
 user_upload/
 *.xlsx
+
+# ---- 清单进出机制（2026-10-07）：运行状态与变动日志（本地、不入库）----
+#   注：data/curation/_auto_added.json（自动补入登记）**入库**，不在此列。
+.lifecycle_state.json
+.list_changes.json

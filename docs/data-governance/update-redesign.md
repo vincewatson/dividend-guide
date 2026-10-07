@@ -154,12 +154,12 @@
   - `auto_sync_deploy.sh` 加 `--weekly` 档位门控（`step_on`/`label_on`），编号外步骤同受控；`SX_WIND_MODE` 透传 `wind_client`。
   - **关键依赖修复**：`build_lists.py` 重建会清空 `divDate`（原靠紧随其后的 `sync_fund_divdate` 恢复）；该步移至周更后，遂让 `build_lists` 重建时**保留旧 `divDate`**（旧不覆盖新），使日更不再依赖它（已无 Wind 验证：重建日志出现「保留旧的分红日期 divDate N 条」，`check_data` ✅）。
 
-- 🔧 **阶段 3：一次构建 + 合并写入**（2026-10-07 · **代码完成，待实跑验收**）：
+- ✅ **阶段 3：一次构建 + 合并写入**（2026-10-07 · **已实跑验收，见下**）：
   - `build_lists.py` **只跑一次**（原第 4、11 步的两次 → 合并为一次，置于原第 11 步位置）：确保 assetData 取到当日最新 divHistory，其后 new_*/fund_divdate/wind_fields 再更新。
   - `build_lists` 重建**合并写入**：保留旧 `divDate`/`size`（`divHistory`/`dailyChange`/`yrChange` 本就保留）——旧值不覆盖新值。
   - 取数步骤加**日期守卫（旧不覆盖新）**：`sync_daily_change`（本次 `dailyDate` 早于现有则不写）、`sync_money_fund`（`yieldDate` 早于现有则不写）。序列类步骤（div_history/yuebao/asset_macro/reits_daily/productQuotes）本就是「只补缺口/追加」。
 
-- 🔧 **阶段 4：日更提速（目标 ≤5 分钟）**（2026-10-07 · **代码完成，待实跑验收**）：
+- ✅ **阶段 4：日更提速（目标 ≤5 分钟）**（2026-10-07 · **已实跑验收，见下**）：
   - **`sync_div_history` 按市场补缺口**：目标日按各指数所属市场日历（A 股对 A 股、港股对港股）——**A 股休市时 A 股指数不再被当作「滞后」反复重查**（原目标只跳周末、不跳节假日，假期内白查数百次）。`fill_laggards` 同步按市场目标。
   - **删除 `fix_laggard_indexes.py`**（其逻辑早已并入 `sync_div_history.fill_laggards`；流水线第 5 步只留 div_history）。
   - **`sync_daily_change` 提速**：慢因 = ①每交易日全量重拉（新交易日必要）；②**批量失败后逐只单查且每次失败 `sleep 6s`×3**（长超时放大）；③慢在「等待」而非串行——正常路径已是 **12 只/批、6 并发**。改：重试等待 `SX_DC_RETRY_SLEEP` 默认 **2s**；批量失败**先对半拆批重试**再逐只兜底；并**按市场跳过**已到最新交易日的指数（如 A 股休市时跳过 A 股指数）。
@@ -211,3 +211,26 @@
 > 口径：Wind 次数按「本次运行 − 上次运行」的 `.wind_usage` 增量（`.wind_usage` 跨运行累计；本日增量与 `by_mode` 的 daily/weekly 一致）。耗时取自 `.run_timings.jsonl`（日更的中断未落总表，取自其运行日志逐步耗时）。当日实测总用量 1880/2000（含前次阶段 0 测量 1004）。
 >
 > **结论**：两档次数均达预算目标（日更 232≤300、周更 644≤800）；日更 ≈9.5min 逼近 10min 目标上限——主要因当日 **A股休市、港股开市**，`div_history`/`fix_laggard` 需为港股补数且较慢（fix_laggard 240s 已属异常，与港股假期补数有关）。下一步（阶段 3：一次构建+合并写入；阶段 4：减少调用）优先项：`fund_divdate`(317)、`lifecycle`(227)、`new_reits`(96)、`fix_laggard`(41/240s)。
+
+### 阶段 3/4 实跑验收 + 清单进出机制 + 入口自动判档（2026-10-07）
+
+**本次档位**：**日更**（默认入口自动判档：距上次周更 `2026-10-07` 仅 0 天 ≤6 → 仅日更；无 `--weekly`）。
+
+**Wind 次数与耗时**：
+- **Wind 139 次**（日更预算 300 ✅；当日合计 139/1600 ✅）
+- **耗时 572s ≈ 9.5 min**（**未达日更 ≤5 min 目标**）。分步：`sync_daily_change` 336s、`sync_div_history` 161s、`sync_wind_fields` 40s、`sync_product_quotes` 10s、其余各 5s。
+- 未达 5min 的原因：当日 **A 股休市、港股开市**，`sync_daily_change` 出现「批量失败 → 对半重试/单只兜底」（336s），`sync_div_history` 需为港股补数（161s）。非假期日预计显著下降。
+
+**check_data**：✅ **全部通过**（0 Wind）。
+
+**运行报告**：`logs/update-20261007-1045.md`。
+
+**清单变动**：**无**。（本次为日更，周级的 `sync_lifecycle`/`sync_new_*` 未跑；且中央库导出文件 `fund-liquidated.json` / `hk-etf-list.json` 尚不存在，相关判据走「跳过 / 回退」路径。）
+
+**本次一并上线的机制**（均**未额外消耗 Wind** 或按预算内执行）：
+1. **入口自动判档**（`auto_sync_deploy.sh`）：默认日更；距上次周更 >6 天则同一次运行「日更+周更」、部署一次；`--weekly` 手动强制只跑周更。上次周更日期记于 `.run_state.json:lastWeekly`（初值 2026-10-07）。
+2. **测试与额度规矩**：写入 `.trae/rules/project_rules.md` 与 `AGENTS.md`（一天最多真实整跑一次；不用 `SX_FORCE_RUN=1`；日更 ≤300 / 周更 ≤650 / 当天合计 ≤1600；开跑前 1 次最轻调用验账号）。`wind_client` 周更预算 800→650，并新增**当天合计软上限** `SX_WIND_DAY_CAP=1600`。
+3. **清单进出机制**（`lifecycle_common.py` + 各脚本，**不调用 Wind 的实现部分**）：清盘判据改读 `exports/common/fund-liquidated.json`（按代码前 6 位；缺失则跳过）、港 ETF 名单改读 `exports/common/hk-etf-list.json`（缺失回退 `_hk_etf_universe.json`）、REITs 保留 Wind「到期日已过」；**安全阀**（清盘名单命中立即移出，其他判据连续两次命中才移出、首次「待观察」）；状态文件移出 `data/`（`.lifecycle_state.json`）；自动补入登记 `data/curation/_auto_added.json`（`build_lists` 读取）；清单变动进运行报告「清单变动」一节。货币基金「进」仅写方案（`docs/data-governance/money-fund-auto-add-plan.md`），未实测。
+4. **修复**：运行报告将中文 `--reason` 经 argv 传入时被按 ascii 解码、写文件报 `surrogates not allowed` → 入口 `export PYTHONUTF8=1` + 报告写入前清代理字符。
+
+**待办**：中央库导出 `fund-liquidated.json` / `hk-etf-list.json` 到位后，需分别实测清盘判据与港 ETF 中央名单路径（本次未实测，按缺失回退）。

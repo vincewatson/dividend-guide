@@ -41,6 +41,7 @@ if ! python3 run_gate.py; then
 fi
 
 export PYTHONUNBUFFERED=1
+export PYTHONUTF8=1   # 强制 Python UTF-8（2026-10-07）：避免中文经 argv 传入时被按 ascii 解码成代理字符
 
 # ------------------------------------------------------------
 # 计时 + 心跳 + 运行报告（2026-09-19 / 2026-10-06 / 2026-10-07）
@@ -59,6 +60,7 @@ run_py() {
   local t0=$(date +%s)
   echo "  ⏱  [$(date '+%H:%M:%S')] 开始：$label"
   export SX_WIND_STEP="$label"
+  if is_weekly_step "$label"; then export SX_WIND_MODE="weekly"; else export SX_WIND_MODE="daily"; fi
   python3 "$@" &
   local pid=$!
   while kill -0 "$pid" 2>/dev/null; do
@@ -87,13 +89,53 @@ run_py() {
 }
 
 # ------------------------------------------------------------
-# [档位] 日更 / 周更（2026-10-07 · 重构阶段2）
+# [档位] 自动判档（2026-10-07）
+#   - 默认：日更；
+#   - 距上次周更 > 6 天 → 同一次运行里「日更 + 周更」，部署只做一次；
+#   - --weekly：手动强制「只跑周更」。
+#   上次周更日期记在 .run_state.json:lastWeekly（初始 2026-10-07；测量日已跑过周更）。
 # ------------------------------------------------------------
-MODE="daily"
-for _a in "$@"; do [ "$_a" = "--weekly" ] && MODE="weekly"; done
-export SX_WIND_MODE="$MODE"
+MANUAL_WEEKLY=0
+for _a in "$@"; do [ "$_a" = "--weekly" ] && MANUAL_WEEKLY=1; done
+
+_TIER="$(python3 -c '
+import json,datetime
+try:
+    rec=json.load(open(".run_state.json",encoding="utf-8"))
+except Exception:
+    rec={}
+last=str(rec.get("lastWeekly") or "2026-10-07")[:10]
+try:
+    d=datetime.date.fromisoformat(last)
+except Exception:
+    d=datetime.date(2026,10,7)
+print(last,(datetime.date.today()-d).days)
+')"
+LAST_WEEKLY="${_TIER%% *}"
+DAYS_SINCE_WEEKLY="${_TIER##* }"
+
+if [ "$MANUAL_WEEKLY" = "1" ]; then
+  RUN_DAILY=0; RUN_WEEKLY=1; MODE="weekly"
+  MODE_REASON="--weekly 手动强制：只跑周更"
+elif [ "${DAYS_SINCE_WEEKLY:-0}" -gt 6 ]; then
+  RUN_DAILY=1; RUN_WEEKLY=1; MODE="daily+weekly"
+  MODE_REASON="默认日更；距上次周更（$LAST_WEEKLY）已 $DAYS_SINCE_WEEKLY 天（>6）→ 日更 + 周更"
+else
+  RUN_DAILY=1; RUN_WEEKLY=0; MODE="daily"
+  MODE_REASON="默认日更；距上次周更（$LAST_WEEKLY）仅 $DAYS_SINCE_WEEKLY 天（≤6）→ 仅日更"
+fi
+MODE_LABEL="$MODE"
+export MODE MODE_LABEL MODE_REASON RUN_DAILY RUN_WEEKLY
+
 WEEKLY_NUMS="12 13 14"                                   # 周更「编号」步骤：new_etf / new_reits / fund_divdate
-WEEKLY_LABELS="sync_lifecycle.py sync_new_hk_etf.py sync_new_monthly.py"   # 周更「编号外」步骤
+is_weekly_num() { case " $WEEKLY_NUMS " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+is_weekly_step() {   # 按 label 判定是否周更档步骤
+  case "$1" in
+    *sync_new_etf.py*|*sync_new_reits.py*|*sync_fund_divdate.py*|*sync_lifecycle.py*|*sync_new_hk_etf.py*|*sync_new_monthly.py*)
+      return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
 PENDING="$(python3 wind_client.py --pending 2>/dev/null || true)"
 if [ -n "$PENDING" ]; then
@@ -106,27 +148,28 @@ pending_has() { case "$PENDING" in *"$1"*) return 0 ;; esac; return 1; }
 step_on() {   # $1=步骤号  $2=代表 label 关键字
   pending_has "$2" && return 0
   case " 17 18 19 " in *" $1 "*) return 0 ;; esac
-  if [ "$MODE" = "weekly" ]; then
-    case " $WEEKLY_NUMS " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+  if is_weekly_num "$1"; then
+    [ "$RUN_WEEKLY" = "1" ] && return 0 || return 1
   else
-    case " $WEEKLY_NUMS " in *" $1 "*) return 1 ;; *) return 0 ;; esac
+    [ "$RUN_DAILY" = "1" ] && return 0 || return 1
   fi
 }
 label_on() {  # 编号外步骤是否执行：$1=代表 label 关键字
   pending_has "$1" && return 0
-  local _w=1 _l
-  for _l in $WEEKLY_LABELS; do case "$1" in *"$_l"*) _w=0 ;; esac; done
-  if [ "$MODE" = "weekly" ]; then [ $_w -eq 0 ] && return 0 || return 1
-  else [ $_w -eq 0 ] && return 1 || return 0; fi
+  if is_weekly_step "$1"; then
+    [ "$RUN_WEEKLY" = "1" ] && return 0 || return 1
+  else
+    [ "$RUN_DAILY" = "1" ] && return 0 || return 1
+  fi
 }
-echo "===== 本次档位：$([ "$MODE" = weekly ] && echo '周更（仅周级步骤）' || echo '日更（默认）') ====="
+echo "===== 本次档位：$MODE_LABEL（$MODE_REASON）====="
 
 # ------------------------------------------------------------
 # [预检] 更新前体检（2026-10-04 新增）。日更下可按建议跳过已是最新步骤（PREFLIGHT_AUTO=1）。
 # ------------------------------------------------------------
 echo "===== [预检] 更新前体检（preflight.py）====="
 PF_ARGS=""; [ "$MODE" = "weekly" ] && PF_ARGS="--weekly"
-if [ "$MODE" = "daily" ] && [ -z "$SKIP_STEPS" ] && [ "$PREFLIGHT_AUTO" = "1" ]; then
+if [ "$RUN_DAILY" = "1" ] && [ -z "$SKIP_STEPS" ] && [ "$PREFLIGHT_AUTO" = "1" ]; then
   SKIP_STEPS="$(python3 preflight.py --emit-skip 2>/dev/null || true)"
 fi
 python3 preflight.py $PF_ARGS || echo "（预检失败，忽略，继续执行完整流水线）"
@@ -288,6 +331,21 @@ echo ""
 echo "===== [18/21] 数据一致性验证（失败即中止部署）====="
 run_py "check_data.py" check_data.py
 
+# 周更档成功跑完 → 记录 lastWeekly（供下次判档）
+if [ "$RUN_WEEKLY" = "1" ]; then
+  python3 - <<'PY'
+import json, datetime
+p = ".run_state.json"
+try:
+    rec = json.load(open(p, encoding="utf-8"))
+except Exception:
+    rec = {}
+rec["lastWeekly"] = datetime.date.today().isoformat()
+json.dump(rec, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+print("[档位] 已记录本次周更日期 lastWeekly=%s" % rec["lastWeekly"])
+PY
+fi
+
 echo ""
 echo "===== [19/21] 刷新内嵌兜底数据 ====="
 run_py "embed_data.py" embed_data.py
@@ -338,7 +396,7 @@ PY
 
 echo ""
 echo "===== [运行报告] 生成 logs/update-YYYYMMDD-HHMM.md ====="
-python3 make_run_report.py --mode "$MODE" --deploy "$([ "$SX_NO_DEPLOY" = "1" ] && echo skipped || echo done)" || echo "（运行报告生成失败，忽略）"
+python3 make_run_report.py --mode "$MODE_LABEL" --reason "$MODE_REASON" --deploy "$([ "$SX_NO_DEPLOY" = "1" ] && echo skipped || echo done)" || echo "（运行报告生成失败，忽略）"
 
 echo ""
 echo "✅ 同步完成！请访问 https://divlab.net"

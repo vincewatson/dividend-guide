@@ -1,7 +1,7 @@
 {
  "schema": 1,
  "note": "产品行情快照库（只追加不覆盖）。键=产品代码，值=按日期升序的快照数组；date=最新交易日，dailyChange=当日涨跌幅(小数)，yrChange=年初至今涨跌幅(小数)，source=来源。",
- "updatedAt": "2026-10-06 10:36:57",
+ "updatedAt": "2026-10-07 10:43:35",
  "quotes": {
   "158023.OF": [
    {
@@ -775,6 +775,12 @@
     "dailyChange": 0.0102,
     "yrChange": 0.137,
     "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0005,
+    "yrChange": 0.1376,
+    "source": "wind"
    }
   ],
   "3110.HK": [
@@ -788,6 +794,12 @@
     "date": "2026-10-06",
     "dailyChange": 0.0083,
     "yrChange": 0.0234,
+    "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0027,
+    "yrChange": 0.0248,
     "source": "wind"
    }
   ],
@@ -803,6 +815,12 @@
     "dailyChange": 0.0057,
     "yrChange": 0.0935,
     "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": -0.0014,
+    "yrChange": 0.0919,
+    "source": "wind"
    }
   ],
   "3190.HK": [
@@ -816,6 +834,12 @@
     "date": "2026-10-06",
     "dailyChange": 0.0073,
     "yrChange": 0.0819,
+    "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0,
+    "yrChange": 0.0806,
     "source": "wind"
    }
   ],
@@ -831,6 +855,12 @@
     "dailyChange": 0.0053,
     "yrChange": 0.1836,
     "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0019,
+    "yrChange": 0.1847,
+    "source": "wind"
    }
   ],
   "3437.HK": [
@@ -844,6 +874,12 @@
     "date": "2026-10-06",
     "dailyChange": 0.0094,
     "yrChange": 0.0452,
+    "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0026,
+    "yrChange": 0.0458,
     "source": "wind"
    }
   ],
@@ -859,6 +895,12 @@
     "dailyChange": 0.0037,
     "yrChange": 0.2835,
     "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.006,
+    "yrChange": 0.2902,
+    "source": "wind"
    }
   ],
   "3466.HK": [
@@ -872,6 +914,12 @@
     "date": "2026-10-06",
     "dailyChange": 0.007,
     "yrChange": 0.0115,
+    "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0032,
+    "yrChange": 0.0126,
     "source": "wind"
    }
   ],
@@ -887,6 +935,12 @@
     "dailyChange": 0.0071,
     "yrChange": 0.1674,
     "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0,
+    "yrChange": 0.1635,
+    "source": "wind"
    }
   ],
   "3469.HK": [
@@ -900,6 +954,12 @@
     "date": "2026-10-06",
     "dailyChange": 0.0037,
     "yrChange": -0.0074,
+    "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0012,
+    "yrChange": -0.0092,
     "source": "wind"
    }
   ],
@@ -915,6 +975,12 @@
     "dailyChange": 0.0042,
     "yrChange": null,
     "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": -0.0005,
+    "yrChange": null,
+    "source": "wind"
    }
   ],
   "3488.HK": [
@@ -927,6 +993,12 @@
    {
     "date": "2026-10-06",
     "dailyChange": 0.009,
+    "yrChange": null,
+    "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0032,
     "yrChange": null,
     "source": "wind"
    }
@@ -1167,6 +1239,12 @@
     "dailyChange": 0.0045,
     "yrChange": null,
     "source": "wind"
+   },
+   {
+    "date": "2026-10-07",
+    "dailyChange": 0.0025,
+    "yrChange": null,
+    "source": "wind"
    }
   ],
   "021583.OF": [
@@ -1190,6 +1268,14 @@
     "date": "2026-09-30",
     "dailyChange": 0.0113,
     "yrChange": 0.0093,
+    "source": "wind"
+   }
+  ],
+  "3590.HK": [
+   {
+    "date": "2026-10-07",
+    "dailyChange": -0.0015,
+    "yrChange": null,
     "source": "wind"
    }
   ]

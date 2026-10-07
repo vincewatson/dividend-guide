@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""港交所红利 ETF 自动发现（清单「进」机制 · 2026-10-06）
+"""港交所红利 ETF 自动发现（清单「进」机制 · 2026-10-06 / 2026-10-07 改数据源）
 
-数据源：中央数据库（与「策略魔方」共用同一库）导出的港交所上市 ETF 名单
-        —— data/curation/_hk_etf_universe.json 的 dividend_funds 子集（含名称）。
+数据源（2026-10-07）：优先中央数据库导出 exports/common/hk-etf-list.json（结构未知，尽力兼容）；
+        缺失/解析为空 → **回退**本地冻结 data/curation/_hk_etf_universe.json 的 dividend_funds（现状）。
 判据：
 1. 名称关键词命中「红利类」：红利 / 高息 / 高股息 / 股息率 / 股东回报 / 央企回报；
    并**排除** REIT（房托 / 房地产 / REIT）—— 那属另一数据域（reitsData）。
@@ -24,6 +24,7 @@ CURATION_DIR = os.path.join(DATA_DIR, 'curation')
 UNIVERSE = os.path.join(CURATION_DIR, '_hk_etf_universe.json')
 HK_ETF = os.path.join(DATA_DIR, 'hkEtfData.json')
 RETIRED = os.path.join(CURATION_DIR, '_retired.json')
+import lifecycle_common as lc  # 清单进出机制 · 共享工具（中央库导出读取 / 自动补入登记 / 变动日志）
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
@@ -83,17 +84,34 @@ def match_dividend(name, full_name):
     return any(k in text for k in KEYWORDS)
 
 
+def load_universe_funds():
+    """读取「红利类港ETF」名单。
+
+    优先中央库导出 exports/common/hk-etf-list.json（结构未知，尽力兼容：dividend_funds /
+    list[{code,name}] / codes 逗号串 / 表格式 等）；缺失或解析为空 → **回退**本地冻结
+    data/curation/_hk_etf_universe.json 的 dividend_funds（现状）。
+    返回 (funds, 来源说明)；funds 为 [{"code","name","full_name","hk_connect","track_name"}]。
+    """
+    cf = lc.load_central_hk_funds()
+    if cf:
+        return cf, '中央库导出 %s' % lc.CENTRAL_HK_LIST
+    uni = load_json(UNIVERSE, {})
+    funds = (uni or {}).get('dividend_funds') or []
+    return funds, '本地冻结 %s（回退）' % os.path.basename(UNIVERSE)
+
+
 def detect():
     """返回（新标的列表, 关键词命中并归并后的全部基金数, 跳过的 REIT/非红利计数）。
 
     新标的 = 归并后的主柜台 code 既不在 hkEtfData，也不在 _retired 停用名单。
     """
-    uni = load_json(UNIVERSE, {})
-    funds = (uni or {}).get('dividend_funds') or []
+    funds, src = load_universe_funds()
     if not funds:
-        print('[⚠] %s 无 dividend_funds 字段——请先按 note 中的 SQL 从中央数据库刷新该文件'
-              % os.path.basename(UNIVERSE), flush=True)
+        print('[⚠] 未取得红利类港ETF 名单（中央库 %s / 本地 %s 均缺失或为空）——'
+              '请按 note 中的 SQL 从中央数据库刷新'
+              % (lc.CENTRAL_HK_LIST, os.path.basename(UNIVERSE)), flush=True)
         return [], 0, 0
+    print('  名单来源：%s（%d 条）' % (src, len(funds)), flush=True)
     # 1) 关键词过滤 + 2) 按全称归并（保留代码最小的主柜台）
     best = {}
     skipped = 0
@@ -275,6 +293,17 @@ def main():
             print('    ✅ 已补入 hkEtfData（跟踪 %s %s，管理费 %s，规模 %s 亿）'
                   % (row['trackCode'] or '—', row['trackName'] or '—', row['fee'], row['size']),
                   flush=True)
+            # 清单进出机制（2026-10-07）：登记自动补入 + 追加「进」事件
+            try:
+                lc.record_auto_added([{'code': row['code'], 'list': 'hkEtf',
+                                       'reason': '新上市红利港ETF自动发现（中央库名单）',
+                                       'source': 'sync_new_hk_etf'}])
+                lc.record_list_changes([{'action': 'add', 'list': 'hkEtf', 'code': row['code'],
+                                         'name': row.get('name') or '',
+                                         'reason': '新上市红利港ETF自动发现（中央库名单）',
+                                         'source': 'sync_new_hk_etf'}])
+            except Exception as e:
+                print('    [i] 自动补入登记失败（不影响补入）：%s' % e, flush=True)
             if not row['trackCode']:
                 print('    [i] 跟踪指数代码 Wind 缺（须人工补：详情页「跟踪指数」与股息率曲线依赖它）',
                       flush=True)

@@ -108,6 +108,32 @@ def load_retired_codes():
         return set()
 
 
+# 「自动补入登记」（清单「进」机制，2026-10-07）：sync_new_etf/new_reits/new_hk_etf/new_monthly
+#   补入成功后写 data/curation/_auto_added.json；此处读回，把其中 code 并入各清单的「表外行保留」
+#   护栏（确保每周整表重建不冲掉自动发现的成员）。list 名 → 站点数据文件 key 的映射：
+_AUTO_LIST_TO_KEY = {'cnEtf': 'cnEtfData', 'hkEtf': 'hkEtfData', 'reits': 'reitsData',
+                     'etf': 'etfData', 'fund': 'fundData', 'money': 'moneyFundData'}
+
+
+def load_auto_added():
+    """读取 data/curation/_auto_added.json → {数据文件key: {code: meta}}。缺失/损坏 → {}。"""
+    try:
+        with io.open(os.path.join(CURATION_DIR, '_auto_added.json'), 'r', encoding='utf-8') as f:
+            obj = json.load(f)
+        added = obj.get('added') or {}
+        out = {}
+        for code, meta in added.items():
+            if not isinstance(meta, dict):
+                continue
+            key = _AUTO_LIST_TO_KEY.get(meta.get('list'))
+            if not key:
+                continue
+            out.setdefault(key, {})[code] = meta
+        return out
+    except Exception:
+        return {}
+
+
 # 「规模 as-of 日期」的来源 curation 文件（= 原 Excel 快照的等价物）：
 # 用于 sizeDate —— 清单来源快照日期（冻结在 curation 的 sourceMtime）。
 _SIZE_ASOF = {
@@ -939,6 +965,7 @@ def main():
         'reitsData': ('reitsData.json', build_reits_data),
     }
     _retired_codes = load_retired_codes()
+    _auto_added = load_auto_added()   # 清单「进」：自动补入登记（并入下面的表外行保留护栏）
     for key, (fname, fn) in builders.items():
         data = fn()
         # 指数币种变体归并（2026-09-20 用户要求 · 数据治理）：
@@ -1131,7 +1158,36 @@ def main():
             for _it in data:
                 if isinstance(_it, dict) and _it.get(_size_key) and not _it.get('sizeDate'):
                     _it['sizeDate'] = _snap_date
-        # 停用名单（excel-exit 机制 B）：已清盘/结束的标的（Wind「基金到期日」已过）
+        # 自动补入登记（清单「进」机制，2026-10-07）：sync_new_*（cnEtf/hkEtf/reits/etf/fund）
+        #   补入成功的 code 记在 data/curation/_auto_added.json。此处并入「表外行保留」：
+        #   上面各清单的护栏已按「旧文件里存在、curation 表没有」保住了绝大多数自动补入成员；
+        #   若某 code 因故未出现在重建结果里，则从旧文件恢复该行（兜底）；已保留的仅确认并记录。
+        #   ⚠️ 只保留、绝不删除；置于停用名单剔除之前，保证被停用的成员仍会被剔除。
+        _auto_keep = _auto_added.get(key) or {}
+        if _auto_keep:
+            _exist_codes = {x.get('code') for x in data if isinstance(x, dict)}
+            _missing = [c for c in _auto_keep if c not in _exist_codes]
+            if _missing:
+                try:
+                    with io.open(os.path.join(DATA_DIR, fname), 'r', encoding='utf-8') as _f:
+                        _old_rows = {x.get('code'): x for x in json.load(_f)
+                                     if isinstance(x, dict) and x.get('code')}
+                except Exception:
+                    _old_rows = {}
+                _recovered = [_old_rows[c] for c in _missing if c in _old_rows]
+                if _recovered:
+                    data.extend(_recovered)
+                    print('  [合并] {} 恢复自动补入标的 {} 只（curation/_auto_added.json）'.format(
+                        key, len(_recovered)))
+                _still = [c for c in _missing if c not in _old_rows]
+                if _still:
+                    print('  [WARN] {} 自动补入标的 {} 只既不在重建结果、也不在旧文件，无法恢复：{}'.format(
+                        key, len(_still), ','.join(_still[:5])))
+            _kept = [c for c in _auto_keep if c in _exist_codes]
+            if _kept:
+                print('  [合并] {} 自动补入标的 {}/{} 已在清单（_auto_added.json）'.format(
+                    key, len(_kept), len(_auto_keep)))
+        # 停用名单（excel-exit 机制 B）：已清盘/结束的标的
         #   在此统一剔除 —— 置于所有「表外行护栏」之后，确保被停用的标的不会被重新并入。
         if key in _RETIRED_KEYS and _retired_codes:
             _n_before = len(data)

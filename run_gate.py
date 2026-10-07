@@ -49,11 +49,12 @@ if n >= MAX and os.environ.get("SX_FORCE_RUN") != "1":
     print("[额度闸] ⛔ 今日整跑已达标，拒绝再跑。如确需再跑：设 SX_FORCE_RUN=1 后重试。")
     sys.exit(3)
 
-rec = {
-    "date": today,
-    "count": n + 1,
-    "lastStart": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-}
+rec = dict(rec) if isinstance(rec, dict) else {}
+rec["date"] = today
+rec["count"] = n + 1
+rec["lastStart"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+# 上次周更日期（入口自动判档用；初始 2026-10-07，测量日已跑过周更）
+rec.setdefault("lastWeekly", "2026-10-07")
 try:
     with open(STATE, "w", encoding="utf-8") as f:
         json.dump(rec, f, ensure_ascii=False, indent=1)

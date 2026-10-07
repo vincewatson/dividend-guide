@@ -9,7 +9,8 @@
 
 预算（按「运行档位」的当日调用数）：
     - 日更（SX_WIND_MODE=daily，默认）：SX_WIND_BUDGET 默认 300
-    - 周更（SX_WIND_MODE=weekly）      ：SX_WIND_BUDGET 默认 800
+    - 周更（SX_WIND_MODE=weekly）      ：SX_WIND_BUDGET 默认 650
+    - 当天合计软上限 SX_WIND_DAY_CAP（默认 1600，账号 A 规则）
     当日该档位的调用数达到预算 → **拒绝**后续调用（返回 rc=3 的合成结果），
     并把当前步骤记入 `.wind_pending.json`；调用方视 rc≠0 为失败 → 走既有「重试/保留旧值」逻辑，
     安全降级、绝不误改数据（额度不足不失败）。下次运行先补 pending（见 auto_sync_deploy.sh）。
@@ -40,10 +41,11 @@ CLI = os.path.join(BASE, "wind_guard_cli.mjs")
 # 运行档位：daily（默认）/ weekly
 _MODE_RAW = (os.environ.get("SX_WIND_MODE") or "daily").strip().lower()
 MODE = "weekly" if _MODE_RAW.startswith("w") else "daily"
-_DEFAULT_BUDGET = {"daily": 300, "weekly": 800}
+_DEFAULT_BUDGET = {"daily": 300, "weekly": 650}   # 2026-10-07：周更 800→650（规则：日更≤300 / 周更≤650）
 BUDGET = int(os.environ.get("SX_WIND_BUDGET", str(_DEFAULT_BUDGET[MODE])))
-# 全局每日硬上限（与守卫层同值，仅用于展示）
+# 全局每日硬上限（守卫层 2000）与「当天合计」软上限（账号 A 规则：当天合计 ≤1600）
 CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "2000"))
+DAY_CAP = int(os.environ.get("SX_WIND_DAY_CAP", "1600"))
 
 _LOCK = threading.Lock()
 
@@ -156,8 +158,8 @@ def clear_pending():
 # ---------------------------------------------------------------------------
 def _refused(cmd, kwargs):
     """预算用尽时的合成结果（rc=3），stdout/stderr 类型与 kwargs 的 text 设置一致。"""
-    msg = ("[wind_client] %s 档位今日调用 %d 已达预算 %d → 拒绝本次调用并记入 pending。"
-           % (MODE, used_mode(), BUDGET))
+    msg = ("[wind_client] %s 档位今日调用 %d/%d、当日合计 %d/%d → 已达上限，拒绝本次调用并记入 pending。"
+           % (MODE, used_mode(), BUDGET, used_today(), DAY_CAP))
     text = bool(kwargs.get("text") or kwargs.get("encoding") or kwargs.get("universal_newlines"))
     return subprocess.CompletedProcess(cmd, 3,
                                        "" if text else b"",
@@ -171,7 +173,7 @@ def run(cmd, **kwargs):
     合成 CompletedProcess，使调用方按既有「失败/保留旧值」路径安全降级。
     参数/返回值其余与 `subprocess.run` 一致。
     """
-    if used_mode() >= BUDGET:
+    if used_mode() >= BUDGET or used_today() >= DAY_CAP:
         add_pending()
         return _refused(cmd, kwargs)
     t0 = time.time()
