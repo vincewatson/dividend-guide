@@ -2,6 +2,7 @@
 # ============================================================
 # 食息指南 · 同步部署脚本（2026-08-11 定稿；2026-09-19 编号 1..20；2026-09-26 增步骤 → 1..21）
 #   2026-10-07 重构阶段2/3：分「日更 / 周更」两档；重建数据只跑一次；分红日期等移周更。
+#   2026-10-07 入口档位改按【星期】（北京时间）自动判定，并新增 --daily（详见下方 [档位] 段）。
 #   ↑ 步骤编号：[3/21] 语法预检 + [5..21/21]；步骤 1–2（修订文档/确认逻辑）由任务层完成；
 #     原 [4/21] build_lists(1) 与 [11/21] build_lists(2) 合并为**一次** build_lists（置于原第 11 步位置，
 #     以确保 assetData 取到当日最新 divHistory，同时「新名单/分红日期/字段」等仍在其后更新）。
@@ -89,40 +90,74 @@ run_py() {
 }
 
 # ------------------------------------------------------------
-# [档位] 自动判档（2026-10-07）
-#   - 默认：日更；
-#   - 距上次周更 > 6 天 → 同一次运行里「日更 + 周更」，部署只做一次；
-#   - --weekly：手动强制「只跑周更」。
+# [档位] 自动判档（2026-10-07 · 按星期 · 北京时间）
+#   - 周一至周五：只跑日更；
+#   - 周六 / 周日：同一次运行里「日更 + 周更」，部署只做一次；
+#     但同一个周末只跑一次周更——若本周六 0 点后已跑过周更（.run_state.json:lastWeekly ≥ 本周六）→ 再点只跑日更；
+#   - 兜底：距上次周更 > 13 天，不论周几都补跑周更（日更 + 周更）；
+#   - --weekly：手动强制「只跑周更」；--daily：手动强制「只跑日更」（手动优先于自动判档）。
 #   上次周更日期记在 .run_state.json:lastWeekly（初始 2026-10-07；测量日已跑过周更）。
 # ------------------------------------------------------------
 MANUAL_WEEKLY=0
-for _a in "$@"; do [ "$_a" = "--weekly" ] && MANUAL_WEEKLY=1; done
+MANUAL_DAILY=0
+for _a in "$@"; do
+  case "$_a" in
+    --weekly) MANUAL_WEEKLY=1 ;;
+    --daily)  MANUAL_DAILY=1 ;;
+  esac
+done
 
+# 输出一行：lastWeekly  距今天数  中文星期  是否周末(0/1)  本周末是否已跑过周更(0/1)
 _TIER="$(python3 -c '
-import json,datetime
+import json, datetime
 try:
-    rec=json.load(open(".run_state.json",encoding="utf-8"))
+    rec = json.load(open(".run_state.json", encoding="utf-8"))
 except Exception:
-    rec={}
-last=str(rec.get("lastWeekly") or "2026-10-07")[:10]
+    rec = {}
+last = str(rec.get("lastWeekly") or "2026-10-07")[:10]
 try:
-    d=datetime.date.fromisoformat(last)
+    lastd = datetime.date.fromisoformat(last)
 except Exception:
-    d=datetime.date(2026,10,7)
-print(last,(datetime.date.today()-d).days)
+    lastd = datetime.date(2026, 10, 7)
+try:
+    from zoneinfo import ZoneInfo
+    now = datetime.datetime.now(ZoneInfo("Asia/Shanghai"))
+except Exception:
+    now = datetime.datetime.now()
+today = now.date()
+wd = today.weekday()                                 # 周一=0 … 周日=6
+days = (today - lastd).days
+cn = "周" + "一二三四五六日"[wd]
+is_weekend = 1 if wd >= 5 else 0
+if wd >= 5:
+    sat = today - datetime.timedelta(days=(wd - 5))  # 本周六（周六=当天、周日=昨天）
+else:
+    sat = today + datetime.timedelta(days=(5 - wd))  # 本周六（未来）
+ran_weekend = 1 if lastd >= sat else 0
+print(last, days, cn, is_weekend, ran_weekend)
 ')"
-LAST_WEEKLY="${_TIER%% *}"
-DAYS_SINCE_WEEKLY="${_TIER##* }"
+read -r LAST_WEEKLY DAYS_SINCE_WEEKLY WD_CN IS_WEEKEND RAN_WEEKEND <<< "$_TIER"
 
 if [ "$MANUAL_WEEKLY" = "1" ]; then
   RUN_DAILY=0; RUN_WEEKLY=1; MODE="weekly"
   MODE_REASON="--weekly 手动强制：只跑周更"
-elif [ "${DAYS_SINCE_WEEKLY:-0}" -gt 6 ]; then
+elif [ "$MANUAL_DAILY" = "1" ]; then
+  RUN_DAILY=1; RUN_WEEKLY=0; MODE="daily"
+  MODE_REASON="--daily 手动强制：只跑日更"
+elif [ "${DAYS_SINCE_WEEKLY:-0}" -gt 13 ]; then
   RUN_DAILY=1; RUN_WEEKLY=1; MODE="daily+weekly"
-  MODE_REASON="默认日更；距上次周更（$LAST_WEEKLY）已 $DAYS_SINCE_WEEKLY 天（>6）→ 日更 + 周更"
+  MODE_REASON="兜底：距上次周更（$LAST_WEEKLY）已 $DAYS_SINCE_WEEKLY 天（>13），不论周几补跑周更 → 日更 + 周更"
+elif [ "$IS_WEEKEND" = "1" ]; then
+  if [ "$RAN_WEEKEND" = "1" ]; then
+    RUN_DAILY=1; RUN_WEEKLY=0; MODE="daily"
+    MODE_REASON="$WD_CN（北京）默认日更+周更；但本周六 0 点后已跑过周更（lastWeekly=$LAST_WEEKLY）→ 仅日更"
+  else
+    RUN_DAILY=1; RUN_WEEKLY=1; MODE="daily+weekly"
+    MODE_REASON="$WD_CN（北京）：周末首跑、本周末尚未跑过周更 → 日更 + 周更（只部署一次）"
+  fi
 else
   RUN_DAILY=1; RUN_WEEKLY=0; MODE="daily"
-  MODE_REASON="默认日更；距上次周更（$LAST_WEEKLY）仅 $DAYS_SINCE_WEEKLY 天（≤6）→ 仅日更"
+  MODE_REASON="$WD_CN（北京）：工作日 → 仅日更"
 fi
 MODE_LABEL="$MODE"
 export MODE MODE_LABEL MODE_REASON RUN_DAILY RUN_WEEKLY
@@ -340,7 +375,12 @@ try:
     rec = json.load(open(p, encoding="utf-8"))
 except Exception:
     rec = {}
-rec["lastWeekly"] = datetime.date.today().isoformat()
+try:
+    from zoneinfo import ZoneInfo
+    today = datetime.datetime.now(ZoneInfo("Asia/Shanghai")).date()
+except Exception:
+    today = datetime.date.today()
+rec["lastWeekly"] = today.isoformat()
 json.dump(rec, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print("[档位] 已记录本次周更日期 lastWeekly=%s" % rec["lastWeekly"])
 PY

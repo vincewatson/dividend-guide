@@ -228,7 +228,7 @@
 **清单变动**：**无**。（本次为日更，周级的 `sync_lifecycle`/`sync_new_*` 未跑；且中央库导出文件 `fund-liquidated.json` / `hk-etf-list.json` 尚不存在，相关判据走「跳过 / 回退」路径。）
 
 **本次一并上线的机制**（均**未额外消耗 Wind** 或按预算内执行）：
-1. **入口自动判档**（`auto_sync_deploy.sh`）：默认日更；距上次周更 >6 天则同一次运行「日更+周更」、部署一次；`--weekly` 手动强制只跑周更。上次周更日期记于 `.run_state.json:lastWeekly`（初值 2026-10-07）。
+1. **入口自动判档**（`auto_sync_deploy.sh`，**2026-10-07 改按星期 · 北京时间**）：**周一至周五只跑日更；周六/周日同一次运行「日更 + 周更」、只部署一次**；**同一个周末只跑一次周更**（若本周六 0 点后已跑过周更，即 `.run_state.json:lastWeekly ≥ 本周六`，则周日再点只跑日更）；**兜底：距上次周更 > 13 天，不论周几都补跑周更**。手动覆盖：`--weekly` 强制只跑周更、`--daily` 强制只跑日更（手动优先）。上次周更日期记于 `.run_state.json:lastWeekly`（初值 2026-10-07）。
 2. **测试与额度规矩**：写入 `.trae/rules/project_rules.md` 与 `AGENTS.md`（一天最多真实整跑一次；不用 `SX_FORCE_RUN=1`；日更 ≤300 / 周更 ≤650 / 当天合计 ≤1600；开跑前 1 次最轻调用验账号）。`wind_client` 周更预算 800→650，并新增**当天合计软上限** `SX_WIND_DAY_CAP=1600`。
 3. **清单进出机制**（`lifecycle_common.py` + 各脚本，**不调用 Wind 的实现部分**）：清盘判据改读 `exports/common/fund-liquidated.json`（按代码前 6 位；缺失则跳过）、港 ETF 名单改读 `exports/common/hk-etf-list.json`（缺失回退 `_hk_etf_universe.json`）、REITs 保留 Wind「到期日已过」；**安全阀**（清盘名单命中立即移出，其他判据连续两次命中才移出、首次「待观察」）；状态文件移出 `data/`（`.lifecycle_state.json`）；自动补入登记 `data/curation/_auto_added.json`（`build_lists` 读取）；清单变动进运行报告「清单变动」一节。货币基金「进」仅写方案（`docs/data-governance/money-fund-auto-add-plan.md`），未实测。
 4. **修复**：运行报告将中文 `--reason` 经 argv 传入时被按 ascii 解码、写文件报 `surrogates not allowed` → 入口 `export PYTHONUTF8=1` + 报告写入前清代理字符。
