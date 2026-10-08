@@ -166,6 +166,29 @@ def main():
                 html = html[:m.start()] + new_text + html[m.end():]
                 changes += 1
 
+    # ---- A股红利机会值数据（对象）→ var opportunityData = {...}（2026-10-08 并入主站）----
+    # opportunity.json 是 {schema, ...} 对象（含 series/compare/core/bands/observe），离线兜底内嵌整份。
+    op = load_json('opportunity.json')
+    if op is None:
+        skipped.append(('opportunity.json', '数据文件缺失'))
+    elif not (isinstance(op, dict) and op.get('schema')):
+        skipped.append(('opportunity.json', '非 {schema:...} 对象结构，跳过'))
+    else:
+        new_js = json.dumps(op, ensure_ascii=False)
+        m = re.search(r'^var opportunityData = \{.*\};$', html, flags=re.M)
+        if not m:
+            skipped.append(('opportunity.json', 'index.html 中未找到 var opportunityData 占位'))
+        else:
+            old_text = m.group(0)
+            new_text = 'var opportunityData = ' + new_js + ';'
+            report['opportunityData'] = {'old_chars': len(old_text), 'new_chars': len(new_text), 'records': 1}
+            if args.preview:
+                flag = ' [有变化]' if old_text != new_text else ' [无变化]'
+                print('opportunityData: {}字符 -> {}字符{}'.format(len(old_text), len(new_text), flag))
+            elif old_text != new_text:
+                html = html[:m.start()] + new_text + html[m.end():]
+                changes += 1
+
     if args.preview:
         print('\n预览完成。{} 个数组有变化，跳过 {} 个'.format(changes, len(skipped)))
         return

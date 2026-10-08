@@ -1,12 +1,12 @@
-"""对比 Wind MCP 取数（inputs/wind_daily.csv）与手工导出（inputs/data_add.xlsx + 10Y csv）。
+"""对比 Wind MCP 取数（inputs/opportunity/wind_daily.csv）与手工导出（inputs/opportunity/data_add.xlsx + 10Y csv）。
 
-用法：python3 engine/compare_inputs.py [--since 2018-01-01]
+用法：python3 compare_opportunity_inputs.py [--since 2018-01-01]
 只读、不改任何文件。全部字段在容差内 → 退出码 0，否则 1。
 """
 import argparse, json, os, sys
 import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from opportunity_engine import load_csv_inputs, load_xlsx_inputs, HERE
+from opportunity_engine import load_csv_inputs, load_xlsx_inputs, ROOT
 
 # 字段: (绝对容差, 相对容差)；任一满足即算一致
 TOL = {"close": (0.01, 0), "tr": (0.01, 0), "turn": (0.001, 0.001),
@@ -15,7 +15,7 @@ TOL = {"close": (0.01, 0), "tr": (0.01, 0), "turn": (0.001, 0.001),
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--since", default="2010-01-01")
     a = ap.parse_args()
-    cfg = json.load(open(os.path.join(HERE, "config.json"), encoding="utf-8"))
+    cfg = json.load(open(os.path.join(ROOT, "opportunity_config.json"), encoding="utf-8"))
     m = load_csv_inputs(cfg).loc[a.since:]
     x = load_xlsx_inputs(cfg).loc[a.since:]
     idx = m.index.intersection(x.index)

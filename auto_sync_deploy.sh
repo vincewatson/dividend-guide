@@ -174,7 +174,7 @@ is_weekly_num() { case " $WEEKLY_NUMS " in *" $1 "*) return 0 ;; *) return 1 ;; 
 is_weekly_step() {   # 按 label 判定是否周更档步骤
   case "$1" in
     *sync_fund_divdate.py*--monthly-empty*) return 1 ;;   # 月月空日期补查：日更步骤（须排在下方 fund_divdate 分支之前）
-    *sync_new_etf.py*|*sync_new_reits.py*|*sync_fund_divdate.py*|*sync_lifecycle.py*|*sync_new_hk_etf.py*|*sync_new_monthly.py*)
+    *sync_new_etf.py*|*sync_new_reits.py*|*sync_fund_divdate.py*|*sync_lifecycle.py*|*sync_new_hk_etf.py*|*sync_new_monthly.py*|*opportunity_engine.py*)
       return 0 ;;
     *) return 1 ;;
   esac
@@ -376,6 +376,23 @@ run_py "sync_daily.py" sync_daily.py
 else
 echo "===== [16/21] 同步食息资讯（日报）— ⏭ 跳过 ====="
 report_event "sync_daily.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步骤（本次周更不跑）' || echo '预检：digest 源无新日期')"
+fi
+
+echo ""
+# A股红利机会值引擎（2026-10-08 由 红利机会值/ 并入主站）：周更档运行，读取 inputs/opportunity/ 的
+#   Wind 导出（data_add.xlsx + 10年国债 csv，或优先 wind_daily.csv），产出 data/opportunity.json。
+#   输入缺失 / 引擎失败 → 跳过并保留上一版数据（绝不阻断其它数据与部署）。
+if label_on "opportunity_engine.py"; then
+echo "===== [周更·机会值] A股红利机会值引擎（Wind 导出 → data/opportunity.json）====="
+if [ -f "inputs/opportunity/wind_daily.csv" ] || [ -f "inputs/opportunity/data_add.xlsx" ]; then
+  run_py "opportunity_engine.py" opportunity_engine.py || echo "  ⚠ 机会值引擎失败，保留上一版 data/opportunity.json，下次重试"
+else
+  echo "  ⏭ 跳过：inputs/opportunity/ 无输入文件（需从 Wind 导出 data_add.xlsx + 10年国债 csv）"
+  report_event "opportunity_engine.py" skip "inputs/opportunity/ 无 Wind 输入文件"
+fi
+else
+echo "===== [周更] A股红利机会值引擎 — ⏭ 跳过 ====="
+report_event "opportunity_engine.py" skip "周更步骤（本次日更不跑）"
 fi
 
 echo ""

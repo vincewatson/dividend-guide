@@ -11,11 +11,16 @@
   'use strict';
 
   // ---- 1. 触屏下拉：点击导航项切换显示（不依赖 :hover）----
+  // 有 hover 的设备（桌面）：下拉由 CSS :hover 控制，点击一级菜单只负责导航、不驻留 dropdown-open；
+  // 无 hover 的设备（触屏）：点击一级菜单切换下拉显示。
+  // （2026-10-08 用户反馈：桌面点某个一级菜单切页后，菜单框驻留、移开鼠标也不消失）
+  var HOVER_OK = !!(window.matchMedia && window.matchMedia('(hover: hover)').matches);
   document.addEventListener('click', function (e) {
     var item = e.target.closest ? e.target.closest('.main-nav-item') : null;
     if (item && !(e.target.closest && e.target.closest('.dropdown-item'))) {
       var d = item.querySelector('.dropdown');
       if (d) {
+        if (HOVER_OK) { closeAllDropdown(); return; }
         var wasOpen = item.classList.contains('dropdown-open');
         closeAllDropdown();
         if (!wasOpen) item.classList.add('dropdown-open');

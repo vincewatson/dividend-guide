@@ -5,6 +5,7 @@
 /studio     /studio/index.html   200
 /studio/    /studio/index.html   200
 
-# 红利机会值（A股）页面英文别名（2026-10-08）
-/dividend-opportunity    /红利机会值/    200
-/dividend-opportunity/   /红利机会值/    200
+# A股红利机会值：2026-10-08 由独立页面并入主站（新路由 #/index/opportunity）——旧地址 302 到新路由
+/dividend-opportunity    /#/index/opportunity   302
+/dividend-opportunity/   /#/index/opportunity   302
+/红利机会值/             /#/index/opportunity   302

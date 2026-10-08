@@ -2,16 +2,18 @@
 
 新开对话时，把下面整段发给 Claude，并连上两个文件夹：网站仓库（`dividend-guide-website`）和研究项目文件夹（`红利择时信号(claude)`）。
 
+> 2026-10-08：模块已并入主站，路径已更新（原 `红利机会值/…` → 仓库根 / `data/` / `docs/data-governance/opportunity/`）。
+
 ---
 
 我们在继续优化「红利机会值（A股）」——中证红利（000922.CSI）的加减仓打分。请先读这些材料再动手：
 
-1. 网站仓库 `红利机会值/README.md`、`红利机会值/docs/方法说明.md`：当前方法（v4）、权重、回测、已知局限。
-2. `红利机会值/engine/opportunity_engine.py` 与 `engine/config.json`：现行计算口径，以代码为准。
+1. 网站仓库 `docs/data-governance/opportunity/README.md`、`docs/data-governance/opportunity/方法说明.md`：当前方法（v4）、权重、回测、已知局限。
+2. `opportunity_engine.py` 与 `opportunity_config.json`（均在仓库根）：现行计算口径，以代码为准。
 3. Claude 项目「红利投资」里的 `claude/红利温度计-指标测试记录.md`：所有测过的指标、检验结果和取舍理由。
 
 工作约定：
-- **研究在 Claude 里做，网页 Agent 只负责展示和部署。** 我的改动只落在 `红利机会值/engine/`、`红利机会值/docs/`，以及重新生成的 `红利机会值/data/`；不碰网站仓库的其他文件，也不 commit/push。
+- **研究在 Claude 里做，网页 Agent 只负责展示和部署。** 我的改动只落在 `opportunity_engine.py`、`opportunity_config.json`、`docs/data-governance/opportunity/`，以及重新生成的 `data/opportunity.json`；不碰网站仓库的其他文件，也不 commit/push。
 - **检验标准**：主样本 2018 年以后；看未来 6/12 个月中证红利全收益的秩相关（IC），以及上行空间（一年内最大浮盈）、下行风险（一年内最大浮亏）；2018–21、2022–25 两段都要有效，2013–17 做压力测试；机会值要围绕 50 波动；分档回测要单调。
 - **每测一个新指标，记录两件事**：① 对未来的解释力度；② 回答具体问题有没有价值。同时记数据频次和时滞。结果追加到项目里的测试记录。
 - **改了算法就升版本号**（v5、v6…），在 `docs/方法说明.md` 的版本记录里写一行，并重跑引擎更新 `data/`。

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-红利机会值（A股）计算引擎
+红利机会值（A股）计算引擎（2026-10-08 由 红利机会值/engine/ 并入主站）
 =========================
-输入：Wind 导出的行情/估值表（data_add.xlsx）+ 10年期国债收益率（CSV）
-输出：../data/opportunity.json 与 ../data/opportunity.js（页面直接读取）
+输入：Wind 导出的行情/估值表（inputs/opportunity/data_add.xlsx）+ 10年期国债收益率（CSV），
+     或 inputs/opportunity/wind_daily.csv（由 Wind MCP 生成，存在则优先读它）
+输出：data/opportunity.json（站点运行时读取）与 data/opportunity_history_monthly.csv
 
 用法：
-    python engine/opportunity_engine.py                 # 读取 engine/config.json
-    python engine/opportunity_engine.py --config 其他配置.json
+    python3 opportunity_engine.py                 # 读取仓库根目录 opportunity_config.json
+    python3 opportunity_engine.py --config 其他配置.json
 
 方法（v4，2026-10-07 定稿）：
   1. 四项机会分（0–100，越高机会越大）
@@ -24,7 +25,7 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+ROOT = HERE   # 引擎已并入主站根目录：输入/输出路径均相对仓库根
 
 # ---------------------------------------------------------------- 读数
 def read_block(xls, sheet, c0, names):
@@ -206,7 +207,7 @@ def build_payload(df, C, cfg):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--config", default=os.path.join(HERE, "config.json"))
+    ap.add_argument("--config", default=os.path.join(ROOT, "opportunity_config.json"))
     a = ap.parse_args()
     cfg = json.load(open(a.config, encoding="utf-8"))
     df = load_inputs(cfg)
@@ -215,7 +216,7 @@ def main():
     od = os.path.join(ROOT, cfg["outputs"]["dir"]); os.makedirs(od, exist_ok=True)
     js = json.dumps(out, ensure_ascii=False, indent=1)
     open(os.path.join(od, "opportunity.json"), "w", encoding="utf-8").write(js)
-    open(os.path.join(od, "opportunity.js"), "w", encoding="utf-8").write("window.DIVIDEND_OPPORTUNITY = " + js + ";\n")
+    # 2026-10-08 并入主站：不再单独产出 opportunity.js（页面改为 fetch data/opportunity.json + 内嵌兜底）
     C.loc[cfg["params"]["series_start"]:, ["P", "S", "R", "T", "opp"]].resample("ME").last().round(1) \
         .rename(columns={"P": "阶段涨跌幅", "S": "股息率溢价", "R": "相对性价比", "T": "换手率", "opp": "机会值"}) \
         .to_csv(os.path.join(od, "opportunity_history_monthly.csv"), encoding="utf-8-sig")

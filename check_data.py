@@ -499,6 +499,33 @@ except Exception as _e:
 check('前端 JS 语法(mobile.js + index.html 内联)', not _js_errs,
       ' | '.join(_js_errs[:3]) if _js_errs else '全部通过 ✅')
 
+# 19. 红利机会值（A股）数据（2026-10-08 模块并入主站）：页面由 #subOpportunity + opportunity-page.js 渲染，
+#     数据由 opportunity_engine.py 生成（周更）。此处校验结构完整性；新鲜度只提示、不判失败（周更节奏下滞后属正常）。
+_op = jload('opportunity.json')
+if _op is not None:
+    _o_ser = _op.get('series') or {}
+    _o_d = _o_ser.get('d') or []
+    _o_v = _o_ser.get('v') or []
+    _o_p = _o_ser.get('p') or []
+    check('opportunity.json schema', _op.get('schema') == 'dividend-opportunity/v1', str(_op.get('schema')))
+    _o_asof_ok = False
+    try:
+        datetime.date.fromisoformat(str(_op.get('asof'))[:10])
+        _o_asof_ok = True
+    except Exception:
+        pass
+    check('opportunity.json asof 有效日期', _o_asof_ok, str(_op.get('asof')))
+    check('opportunity.json 机会值 0–100',
+          isinstance(_op.get('score'), (int, float)) and 0 <= _op['score'] <= 100, str(_op.get('score')))
+    check('opportunity.json 序列完整(周频)',
+          len(_o_d) >= 50 and len(_o_d) == len(_o_v) == len(_o_p), '周数=%d' % len(_o_d))
+    _o_keys = ('schema', 'index', 'score', 'compare', 'core', 'bands', 'observe', 'method', 'series')
+    _o_miss = [k for k in _o_keys if k not in _op]
+    check('opportunity.json 字段齐备', not _o_miss, ('缺: %s' % _o_miss) if _o_miss else 'ok')
+    if _op.get('asof') and CN_LATEST:
+        print('ℹ️ opportunity.json 数据截至 {}（较 A 股最新交易日 {} 滞后 {} 天；周更节奏下滞后属正常）'.format(
+            _op['asof'], CN_LATEST, _behind(_op['asof'], CN_LATEST)))
+
 print('\n===== 结果 =====')
 if FAIL:
     print('❌ {} 项未通过：'.format(len(FAIL)))

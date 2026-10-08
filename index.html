@@ -159,7 +159,7 @@
     font-size: 14px; color: #000000; text-align: left;
     border-radius: 0; transition: all 0.15s; font-weight: 700;
   }
-  .dropdown-item.active { background: transparent; color: #000000; font-weight: 700; }   /* 2026-10-08 用户要求：二级菜单不预置选中高亮（未 hover 时任何项都不着色）*/
+  .dropdown-item.active { background: transparent; color: #4680FD; font-weight: 700; }   /* 2026-10-08 用户反馈：进入页面后 hover 页头应能看出当前选中的二级菜单 → 选中项用品牌蓝加粗（下拉仅 :hover 时可见，故非 hover 时不显示）*/
   .dropdown-item:hover { background: var(--hl-lilac); color: #4680FD; }   /* 浅紫调淡 0.08->0.05（2026-10-01 用户要求）；置于 .active 之后，确保 hover（含当前项）始终生效 */
 
   /* ===== Nav Right ===== */
@@ -182,8 +182,7 @@
   .page { display: none; padding: var(--page-pad); max-width: calc(var(--content-max) + var(--page-pad) * 2); margin-left: auto; margin-right: auto; }
   .page.active { display: block; }
   .page .fav-empty { margin: 0; }
-  /* 红利机会值（A股）：以 iframe 嵌入站点框架（子页面 embed 模式隐藏自带顶栏，2026-10-08） */
-  .opp-frame { width: 100%; border: 0; display: block; min-height: 1200px; background: #fff; }
+  /* 红利机会值（A股）样式见文件末尾「#subOpportunity」段（2026-10-08：由 iframe 嵌入改为内联进主站） */
 
   /* ===== Sub Pages ===== */
   .sub-page { display: none; }
@@ -759,6 +758,108 @@
      折叠态只在右上角留「漏斗 + 筛选器」按钮，点击从底部弹出面板。
      ⚠️ 桌面端（≥768px）一律隐藏：基础样式 display:none，手机端样式见 mobile.css 的 max-width:767px 段。 */
   .mf-bar, .mf-mask, .mf-sheet { display: none; }
+
+  /* ===== A股红利机会值（2026-10-08 由独立页面并入主站 #subOpportunity）=====
+     全部选择器限定在 #subOpportunity 子树内：本页原为独立 HTML，class 名与主站（.page/.section-title/
+     table/.hint/.num/.muted/.tag…）有重名，故统一加前缀，避免污染其它页面。
+     页面仅浅色版；令牌沿用站点设计（品牌蓝 #4680FD、纯黑标题、浅灰细线、Arial + PingFang SC）。 */
+  #subOpportunity {
+    color-scheme: light;
+    --brand:#4680FD; --brand-tint:rgba(70,128,253,0.1); --brand-wash:#F0F5FF;
+    --ink:#000000; --body:#404040; --muted:#767676; --axis:#737373; --faint:#949494;
+    --grid:#e5e5e5; --fill:#e5e5e5; --idx:#949494; --up:#dc2626; --down:#059661;
+    --fs-2xs:14px; --fs-base:14px; --fs-lg:20px; --fs-xl:22px;   /* 本页 12px 文字统一升为 14px（与站点常规字号一致） */
+    --pad-row:18px; --pad-row-tb:11px;
+    color: var(--ink); line-height: 1.4;
+  }
+  #subOpportunity .opp-root { display: grid; gap: 32px; padding-block: 4px 12px; }
+  #subOpportunity .opp-root > * { min-width: 0; }
+  #subOpportunity .section-title { font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; margin: 0; line-height: 1.2; }
+  #subOpportunity .section-sub { font-size: var(--fs-base); color: var(--muted); margin: 6px 0 0; }
+  #subOpportunity .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  #subOpportunity .sec-head h2 { font-size: var(--fs-lg); font-weight: 700; letter-spacing: -0.02em; margin: 0; display: inline-flex; align-items: center; }
+  #subOpportunity .sec-head span { font-size: var(--fs-base); color: var(--muted); }
+  #subOpportunity .num { font-variant-numeric: tabular-nums; }
+
+  /* 结论面板（沿用站点 .reminder：6px 圆角、浅蓝外框、品牌蓝双晕） */
+  #subOpportunity .reminder { position: relative; overflow: hidden; background: #FBFCFE; border: 1px solid #E3EBFC; border-radius: var(--r-ctl); padding: 22px 24px; }
+  #subOpportunity .reminder::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 12% 0%, rgba(70,128,253,0.11), rgba(70,128,253,0) 42%), radial-gradient(circle at 88% 100%, rgba(70,128,253,0.09), rgba(70,128,253,0) 46%), linear-gradient(135deg, #FBFCFE 0%, #F0F5FF 100%); }
+  #subOpportunity .reminder > * { position: relative; }
+  #subOpportunity .hero { display: grid; grid-template-columns: auto minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr); gap: 0; align-items: stretch; }
+  #subOpportunity .hero > div { padding: 0 24px; border-left: 1px solid rgba(70,128,253,0.16); min-width: 0; }
+  #subOpportunity .hero > div:first-child { padding-left: 0; border-left: 0; }
+  #subOpportunity .hero > div:last-child { padding-right: 0; }
+  @media (max-width:900px) { #subOpportunity .hero { grid-template-columns: 1fr 1fr; row-gap: 18px; } #subOpportunity .hero > div:nth-child(3) { padding-left: 0; border-left: 0; } #subOpportunity .hero > div { padding: 0 0 0 18px; } }
+  @media (max-width:520px) { #subOpportunity .hero { grid-template-columns: 1fr; } #subOpportunity .hero > div { padding: 0 !important; border-left: 0 !important; border-top: 1px solid rgba(70,128,253,0.16); padding-top: 14px !important; } #subOpportunity .hero > div:first-child { border-top: 0; padding-top: 0 !important; } }
+  #subOpportunity .k { font-size: var(--fs-2xs); color: var(--muted); display: block; margin-bottom: 6px; }
+  #subOpportunity .big { font-size: 56px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; }
+  #subOpportunity .big small { font-size: var(--fs-base); color: var(--muted); font-weight: 400; margin-left: 4px; letter-spacing: 0; }
+  #subOpportunity .band-chip { display: inline-block; margin-top: 10px; font-size: var(--fs-2xs); font-weight: 700; padding: 3px 10px; }
+  #subOpportunity .v { font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; }
+  #subOpportunity .note { font-size: var(--fs-base); color: var(--body); margin: 8px 0 0; line-height: 1.6; }
+  #subOpportunity .cmp { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-top: 2px; }
+  #subOpportunity .cmp b { display: block; font-size: var(--fs-lg); font-weight: 700; margin-top: 2px; }
+  #subOpportunity .cmp small { font-size: var(--fs-2xs); color: var(--muted); white-space: nowrap; }
+  /* ≥768px：历史对比的小标签与数值放同一行 → 四个数值与同排其他列主数值垂直对齐（2026-10-08 用户反馈） */
+  @media (min-width:768px) { #subOpportunity .cmp b { display: inline; margin-top: 0; margin-left: 6px; } }
+
+  /* 图卡 */
+  #subOpportunity .chart-card { padding: 0; }
+  #subOpportunity .chart-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  #subOpportunity .chart-title { font-size: var(--fs-lg); font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+  #subOpportunity .chart-update { font-size: var(--fs-2xs); color: var(--axis); }
+  #subOpportunity .chart-legend { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0 8px; }
+  #subOpportunity .legend-items { display: flex; gap: 16px; flex-wrap: wrap; }
+  #subOpportunity .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-2xs); color: var(--axis); }
+  #subOpportunity .legend-line { display: inline-block; width: 16px; height: 2px; }
+  #subOpportunity .range { display: inline-flex; border: 1px solid var(--line-soft); }
+  #subOpportunity .range button { font: inherit; font-size: var(--fs-2xs); height: 28px; padding: 0 12px; border: 0; background: transparent; color: #525252; cursor: pointer; }
+  #subOpportunity .range button:hover { color: var(--brand); }
+  #subOpportunity .range button[aria-pressed="true"] { background: var(--brand); color: #fff; font-weight: 600; }
+  #subOpportunity .range button:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+  #subOpportunity .chart-wrap { position: relative; }
+  #subOpportunity #oppChart { display: block; width: 100%; height: 320px; }
+  @media (max-width:767px) { #subOpportunity #oppChart { height: 300px; } #subOpportunity .chart-legend { flex-direction: column; align-items: stretch; } #subOpportunity .range { width: 100%; } #subOpportunity .range button { flex: 1 1 0; } }
+  #subOpportunity #oppTip { position: absolute; top: 8px; pointer-events: none; background: #fff; border: 1px solid var(--grid); border-radius: 6px; box-shadow: 0 2px 8px rgba(70,128,253,0.12); padding: 8px 10px; font-size: 12px; min-width: 150px; }
+  #subOpportunity #oppTip .d { color: var(--faint); margin-bottom: 4px; }
+  #subOpportunity #oppTip .r { display: flex; align-items: center; gap: 6px; color: #404040; }
+  #subOpportunity #oppTip .r b { margin-left: auto; font-weight: 600; color: var(--ink); }
+  #subOpportunity #oppTip .sw { width: 8px; height: 8px; display: inline-block; }
+
+  /* 表格 */
+  #subOpportunity .tbl-wrap { overflow-x: auto; }
+  #subOpportunity table { width: 100%; border-collapse: collapse; min-width: 600px; }
+  #subOpportunity th, #subOpportunity td { padding: var(--pad-row-tb) 10px; text-align: left; vertical-align: middle; font-size: var(--fs-base); }
+  #subOpportunity th { background: #fff; color: var(--ink); font-weight: 700; box-shadow: inset 0 -1px 0 var(--line-soft); }
+  #subOpportunity td { border-bottom: 1px solid var(--line-soft); color: var(--ink); }
+  #subOpportunity th.col-num, #subOpportunity td.col-num { text-align: right; }
+  #subOpportunity td.muted { color: var(--muted); }
+  #subOpportunity tr.now td { background: var(--brand-wash); }
+  #subOpportunity .tag { display: inline-block; font-size: var(--fs-2xs); padding: 3px 10px; margin: 1px 6px 1px 0; background: var(--fill); color: var(--muted); font-weight: 500; white-space: nowrap; }
+  #subOpportunity .tag.up { background: var(--brand-tint); color: var(--brand); font-weight: 600; }
+  #subOpportunity .tag.dn { background: var(--brand-tint); color: var(--up); font-weight: 600; }
+  #subOpportunity .tag.rel { background: var(--brand-tint); color: var(--muted); font-weight: 600; }
+  #subOpportunity .scorebar { display: flex; align-items: center; gap: 10px; min-width: 160px; }
+  #subOpportunity .scorebar .track { position: relative; flex: 1; height: 4px; background: var(--grid); }
+  #subOpportunity .scorebar .track i { position: absolute; top: 0; bottom: 0; left: 0; }
+  #subOpportunity .scorebar .track::after { content: ""; position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: var(--axis); }
+  #subOpportunity .scorebar b { width: 2em; text-align: right; font-weight: 700; }
+  #subOpportunity .sw2 { display: inline-block; width: 8px; height: 8px; margin-right: 8px; }
+
+  /* 说明气泡 */
+  #subOpportunity .hint { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-left: 6px; border-radius: 50%; border: 1px solid #949494; background: #fff; color: #767676; font: italic 700 11px/1 Georgia,'Times New Roman',serif; cursor: help; vertical-align: middle; padding: 0; }
+  #subOpportunity .hint:hover, #subOpportunity .hint:focus-visible { border-color: var(--brand); color: var(--brand); outline: none; }
+  #subOpportunity .hint-tip { position: absolute; left: -10px; bottom: calc(100% + 8px); width: max-content; max-width: min(300px, calc(100vw - 150px)); background: #fff; border: 1px solid var(--grid); border-radius: 6px; box-shadow: 0 2px 8px rgba(70,128,253,0.12); padding: 8px 10px; font-size: 12px; font-family: Arial, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif; font-weight: 400; font-style: normal; line-height: 1.6; color: #404040; text-align: left; white-space: normal; visibility: hidden; opacity: 0; transition: opacity .12s; z-index: 5; pointer-events: none; }
+  #subOpportunity .hint:hover .hint-tip, #subOpportunity .hint:focus .hint-tip, #subOpportunity .hint[aria-expanded="true"] .hint-tip { visibility: visible; opacity: 1; }
+  @media (prefers-reduced-motion:reduce) { #subOpportunity .hint-tip { transition: none; } }
+
+  /* 指标说明（纯文字，与标题同左沿） */
+  #subOpportunity .notes { margin: 0; padding-left: 0; list-style-position: inside; font-size: var(--fs-base); color: var(--body); line-height: 1.7; }
+  #subOpportunity .notes > li { margin-top: 10px; }
+  #subOpportunity .notes > li:first-child { margin-top: 0; }
+  #subOpportunity .notes ul { margin: 8px 0 0; padding-left: 1.2em; list-style: disc; }
+  #subOpportunity .notes ul li { margin-top: 6px; color: var(--muted); }
+  #subOpportunity .notes ul li b { color: var(--body); font-weight: 600; }
 </style>
   <!-- 移动端适配（2026-08-17）：仅 max-width:767px / 平板区间生效，桌面零影响 -->
   <link rel="stylesheet" href="mobile.css?v=81">
@@ -947,7 +1048,85 @@
         <div class="hketf-list-container" id="hketfListContainer"></div>
       </div>
       <div class="sub-page" id="subOpportunity">
-        <iframe class="opp-frame" id="oppFrame" src="/红利机会值/?embed=1" title="A股红利机会值" loading="lazy" scrolling="no"></iframe>
+        <!-- A股红利机会值（2026-10-08 由 红利机会值/ 独立页面并入主站；DOM 内联于此，渲染/图表见 opportunity-page.js） -->
+        <div class="opp-root">
+          <div>
+            <h1 class="section-title">A股红利机会值</h1>
+            <p class="section-sub" id="oppSub"></p>
+          </div>
+
+          <section class="reminder" aria-label="当前结论">
+            <div class="hero">
+              <div>
+                <span class="k">红利机会值</span>
+                <div class="big num" id="oppScore"></div>
+                <span class="band-chip" id="oppBand"></span>
+              </div>
+              <div>
+                <span class="k">当前建议</span>
+                <div class="v" id="oppAdvice"></div>
+                <p class="note" id="oppSummary"></p>
+              </div>
+              <div>
+                <span class="k">适用周期</span>
+                <div class="v" id="oppHorizon"></div>
+                <p class="note" id="oppHorizonNote"></p>
+              </div>
+              <div>
+                <span class="k">历史对比</span>
+                <div class="cmp num" id="oppCmp"></div>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <div class="chart-card">
+              <div class="chart-header"><span class="chart-title" style="display:inline-flex;align-items:center">历史机会值<button type="button" class="hint" aria-label="说明" aria-describedby="opphChart">i<span class="hint-tip" role="tooltip" id="opphChart">机会值以50为中性值：高于50说明机会多于平常，低于50说明机会少于平常。灰线为中证红利价格指数，对应右轴。</span></button></span><span class="chart-update" id="oppUpd"></span></div>
+              <div class="chart-legend">
+                <div class="legend-items">
+                  <span class="legend-item"><i class="legend-line" style="background:var(--brand)"></i>红利机会值</span>
+                  <span class="legend-item"><i class="legend-line" style="background:var(--idx)"></i>中证红利指数点位（右轴）</span>
+                  <span class="legend-item"><i class="legend-line" style="background:var(--ink);height:1px"></i>50=中性值</span>
+                </div>
+                <div class="range" role="group" aria-label="时间区间">
+                  <button type="button" data-y="1">近1年</button><button type="button" data-y="3" aria-pressed="true">近3年</button><button type="button" data-y="0">2018年以来</button>
+                </div>
+              </div>
+              <div class="chart-wrap"><svg id="oppChart" role="img" aria-label="红利机会值与中证红利指数走势"></svg><div id="oppTip" hidden></div></div>
+            </div>
+          </section>
+
+          <section>
+            <div class="sec-head"><h2>核心指标<button type="button" class="hint" aria-label="说明" aria-describedby="opphCore">i<span class="hint-tip" role="tooltip" id="opphCore">每项指标先换算成0–100的机会分：50为中性值，越高越有利。权重为该指标在机会值中的占比。</span></button></h2></div>
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>指标</th><th>最新值</th><th>机会分</th><th class="col-num">权重</th><th>适合判断</th></tr></thead>
+              <tbody id="oppCore"></tbody></table></div>
+          </section>
+
+          <section>
+            <div class="sec-head"><h2>打分参考<button type="button" class="hint" aria-label="说明" aria-describedby="opphBands">i<span class="hint-tip" role="tooltip" id="opphBands">2018年以来每个月末的机会值，按区间分组，统计之后12个月中证红利全收益指数的表现。</span></button></h2></div>
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>机会值</th><th>建议</th><th class="col-num">月数</th><th class="col-num">未来12个月平均</th><th class="col-num">上涨概率</th><th class="col-num">期间平均最大浮亏</th></tr></thead>
+              <tbody id="oppBands"></tbody></table></div>
+          </section>
+
+          <section>
+            <div class="sec-head"><h2>观察指标<button type="button" class="hint" aria-label="说明" aria-describedby="opphObs">i<span class="hint-tip" role="tooltip" id="opphObs">这些指标对未来行情的预测力不足，不计入机会值，但适合用来解释当前行情。</span></button></h2></div>
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>指标</th><th>最新值</th><th>指标说明</th></tr></thead>
+              <tbody id="oppObs"></tbody></table></div>
+          </section>
+
+          <section>
+            <div class="sec-head"><h2>指标说明</h2></div>
+            <ol class="notes">
+              <li>本页数据基于Wind数据计算，可能存在错漏或误导，请勿作为投资依据。</li>
+              <li id="oppNoteMethod"></li>
+              <li>核心指标包含4项，全部计入机会值计算。<ul id="oppNoteCore"></ul></li>
+              <li>观察指标包含4项，不计入机会值。<ul id="oppNoteObs"></ul></li>
+            </ol>
+          </section>
+        </div>
       </div>
     </div>
 
@@ -3543,7 +3722,6 @@ function applyRoute(route) {
   switchPage(pageId);
   var subId = resolveSub(pageId, subKey);
   setPageDocTitle(pageId, subId);            // 浏览器标签随页面变化（2026-10-04）
-  if (subId === 'subOpportunity') { try { syncOppHeight(); } catch (e) {} }
   if (subId) {
     document.querySelectorAll('#' + pageId + ' .sub-page').forEach(function (p) { p.classList.remove('active'); });
     document.getElementById(subId).classList.add('active');
@@ -3553,6 +3731,8 @@ function applyRoute(route) {
     document.querySelectorAll('.dropdown-item').forEach(function (d) {
       d.classList.toggle('active', d.dataset.sub === subName);
     });
+    // 红利机会值：本子页已置为 .active（可见）后再重绘图表——隐藏时 clientWidth=0，画出来是空图
+    if (subId === 'subOpportunity' && window.OpportunityPage) { try { window.OpportunityPage.show(); } catch (e) {} }
   }
 }
 
@@ -3641,33 +3821,9 @@ document.querySelectorAll('.index-detail-page .main-nav-item[data-tab="pageMonth
 // Profile button in top-right
 document.getElementById('profileBtn').addEventListener('click',function(){navigate('my');});
 
-// 红利机会值 iframe 高度自适应（2026-10-08）：避免「内层 iframe 滚动条」与站点滚动条并存。
-//   ① 父页直接读同源 iframe 的 scrollHeight（最可靠，随内容/换行变化即时同步）；
-//   ② 子页 embed 模式仍 postMessage 汇报高度（兜底，兼容跨源情形）。
-function syncOppHeight(){
-  var f=document.getElementById('oppFrame'); if(!f) return;
-  try{
-    var d=f.contentDocument||(f.contentWindow&&f.contentWindow.document);
-    if(!d) return;
-    var h=Math.max((d.documentElement&&d.documentElement.scrollHeight)||0,(d.body&&d.body.scrollHeight)||0);
-    if(h>0 && Math.abs((parseInt(f.style.height,10)||0)-h)>1) f.style.height=h+'px';
-  }catch(e){}
-}
-window.addEventListener('message',function(e){
-  var d=e&&e.data;
-  if(d&&d.type==='dividend-opportunity:height'){
-    var f=document.getElementById('oppFrame'); if(!f) return;
-    var h=parseInt(d.height,10); if(h>0) f.style.height=h+'px';
-  }
-});
-(function(){
-  var f=document.getElementById('oppFrame'); if(!f) return;
-  f.addEventListener('load',function(){
-    syncOppHeight();
-    var n=0,t=setInterval(function(){ syncOppHeight(); if(++n>12) clearInterval(t); },500);
-  });
-  window.addEventListener('resize',syncOppHeight);
-})();
+// 红利机会值（2026-10-08 并入主站）：已由「内联 DOM + opportunity-page.js」取代，
+//   原 iframe 高度自适应（syncOppHeight）与 postMessage 监听一并移除；
+//   图表在本页可见时由 applyRoute 调用 window.OpportunityPage.show() 重绘（隐藏时 clientWidth=0，不画）。
 
 // 下拉菜单收起加固（2026-10-08）：主脚本各 dropdown-item 处理器用了 e.stopPropagation()，
 //   会跳过 interaction-fix.js 里「点击关闭全部下拉」的冒泡逻辑 → 二级菜单可能「固定不收」。
@@ -3678,6 +3834,12 @@ document.addEventListener('click', function(e){
   }
 }, true);
 window.addEventListener('blur', function(){ if (window.__closeAllDropdown) window.__closeAllDropdown(); });
+// 桌面端（支持 hover）：鼠标移出导航项即收起下拉——避免「点了某个一级菜单切页后，菜单框驻留、移开鼠标也不消失」（2026-10-08 用户反馈）
+if (window.matchMedia && window.matchMedia('(hover: hover)').matches) {
+  document.querySelectorAll('.main-nav-item').forEach(function(it){
+    it.addEventListener('mouseleave', function(){ if (window.__closeAllDropdown) window.__closeAllDropdown(); });
+  });
+}
 
 // Detail page ——「返回」统一交由详情路由处理（站内进入 → 回上一页；深链进入 → 关闭回首页）（2026-10-03）
 document.getElementById('detailBack').addEventListener('click', closeDetailRoute);
@@ -4717,6 +4879,9 @@ mfRegister('blog', {
   ]
 });
 
+// ===== A股红利机会值 · 内嵌兜底数据（由 embed_data.py 从 data/opportunity.json 刷新；运行时 fetch 覆盖）=====
+var opportunityData = {"schema": "dividend-opportunity/v1", "generated_at": "2026-10-07 20:00", "note": "首版由Claude会话计算生成；之后由 engine/opportunity_engine.py 用 inputs/ 下的Wind导出文件重算覆盖", "asof": "2026-09-30", "index": "中证红利000922.CSI", "score": 41.7, "horizon": "未来6–12个月", "horizonNote": "按半年到一年的持有期判断方向，不预测涨跌幅度。建议每周查看一次。", "summary": "估值贵，价格偏低，交易不冷不热。下行风险偏高，上行空间一般。", "compare": {"1周前": 41, "1月前": 30.3, "3月前": 68.4, "1年前": 20.3}, "core": [{"name": "阶段涨跌幅", "calc": "中证红利价格指数：近250日涨跌幅（−12%→100，+18%→0）与偏离250日均线（−13.5%→100，+16.5%→0）各半。", "value": "近一年−0.5%｜偏离年线−1.8%", "score": 61.4, "weight": 55, "judge": ["up", "dn"]}, {"name": "股息率溢价", "calc": "中证红利股息率（近12个月，剔除每年12月调样跳升）− 10年期国债收益率，取过去5年滚动分位。", "value": "2.60pct（4.28%−1.68%）", "score": 2.2, "weight": 20, "judge": ["dn"]}, {"name": "相对性价比", "calc": "中证红利股息率（剔除调样跳升）÷ 万得全A股息率，取过去5年滚动分位。", "value": "红利/全A股息率2.35倍", "score": 1.8, "weight": 15, "judge": ["dn", "rel"]}, {"name": "换手率", "calc": "20日均换手率取过去5年滚动分位后反转（换手越低分越高）。", "value": "20日均0.28%", "score": 53.3, "weight": 10, "judge": ["up"]}], "bands": [[2, -4.4, 50, -17.4], [17, 5.7, 88, -7.5], [44, 9.8, 91, -7.4], [25, 12.1, 100, -4.2], [5, 18.7, 100, -3.1]], "observe": [{"name": "绝对股息率", "value": "中证红利4.28%｜上证国企红利4.17%", "note": "估值指标，表征指数的估值和收息性价比", "calc": "中证红利与上证国企红利的当前股息率（近12个月）。"}, {"name": "盈利剪刀差", "value": "−10.7pct（红利+5.3% vs 全A+16.0%，2026H1）", "note": "基本面指标，表征中证红利成分股公司盈利状况相较A股整体的强弱", "calc": "中证红利成分股净利润增速 − 万得全A净利润增速（最新报告期）。"}, {"name": "A股流动性", "value": "成交额60日−43%｜行业前五集中度55%", "note": "宏观流动性指标，表征A股整体流动性强弱水平", "calc": "万得全A成交额的60日变化，与行业成交额前五集中度。"}, {"name": "红利ETF资金", "value": "近20日+4.7亿｜近60日−32.1亿", "note": "微观流动性指标，表征A股红利投资的短期资金情绪", "calc": "红利类ETF近20日、近60日的资金净流入。"}], "method": "机会值＝阶段涨跌幅55%（近一年涨跌与偏离年线各半）＋股息率溢价20%＋相对性价比15%＋换手率10%，再与自身过去5年的平均水平比较。等于平均记50分，每高（低）一个标准差加（减）20分。阶段涨跌幅用价格指数，股息率类指标已剔除年度调样跳升。", "series": {"d": ["2018-01-05", "2018-01-12", "2018-01-19", "2018-01-26", "2018-02-02", "2018-02-09", "2018-02-16", "2018-02-23", "2018-03-02", "2018-03-09", "2018-03-16", "2018-03-23", "2018-03-30", "2018-04-06", "2018-04-13", "2018-04-20", "2018-04-27", "2018-05-04", "2018-05-11", "2018-05-18", "2018-05-25", "2018-06-01", "2018-06-08", "2018-06-15", "2018-06-22", "2018-06-29", "2018-07-06", "2018-07-13", "2018-07-20", "2018-07-27", "2018-08-03", "2018-08-10", "2018-08-17", "2018-08-24", "2018-08-31", "2018-09-07", "2018-09-14", "2018-09-21", "2018-09-28", "2018-10-12", "2018-10-19", "2018-10-26", "2018-11-02", "2018-11-09", "2018-11-16", "2018-11-23", "2018-11-30", "2018-12-07", "2018-12-14", "2018-12-21", "2018-12-28", "2019-01-04", "2019-01-11", "2019-01-18", "2019-01-25", "2019-02-01", "2019-02-15", "2019-02-22", "2019-03-01", "2019-03-08", "2019-03-15", "2019-03-22", "2019-03-29", "2019-04-05", "2019-04-12", "2019-04-19", "2019-04-26", "2019-05-03", "2019-05-10", "2019-05-17", "2019-05-24", "2019-05-31", "2019-06-07", "2019-06-14", "2019-06-21", "2019-06-28", "2019-07-05", "2019-07-12", "2019-07-19", "2019-07-26", "2019-08-02", "2019-08-09", "2019-08-16", "2019-08-23", "2019-08-30", "2019-09-06", "2019-09-13", "2019-09-20", "2019-09-27", "2019-10-04", "2019-10-11", "2019-10-18", "2019-10-25", "2019-11-01", "2019-11-08", "2019-11-15", "2019-11-22", "2019-11-29", "2019-12-06", "2019-12-13", "2019-12-20", "2019-12-27", "2020-01-03", "2020-01-10", "2020-01-17", "2020-01-24", "2020-02-07", "2020-02-14", "2020-02-21", "2020-02-28", "2020-03-06", "2020-03-13", "2020-03-20", "2020-03-27", "2020-04-03", "2020-04-10", "2020-04-17", "2020-04-24", "2020-05-01", "2020-05-08", "2020-05-15", "2020-05-22", "2020-05-29", "2020-06-05", "2020-06-12", "2020-06-19", "2020-06-26", "2020-07-03", "2020-07-10", "2020-07-17", "2020-07-24", "2020-07-31", "2020-08-07", "2020-08-14", "2020-08-21", "2020-08-28", "2020-09-04", "2020-09-11", "2020-09-18", "2020-09-25", "2020-10-02", "2020-10-09", "2020-10-16", "2020-10-23", "2020-10-30", "2020-11-06", "2020-11-13", "2020-11-20", "2020-11-27", "2020-12-04", "2020-12-11", "2020-12-18", "2020-12-25", "2021-01-01", "2021-01-08", "2021-01-15", "2021-01-22", "2021-01-29", "2021-02-05", "2021-02-12", "2021-02-19", "2021-02-26", "2021-03-05", "2021-03-12", "2021-03-19", "2021-03-26", "2021-04-02", "2021-04-09", "2021-04-16", "2021-04-23", "2021-04-30", "2021-05-07", "2021-05-14", "2021-05-21", "2021-05-28", "2021-06-04", "2021-06-11", "2021-06-18", "2021-06-25", "2021-07-02", "2021-07-09", "2021-07-16", "2021-07-23", "2021-07-30", "2021-08-06", "2021-08-13", "2021-08-20", "2021-08-27", "2021-09-03", "2021-09-10", "2021-09-17", "2021-09-24", "2021-10-01", "2021-10-08", "2021-10-15", "2021-10-22", "2021-10-29", "2021-11-05", "2021-11-12", "2021-11-19", "2021-11-26", "2021-12-03", "2021-12-10", "2021-12-17", "2021-12-24", "2021-12-31", "2022-01-07", "2022-01-14", "2022-01-21", "2022-01-28", "2022-02-11", "2022-02-18", "2022-02-25", "2022-03-04", "2022-03-11", "2022-03-18", "2022-03-25", "2022-04-01", "2022-04-08", "2022-04-15", "2022-04-22", "2022-04-29", "2022-05-06", "2022-05-13", "2022-05-20", "2022-05-27", "2022-06-03", "2022-06-10", "2022-06-17", "2022-06-24", "2022-07-01", "2022-07-08", "2022-07-15", "2022-07-22", "2022-07-29", "2022-08-05", "2022-08-12", "2022-08-19", "2022-08-26", "2022-09-02", "2022-09-09", "2022-09-16", "2022-09-23", "2022-09-30", "2022-10-14", "2022-10-21", "2022-10-28", "2022-11-04", "2022-11-11", "2022-11-18", "2022-11-25", "2022-12-02", "2022-12-09", "2022-12-16", "2022-12-23", "2022-12-30", "2023-01-06", "2023-01-13", "2023-01-20", "2023-02-03", "2023-02-10", "2023-02-17", "2023-02-24", "2023-03-03", "2023-03-10", "2023-03-17", "2023-03-24", "2023-03-31", "2023-04-07", "2023-04-14", "2023-04-21", "2023-04-28", "2023-05-05", "2023-05-12", "2023-05-19", "2023-05-26", "2023-06-02", "2023-06-09", "2023-06-16", "2023-06-23", "2023-06-30", "2023-07-07", "2023-07-14", "2023-07-21", "2023-07-28", "2023-08-04", "2023-08-11", "2023-08-18", "2023-08-25", "2023-09-01", "2023-09-08", "2023-09-15", "2023-09-22", "2023-09-29", "2023-10-13", "2023-10-20", "2023-10-27", "2023-11-03", "2023-11-10", "2023-11-17", "2023-11-24", "2023-12-01", "2023-12-08", "2023-12-15", "2023-12-22", "2023-12-29", "2024-01-05", "2024-01-12", "2024-01-19", "2024-01-26", "2024-02-02", "2024-02-09", "2024-02-23", "2024-03-01", "2024-03-08", "2024-03-15", "2024-03-22", "2024-03-29", "2024-04-05", "2024-04-12", "2024-04-19", "2024-04-26", "2024-05-03", "2024-05-10", "2024-05-17", "2024-05-24", "2024-05-31", "2024-06-07", "2024-06-14", "2024-06-21", "2024-06-28", "2024-07-05", "2024-07-12", "2024-07-19", "2024-07-26", "2024-08-02", "2024-08-09", "2024-08-16", "2024-08-23", "2024-08-30", "2024-09-06", "2024-09-13", "2024-09-20", "2024-09-27", "2024-10-04", "2024-10-11", "2024-10-18", "2024-10-25", "2024-11-01", "2024-11-08", "2024-11-15", "2024-11-22", "2024-11-29", "2024-12-06", "2024-12-13", "2024-12-20", "2024-12-27", "2025-01-03", "2025-01-10", "2025-01-17", "2025-01-24", "2025-01-31", "2025-02-07", "2025-02-14", "2025-02-21", "2025-02-28", "2025-03-07", "2025-03-14", "2025-03-21", "2025-03-28", "2025-04-04", "2025-04-11", "2025-04-18", "2025-04-25", "2025-05-02", "2025-05-09", "2025-05-16", "2025-05-23", "2025-05-30", "2025-06-06", "2025-06-13", "2025-06-20", "2025-06-27", "2025-07-04", "2025-07-11", "2025-07-18", "2025-07-25", "2025-08-01", "2025-08-08", "2025-08-15", "2025-08-22", "2025-08-29", "2025-09-05", "2025-09-12", "2025-09-19", "2025-09-26", "2025-10-03", "2025-10-10", "2025-10-17", "2025-10-24", "2025-10-31", "2025-11-07", "2025-11-14", "2025-11-21", "2025-11-28", "2025-12-05", "2025-12-12", "2025-12-19", "2025-12-26", "2026-01-02", "2026-01-09", "2026-01-16", "2026-01-23", "2026-01-30", "2026-02-06", "2026-02-13", "2026-02-27", "2026-03-06", "2026-03-13", "2026-03-20", "2026-03-27", "2026-04-03", "2026-04-10", "2026-04-17", "2026-04-24", "2026-05-01", "2026-05-08", "2026-05-15", "2026-05-22", "2026-05-29", "2026-06-05", "2026-06-12", "2026-06-19", "2026-06-26", "2026-07-03", "2026-07-10", "2026-07-17", "2026-07-24", "2026-07-31", "2026-08-07", "2026-08-14", "2026-08-21", "2026-08-28", "2026-09-04", "2026-09-11", "2026-09-18", "2026-09-25", "2026-09-30"], "v": [24, 21.7, 19.4, 17.6, 20.3, 34, 31.1, 27.5, 32.2, 28.4, 32, 41.5, 42.8, 46.2, 46.8, 53.2, 51.5, 50.4, 44.1, 40.8, 47.4, 52.8, 57.6, 57.7, 61.2, 69.6, 74.7, 65.5, 67, 64.9, 72.3, 70.2, 72.7, 73.4, 72.9, 73.5, 74.4, 69, 68.2, 73, 72.6, 71, 69.5, 71.9, 70, 73, 73.8, 73.2, 72.9, 75.6, 75, 75.8, 73.5, 71.1, 69.3, 67.1, 65.8, 61.7, 47.9, 51.8, 48.4, 43.5, 42.3, 29.8, 31, 30.2, 37.2, 34.3, 44.3, 50.8, 52.8, 48.1, 55.4, 53.6, 54.6, 53.6, 51.4, 56.7, 50.2, 50.3, 59.5, 65.6, 61.9, 58.6, 58.3, 51.2, 48.4, 47.9, 54.1, 56.4, 53.1, 54.1, 45.2, 47.3, 46.3, 56.6, 56.8, 56.4, 54.1, 51.7, 47.3, 48.6, 39.5, 39.9, 45.3, 55.3, 65.5, 62.4, 58, 68.3, 63.2, 75.6, 81.2, 79.4, 81.2, 81.6, 82.4, 84, 80.3, 79.1, 78.2, 80.7, 77.9, 69.2, 70, 68.1, 58.6, 58.7, 47.4, 59.9, 59.5, 52.1, 50.6, 46.7, 43.9, 42.6, 43.7, 50.2, 45.5, 54, 55.8, 50.9, 41.7, 49.5, 50.6, 38.5, 34.1, 24.5, 23.3, 26, 33, 34.8, 44.6, 47, 44.5, 42.9, 46.2, 52, 38.3, 35.7, 28.4, 33.4, 29.3, 27.8, 30.4, 27.1, 26.9, 26.9, 28.3, 29, 31, 28, 28.6, 33.6, 28.1, 37, 31.6, 47, 42, 37.6, 52.9, 44.6, 46.2, 62.2, 59.3, 52.1, 53.6, 50.1, 39.4, 32.3, 41.3, 44.4, 51.2, 50.5, 51.6, 57, 65.3, 68.9, 66.6, 67.7, 72.8, 69.7, 68.3, 64.7, 60.6, 58.6, 51.2, 56.5, 51.7, 66.6, 41.4, 42.9, 54.8, 50.8, 63, 67.1, 63.7, 47.3, 42.9, 45.1, 53.7, 61.8, 67.7, 65.2, 66.8, 63.8, 65.3, 59.3, 70.6, 52.5, 43.4, 45, 88.4, 86.1, 85.5, 87.3, 80.5, 79.6, 80, 79, 73.7, 84.8, 85.8, 86.2, 83.1, 81.8, 93.7, 86.9, 75.1, 75.7, 67.7, 67.8, 62.9, 64.8, 73, 74.6, 72.3, 73.5, 72.6, 73.2, 68.3, 72.5, 63.4, 60, 65.3, 54.9, 49.1, 58.6, 58.4, 57, 49.5, 41.2, 26.4, 27, 29, 40.7, 41.6, 39.5, 41.2, 57.6, 54.4, 63.3, 40.7, 65.8, 45.5, 43.8, 47.3, 48.9, 54.6, 53.3, 52.9, 54.1, 47.3, 48.3, 48, 53.4, 52.8, 51.7, 49.2, 54.2, 54.9, 54.9, 63.8, 63.5, 63.9, 59.2, 49.9, 56.4, 60, 44.6, 51.9, 37.2, 23, 29.3, 25.8, 39.3, 40.3, 37.3, 32.4, 30.8, 17.9, 28.9, 30.8, 23.1, 24.6, 25.4, 23.6, 35, 41, 45.4, 50.3, 32.5, 53.7, 43.2, 46.2, 45.8, 53.9, 48.3, 48.8, 54.6, 62.3, 76.5, 73.9, 30.7, 11.5, 26.4, 23.9, 25.5, 26.2, 23.4, 30.9, 33.5, 31.5, 24.4, 31.1, 34.3, 26.6, 35.1, 52, 53.4, 55.1, 52.5, 55.2, 57, 59.8, 61.1, 64, 57.6, 61.5, 59.1, 57.1, 62.4, 60.4, 64.2, 69.2, 64.5, 64.5, 66.4, 69.6, 68.5, 65.3, 63.4, 57, 46.4, 40.5, 29, 21.1, 24.1, 15.9, 18.7, 17.4, 22.1, 19.8, 18.4, 21.1, 18.9, 20.3, 22.6, 33.7, 23.3, 26, 18.9, 21.6, 30.6, 33.5, 31.8, 44.1, 44.5, 45.1, 42.9, 34, 37.5, 27.9, 20.4, 24.4, 25.5, 19.4, 13.9, 11.5, 20.2, 24.5, 29, 29, 23.7, 26.1, 23.2, 26.4, 36, 43.8, 42.8, 37, 39.5, 61.3, 65.5, 57, 59.8, 49.2, 41.1, 33.6, 36.1, 37.1, 35.2, 30.3, 33.8, 34.3, 41, 41.3, 41.7], "p": [4912, 4975, 5059, 5190, 5062, 4620, 4737, 4853, 4784, 4884, 4813, 4607, 4602, 4530, 4560, 4430, 4441, 4483, 4589, 4629, 4551, 4527, 4487, 4461, 4292, 4187, 4015, 4133, 4155, 4201, 3995, 4049, 3876, 3956, 3971, 3910, 3903, 4082, 4109, 3812, 3752, 3824, 3916, 3830, 3958, 3823, 3847, 3901, 3899, 3840, 3837, 3831, 3923, 3995, 4014, 4065, 4160, 4287, 4502, 4470, 4574, 4734, 4743, 5022, 4993, 4994, 4706, 4736, 4521, 4442, 4399, 4470, 4304, 4357, 4450, 4407, 4508, 4375, 4357, 4373, 4253, 4092, 4152, 4229, 4197, 4374, 4393, 4368, 4217, 4194, 4313, 4241, 4289, 4274, 4275, 4146, 4180, 4183, 4219, 4306, 4350, 4355, 4502, 4509, 4500, 4318, 4127, 4237, 4394, 4189, 4412, 4169, 3982, 4034, 3984, 4023, 4041, 4019, 4090, 4133, 4068, 3965, 4002, 4089, 4036, 4115, 4082, 4299, 4488, 4378, 4332, 4469, 4529, 4564, 4582, 4635, 4596, 4477, 4602, 4404, 4396, 4492, 4605, 4489, 4434, 4644, 4721, 4875, 4871, 4850, 4707, 4713, 4613, 4596, 4614, 4604, 4626, 4432, 4447, 4581, 4774, 4706, 4802, 4843, 4832, 4795, 4837, 4894, 4928, 4956, 4957, 5038, 5051, 5010, 5160, 5180, 5148, 5010, 5186, 5095, 5042, 5108, 5054, 4858, 4883, 5108, 5022, 5241, 5432, 5669, 5496, 5405, 5245, 5244, 5144, 5150, 4965, 4882, 4971, 5059, 5061, 5150, 5119, 5130, 5156, 5210, 5296, 5236, 5277, 5010, 5325, 5345, 5215, 5329, 5120, 5025, 5124, 5357, 5400, 5348, 5128, 5019, 4922, 5028, 5071, 5074, 5054, 5134, 5057, 5034, 5126, 5071, 4814, 4874, 4922, 4797, 4957, 5007, 5051, 5040, 5223, 4975, 4962, 4870, 4935, 4878, 4629, 4751, 4900, 4892, 5008, 5077, 5152, 5083, 4890, 4926, 5000, 5019, 5107, 5078, 5094, 5069, 5230, 5328, 5157, 5221, 5182, 5176, 5205, 5287, 5319, 5415, 5538, 5463, 5361, 5233, 5225, 5284, 5198, 5041, 5073, 5073, 5112, 5047, 5242, 5249, 5106, 5113, 5072, 5115, 5092, 5176, 5212, 5161, 5121, 4982, 5041, 4978, 4976, 4983, 5041, 5024, 4964, 5002, 4943, 4970, 5099, 5032, 4942, 5152, 5025, 5244, 5471, 5414, 5524, 5371, 5348, 5381, 5470, 5484, 5710, 5502, 5500, 5628, 5689, 5651, 5669, 5629, 5515, 5418, 5355, 5365, 5254, 5199, 5062, 5093, 5034, 5093, 5034, 4946, 4875, 4697, 4760, 5356, 5699, 5383, 5430, 5416, 5360, 5489, 5357, 5312, 5392, 5550, 5512, 5472, 5546, 5424, 5256, 5340, 5330, 5398, 5331, 5359, 5257, 5312, 5337, 5443, 5424, 5436, 5488, 5294, 5382, 5392, 5342, 5422, 5456, 5465, 5446, 5448, 5416, 5394, 5416, 5521, 5554, 5507, 5634, 5485, 5616, 5553, 5599, 5538, 5510, 5530, 5469, 5455, 5461, 5559, 5596, 5655, 5628, 5753, 5768, 5555, 5546, 5558, 5427, 5483, 5514, 5504, 5593, 5493, 5611, 5700, 5671, 5668, 5827, 5861, 5954, 5773, 5742, 5649, 5693, 5695, 5776, 5865, 5768, 5680, 5545, 5579, 5684, 5650, 5317, 5086, 5207, 5184, 5282, 5404, 5569, 5507, 5478, 5579, 5692, 5648, 5580, 5462, 5469, 5493]}};
+
 // ===== 数据外置化加载器 =====
 // 优先从 /data/*.json 加载最新数据（由 sync_excel.py 生成）
 // 加载失败时自动回退到 index.html 内嵌数据
@@ -4734,7 +4899,8 @@ mfRegister('blog', {
     ['blogData', '/data/blogData.json', 'renderBlogList'],
     ['yuebaoHistory', '/data/yuebaoHistory.json', null],
     ['assetHistory', '/data/assetHistory.json', null],
-    ['productQuotes', '/data/productQuotes.json', null]
+    ['productQuotes', '/data/productQuotes.json', null],
+    ['opportunity', '/data/opportunity.json', null]
   ];
   var loaded = 0, total = DATA_FILES.length;
   function finishIfDone(){
@@ -4782,6 +4948,15 @@ mfRegister('blog', {
           });
           productQuoteLatest = mq;
           console.log('[DataLoader] productQuotes', Object.keys(mq).length, '个产品最新快照已从', url, '加载');
+        }
+        return;
+      }
+      if (key === 'opportunity') {
+        /* A股红利机会值数据（对象）：覆盖内嵌兜底 var opportunityData，并通知页面重绘 */
+        if (arr && arr.schema) {
+          window.opportunityData = arr;
+          if (window.OpportunityPage) window.OpportunityPage.setData(arr);
+          console.log('[DataLoader] opportunity 数据截至', arr.asof, '已从', url, '加载');
         }
         return;
       }
@@ -4931,5 +5106,7 @@ window.__mainReady = true;   // 主脚本完整执行标志（interaction-fix �
 </script>
   <!-- 移动端排序下拉框（2026-08-17）：视口 ≤767px 时注入 -->
   <script src="mobile.js?v=51"></script>
+  <!-- A股红利机会值 · 渲染/图表（2026-10-08 由独立页面并入主站）-->
+  <script src="opportunity-page.js?v=1"></script>
 </body>
 </html>

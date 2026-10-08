@@ -13,9 +13,5 @@
 /data/*
   Cache-Control: public, max-age=0, must-revalidate
 
-# 红利机会值子页数据（2026-10-08）：iframe 内单独请求 data/opportunity.js，此前未列规则 →
-#   落 Cloudflare 默认 max-age=14400，浏览器最长 4h 回放旧数据（旧文案/缺计算口径）。
-#   注意：Cloudflare Pages _headers **不匹配非 ASCII（中文）路径字面量**（实测 /红利机会值/data/* 规则不生效），
-#   且单条规则只允许一个 `*`；故改用占位符写法 `/:page/data/*` 命中 `/红利机会值/data/*`。
-/:page/data/*
-  Cache-Control: public, max-age=0, must-revalidate
+# （2026-10-08 红利机会值并入主站：原 /:page/data/* 占位规则随「子页独立 data/」一并移除；
+#   其数据现已落到 /data/opportunity.json，由上方 /data/* 规则覆盖。）
