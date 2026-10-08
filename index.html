@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.159">
+<meta name="app-version" content="v0.1.160">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -159,8 +159,8 @@
     font-size: 14px; color: #000000; text-align: left;
     border-radius: 0; transition: all 0.15s; font-weight: 700;
   }
-  .dropdown-item:hover { background: var(--hl-lilac); color: #4680FD; }   /* 浅紫调淡 0.08->0.05（2026-10-01 用户要求）*/
-  .dropdown-item.active { background: rgba(70,128,253,0.1); color: #4680FD; font-weight: 700; }
+  .dropdown-item.active { background: transparent; color: #000000; font-weight: 700; }   /* 2026-10-08 用户要求：二级菜单不预置选中高亮（未 hover 时任何项都不着色）*/
+  .dropdown-item:hover { background: var(--hl-lilac); color: #4680FD; }   /* 浅紫调淡 0.08->0.05（2026-10-01 用户要求）；置于 .active 之后，确保 hover（含当前项）始终生效 */
 
   /* ===== Nav Right ===== */
   .nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
@@ -526,10 +526,10 @@
   /* 详情页图表卡片头部：两行结构（2026-09-20 版式调整）—— 第一行 标题 + 更新日期，第二行 图例 + 区间分段按钮 */
   .detail-chart-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
   .detail-chart-title { display: flex; align-items: center; gap: 6px; font-size: var(--fs-lg); font-weight: 600; color: #171717; }
-  .detail-chart-title .hint, .detail-info-row .hint { width: 16px; height: 16px; border-radius: 50%; background: #e5e5e5; color: #767676; font-size: var(--fs-xs); font-weight: 400;  /* 问号普通字重（2026-08-19 用户要求） */ display: inline-flex; align-items: center; justify-content: center; cursor: help; position: relative; vertical-align: middle; margin-left: 4px; flex-shrink: 0; }
+  .detail-chart-title .hint, .detail-info-row .hint { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #949494; background: #fff; color: #767676; font: italic 700 11px/1 Georgia,'Times New Roman',serif; display: inline-flex; align-items: center; justify-content: center; cursor: help; position: relative; vertical-align: middle; margin-left: 4px; flex-shrink: 0; }  /* 复用「A股红利机会值」页 hint 样式（2026-10-08）*/
   /* 提示气泡 */
-  .detail-chart-title .hint .hint-tip, .detail-info-row .hint .hint-tip { display: none; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); max-width: min(240px, 68vw); width: max-content; min-width: 120px; padding: 10px 12px; background: rgba(0,0,0,0.92); color: #fff; font-size: var(--fs-xs); font-weight: 600; line-height: var(--lh-body); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.18); z-index: 200; text-align: left; white-space: normal; }  /* hint 弹出文字加粗（2026-08-17 用户要求） */
-  .detail-chart-title .hint .hint-tip::after, .detail-info-row .hint .hint-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(0,0,0,0.92); }
+  .detail-chart-title .hint .hint-tip, .detail-info-row .hint .hint-tip { display: none; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); max-width: min(300px, 68vw); width: max-content; min-width: 150px; padding: 8px 10px; background: #fff; border: 1px solid #e5e5e5; border-radius: 6px; box-shadow: 0 2px 8px rgba(70,128,253,0.12); color: #404040; font-size: 12px; font-weight: 400; line-height: 1.6; z-index: 200; text-align: left; white-space: normal; }  /* 复用「A股红利机会值」页提示气泡：浅色卡片（2026-10-08）*/
+  .detail-chart-title .hint .hint-tip::after, .detail-info-row .hint .hint-tip::after { content: none; }  /* 2026-10-08：复用浅色气泡后不再用深色小箭头 */
   .detail-chart-title .hint:hover .hint-tip, .detail-info-row .hint:hover .hint-tip { display: block; }
   /* 特许经营权红字提醒 */
   /* 资产详情·红色提示条（2026-10-04 用户要求：参考首页 reminder 的观感做「红色版」，纯展示、不折叠）
@@ -1033,11 +1033,11 @@
           <div class="detail-info-row" id="detailAdjustCycleRow" style="display:none"><span class="label">样本调整周期</span><span class="value" id="detailAdjustCycle"></span></div>
           <div class="detail-info-row" id="detailAdjustDateRow" style="display:none"><span class="label">样本调整生效日</span><span class="value" id="detailAdjustDate"></span></div>
           <div class="detail-info-row"><span class="label">股息率（TTM）</span><span class="value yield" id="detailYield"></span></div>
-          <div class="detail-info-row"><span class="label">每月千元分红需总投入（万元）<span class="hint" data-tip="本指标数值的含义：按对应指数的当前股息率计算，每月获得1000元分红所需的投入本金（万元）。计算公式：12×1000÷股息率÷税后系数（港股按0.8系数计入红利税）。本指标并不等同于基金的实际分红，请注意区分。">?</span></span><span class="value" id="detailMonthlyInv"></span></div>
+          <div class="detail-info-row"><span class="label">每月千元分红需总投入（万元）<span class="hint" data-tip="本指标数值的含义：按对应指数的当前股息率计算，每月获得1000元分红所需的投入本金（万元）。计算公式：12×1000÷股息率÷税后系数（港股按0.8系数计入红利税）。本指标并不等同于基金的实际分红，请注意区分。">i</span></span><span class="value" id="detailMonthlyInv"></span></div>
         </div>
         <div class="detail-card-section">
           <div class="detail-chart-header">
-            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">?</span></div>
+            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">i</span></div>
             <div class="detail-chart-update" id="detailChartUpdate">更新日期：2025.07.21</div>
           </div>
           <div class="detail-chart-legend">
@@ -1123,7 +1123,7 @@
         </div>
         <div class="detail-card-section" id="assetDetailChartSection" style="display:none">
           <div class="detail-chart-header">
-            <div class="detail-chart-title" id="assetDetailChartTitle">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">?</span></div>
+            <div class="detail-chart-title" id="assetDetailChartTitle">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">i</span></div>
             <div class="detail-chart-update" id="assetDetailChartUpdate"></div>
           </div>
           <div class="detail-chart-legend">
@@ -1212,7 +1212,7 @@
         </div>
         <div class="detail-card-section">
           <div class="detail-chart-header">
-            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">?</span></div>
+            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">i</span></div>
             <div class="detail-chart-update" id="hkEtfDetailChartUpdate">更新日期：</div>
           </div>
           <div class="detail-chart-legend">
@@ -1302,7 +1302,7 @@
         </div>
         <div class="detail-card-section">
           <div class="detail-chart-header">
-            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">?</span></div>
+            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">i</span></div>
             <div class="detail-chart-update" id="cnEtfDetailChartUpdate">更新日期：</div>
           </div>
           <div class="detail-chart-legend">
@@ -1390,13 +1390,13 @@
           <div class="detail-info-row"><span class="label">当前场内价格</span><span class="value" id="monthlyEtfDetailPrice"></span></div>
           <div class="detail-info-row"><span class="label">对应指数股息率</span><span class="value" id="monthlyEtfDetailYield"></span></div>
           <div class="detail-info-row"><span class="label">累计分红总额（亿元）</span><span class="value" id="monthlyEtfDetailDivTotal"></span></div>
-          <div class="detail-info-row"><span class="label">每月千元分红需总投入（万元）<span class="hint" data-tip="本指标数值的含义：按对应指数的当前股息率计算，每月获得1000元收益所需的投入本金（万元）。计算公式：12×1000÷股息率÷税后系数（港股按0.8系数计入红利税）。本指标并不等同于基金的实际分红，请注意区分。">?</span></span><span class="value" id="monthlyEtfDetailInvest"></span></div>
+          <div class="detail-info-row"><span class="label">每月千元分红需总投入（万元）<span class="hint" data-tip="本指标数值的含义：按对应指数的当前股息率计算，每月获得1000元收益所需的投入本金（万元）。计算公式：12×1000÷股息率÷税后系数（港股按0.8系数计入红利税）。本指标并不等同于基金的实际分红，请注意区分。">i</span></span><span class="value" id="monthlyEtfDetailInvest"></span></div>
           <div class="detail-info-row"><span class="label" id="monthlyEtfDetailDailyLabel">当日涨跌幅</span><span class="value" id="monthlyEtfDetailDaily"></span></div>
           <div class="detail-info-row"><span class="label" id="monthlyEtfDetailYrLabel">今年以来回报</span><span class="value" id="monthlyEtfDetailYr"></span></div>
         </div>
         <div class="detail-card-section">
           <div class="detail-chart-header">
-            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">?</span></div>
+            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">i</span></div>
             <div class="detail-chart-update" id="monthlyEtfDetailChartUpdate">更新日期：</div>
           </div>
           <div class="detail-chart-legend">
@@ -1484,13 +1484,13 @@
           <div class="detail-info-row"><span class="label">对应指数股息率</span><span class="value" id="monthlyFundDetailYield"></span></div>
           <div class="detail-info-row"><span class="label">基金规模（亿元）</span><span class="value" id="monthlyFundDetailSize"></span></div>
           <div class="detail-info-row"><span class="label">年度分红总额（亿元）</span><span class="value" id="monthlyFundDetailDivTotal"></span></div>
-          <div class="detail-info-row"><span class="label">每月千元分红需总投入（万元）<span class="hint" data-tip="本指标数值的含义：按对应指数的当前股息率计算，每月获得1000元收益所需的投入本金（万元）。计算公式：12×1000÷股息率÷税后系数（港股按0.8系数计入红利税）。本指标并不等同于基金的实际分红，请注意区分。">?</span></span><span class="value" id="monthlyFundDetailInvest"></span></div>
+          <div class="detail-info-row"><span class="label">每月千元分红需总投入（万元）<span class="hint" data-tip="本指标数值的含义：按对应指数的当前股息率计算，每月获得1000元收益所需的投入本金（万元）。计算公式：12×1000÷股息率÷税后系数（港股按0.8系数计入红利税）。本指标并不等同于基金的实际分红，请注意区分。">i</span></span><span class="value" id="monthlyFundDetailInvest"></span></div>
           <div class="detail-info-row"><span class="label" id="monthlyFundDetailDailyLabel">当日涨跌幅</span><span class="value" id="monthlyFundDetailDaily"></span></div>
           <div class="detail-info-row"><span class="label" id="monthlyFundDetailYrLabel">今年以来回报</span><span class="value" id="monthlyFundDetailYr"></span></div>
         </div>
         <div class="detail-card-section">
           <div class="detail-chart-header">
-            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">?</span></div>
+            <div class="detail-chart-title">历史走势<span class="hint" data-tip="本数据取自金融数据服务商并采用AI辅助提取，可能存在错误或误导。">i</span></div>
             <div class="detail-chart-update" id="monthlyFundDetailChartUpdate">更新日期：</div>
           </div>
           <div class="detail-chart-legend">
@@ -3427,7 +3427,7 @@ function resolveSub(pageId, subKey) {
     if (subKey === 'etf') return 'subEtf';
     if (subKey === 'hketf') return 'subHkEtf';
     if (subKey === 'opportunity') return 'subOpportunity';
-    return 'subBrowser';                     // #/index 默认浏览器
+    return 'subOpportunity';                 // #/index 默认「A股红利机会值」（2026-10-08 用户要求）
   }
   if (pageId === 'pageMonthly') {
     if (subKey === 'etf') return 'subEtfList';
