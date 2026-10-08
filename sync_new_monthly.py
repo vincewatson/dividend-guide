@@ -255,6 +255,13 @@ def main():
     fund = load_json(FUND)
     exist = {x.get('code', '').split('.')[0] for x in etf} | {x.get('code', '').split('.')[0] for x in fund}
 
+    # 停用名单恢复（2026-10-08）：读取 _retired.json 中原因含「停止月月分红」的 code；
+    #   若本次补入的候选命中（说明其已恢复月月分红），补入成功后从停用名单移除并恢复。
+    retired_monthly = {c for c, v in lc.load_retired().get('retired', {}).items()
+                       if isinstance(v, dict)
+                       and lc.RETIRED_MONTHLY_REASON in str(v.get('reason') or '')}
+    recovered = []      # 本次「恢复正常月月分红、自动移出停用名单」的站点 code
+
     adds_etf, adds_fund, skipped = [], [], []
     for wind_code, name, cnt in kept:
         base = wind_code.split('.')[0]
@@ -280,6 +287,8 @@ def main():
         row = build_row(kind, store, disp, detail)
         (adds_etf if kind == 'etf' else adds_fund).append(
             (store, disp, cnt, detail.get('trackCode', ''), detail.get('trackName', '')))
+        if store in retired_monthly:
+            recovered.append(store)   # 通过指数过滤、即将补入的停用成员 → 标记恢复
         if not dry:
             (etf if kind == 'etf' else fund).append(row)
         time.sleep(SLEEP)
@@ -301,23 +310,43 @@ def main():
         save_json(ETF, etf)
         save_json(FUND, fund)
         # 清单进出机制（2026-10-07）：登记自动补入 + 追加「进」事件
+        #   恢复（2026-10-08）：命中停用名单「停止月月分红」的候选，补入成功后移出停用名单，
+        #   其目的 / 事件原因单独区分；其余新增成员逻辑与 reason 不变。
         try:
             _reason = '月月分红（近1年分红≥%d次）自动纳入' % THRESHOLD
+            _rec_reason = '恢复正常月月分红（近1年≥%d次），自动恢复' % THRESHOLD
+            _rec_evt_reason = '恢复正常月月分红，自动移出停用名单并恢复'
+            _rec_set = set(recovered)
             _entries, _events = [], []
             for store, disp, _cnt, _tc, _tn in adds_etf:
-                _entries.append({'code': store, 'list': 'etf', 'reason': _reason,
+                _rec = store in _rec_set
+                _entries.append({'code': store, 'list': 'etf',
+                                 'reason': _rec_reason if _rec else _reason,
                                  'source': 'sync_new_monthly'})
                 _events.append({'action': 'add', 'list': 'etf', 'code': store,
-                                'name': disp, 'reason': _reason, 'source': 'sync_new_monthly'})
+                                'name': disp, 'reason': _rec_evt_reason if _rec else _reason,
+                                'source': 'sync_new_monthly'})
             for store, disp, _cnt, _tc, _tn in adds_fund:
-                _entries.append({'code': store, 'list': 'fund', 'reason': _reason,
+                _rec = store in _rec_set
+                _entries.append({'code': store, 'list': 'fund',
+                                 'reason': _rec_reason if _rec else _reason,
                                  'source': 'sync_new_monthly'})
                 _events.append({'action': 'add', 'list': 'fund', 'code': store,
-                                'name': disp, 'reason': _reason, 'source': 'sync_new_monthly'})
+                                'name': disp, 'reason': _rec_evt_reason if _rec else _reason,
+                                'source': 'sync_new_monthly'})
             lc.record_auto_added(_entries)
             lc.record_list_changes(_events)
         except Exception as e:
             print('[i] 自动补入登记失败（不影响补入）：%s' % e, flush=True)
+        # 恢复：从停用名单移除本次已恢复月月分红的 code（在 save / record 附近集中处理）
+        if recovered:
+            try:
+                _removed = lc.remove_retired(recovered)
+                if _removed:
+                    print('[恢复] 已从停用名单移出 %d 只（恢复正常月月分红）：%s'
+                          % (len(_removed), '、'.join(_removed)), flush=True)
+            except Exception as e:
+                print('[i] 停用名单恢复失败（不影响补入）：%s' % e, flush=True)
         print('\n[完成] [%s] 已写入 etfData(+%d) / fundData(+%d)；'
               '随后由步骤 14 刷 divDate、步骤 15 Wind 化补齐字段。'
               % (ts(), len(adds_etf), len(adds_fund)), flush=True)

@@ -45,6 +45,8 @@ LIFECYCLE_STATE_PATH = os.path.join(BASE, '.lifecycle_state.json')
 LIST_CHANGES_PATH = os.path.join(BASE, '.list_changes.json')
 # 自动补入登记（入库）
 AUTO_ADDED_PATH = os.path.join(CURATION_DIR, '_auto_added.json')
+# 停用名单（入库）
+RETIRED_PATH = os.path.join(BASE, 'data', 'curation', '_retired.json')
 
 LIST_CHANGES_SCHEMA = ('list_changes: [ {at,date,action: add|retire|observe,'
                        'list: cnEtf|hkEtf|reits|etf|fund|money,code,name,reason,source} ]')
@@ -59,6 +61,11 @@ AUTO_LIST_TO_DATA_KEY = {
     'fund': 'fundData',
     'money': 'moneyFundData',
 }
+
+# 停用名单 lists 字段：list 名 → 中文显示名（月月分红过期成员用）
+_RETIRED_LIST_LABEL = {'etf': '月月分红ETF', 'fund': '月月分红基金'}
+# 月月分红过期成员的停用原因（prune_stale_monthly 写入；sync_new_monthly 据此恢复）
+RETIRED_MONTHLY_REASON = '停止月月分红'
 
 
 # ── 基础 IO ────────────────────────────────────────────────────────────────
@@ -427,6 +434,90 @@ def today_events():
     """返回 date == 今天 的清单变动事件（报告用）。"""
     t = today_str()
     return [e for e in load_list_changes() if str(e.get('date')) == t]
+
+
+# ── 停用名单 data/curation/_retired.json ───────────────────────────────────
+def load_retired():
+    """读取 _retired.json；任何异常 / 非 dict → {'domain':'retired','retired':{}}。
+
+    始终确保含 retired 键（dict）。
+    """
+    obj = load_json(RETIRED_PATH, None)
+    if not isinstance(obj, dict):
+        obj = {'domain': 'retired', 'retired': {}}
+    if not isinstance(obj.get('retired'), dict):
+        obj['retired'] = {}
+    return obj
+
+
+def save_retired(obj):
+    """写回 _retired.json（更新 updatedAt 后原子写入）。"""
+    obj['updatedAt'] = today_str()
+    save_json(RETIRED_PATH, obj)
+
+
+def add_retired(entries):
+    """把「停用」成员写入 _retired.json（load-merge-save，幂等）。
+
+    entries: [{code,name,reason,list,lastDivDate,retiredDate,source}, ...]。
+    - code 为空则跳过；
+    - 已存在项保留原有字段（如 lists/maturityDate…），再用「非 None 的新字段」覆盖/补充；
+    - list（'etf'/'fund'）映射为 lists 显示名（'月月分红ETF'/'月月分红基金'）并入 lists（去重）。
+    有写入才保存；返回更新后的 obj。
+    """
+    obj = load_retired()
+    if not entries:
+        return obj
+    retired = obj['retired']
+    changed = False
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        code = e.get('code')
+        if not code:
+            continue
+        code = str(code)
+        prev = retired.get(code) if isinstance(retired.get(code), dict) else {}
+        new = dict(prev)
+        # 非 None 的新字段合并（已存在则合并更新 → 幂等）
+        for k in ('name', 'reason', 'lastDivDate', 'retiredDate', 'source'):
+            if e.get(k) is not None:
+                new[k] = e[k]
+        # list 名并入 lists（保留既有顺序、去重）
+        label = _RETIRED_LIST_LABEL.get(e.get('list'), e.get('list'))
+        lists = list(new.get('lists') or [])
+        if label and label not in lists:
+            lists.append(label)
+        new['lists'] = lists
+        retired[code] = new
+        changed = True
+    if changed:
+        save_retired(obj)
+    return obj
+
+
+def remove_retired(codes):
+    """从 _retired.json 删除给定 code（恢复用）；返回实际删除的 code 列表。
+
+    codes 可为单个字符串或列表；有删除才保存。
+    """
+    if not codes:
+        return []
+    if isinstance(codes, str):
+        codes = [codes]
+    obj = load_retired()
+    retired = obj['retired']
+    removed = []
+    for c in codes:
+        if not c:
+            continue
+        c = str(c)
+        if c in retired:
+            retired.pop(c, None)
+            removed.append(c)
+    if removed:
+        save_retired(obj)
+    return removed
 
 
 # ── 自动补入登记 data/curation/_auto_added.json ────────────────────────────

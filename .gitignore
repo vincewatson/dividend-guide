@@ -32,3 +32,7 @@ user_upload/
 #   注：data/curation/_auto_added.json（自动补入登记）**入库**，不在此列。
 .lifecycle_state.json
 .list_changes.json
+
+# ---- 坚果云同步冲突副本（不入库）----
+*冲突*
+*-冲突-*.*

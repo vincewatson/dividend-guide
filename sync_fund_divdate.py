@@ -12,6 +12,7 @@
 注意: 港股 ETF（hkEtfData，.HK 后缀）Wind 基金库不支持，脚本会跳过（保留原值）
 用法: python3 sync_fund_divdate.py [fund|etf|cnetf|hketf|all] [--force]
       --force-all 强制重拉全部非港股；默认增量（空值 + 月月分红必刷 + 超期 > SX_DIV_STALE_DAYS 天）
+      --monthly-empty 日更·只补查空日期：只处理 etfData/fundData，且只查 divDate 为空的成员
 """
 import io, json, os, subprocess, sys, time, tempfile, re, datetime
 from concurrent.futures import ThreadPoolExecutor
@@ -24,6 +25,9 @@ WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '8')))
 #   - 其余（cnEtfData 境内红利ETF）仅在 divDate 缺失、或距今天数 > SX_DIV_STALE_DAYS 时重查；
 #   - `--force-all` 恢复旧行为（重查全部非港股）。
 ALWAYS_FILES = {'etfData.json', 'fundData.json'}     # 月月分红：每周必刷
+# 日更·只补查空日期模式（--monthly-empty，2026-10-08）：只处理月月分红两个名单，
+#   且只把 divDate 为空/缺失的成员加入待查队列（已有日期的成员跳过）。由 main() 设置。
+MONTHLY_EMPTY = False
 STALE_DAYS = int(os.environ.get('SX_DIV_STALE_DAYS', '35'))
 # 「无分红记录」复查周期（2026-09-26）：cnEtf 里大量"确无分红记录"的基金不必每周重查。
 RECHECK_DAYS = int(os.environ.get('SX_DIV_NORECORD_DAYS', '28'))
@@ -35,6 +39,7 @@ INTERVAL = float(os.environ.get('SX_WIND_INTERVAL', '1.5'))
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
+import lifecycle_common as lc  # 清单进出机制 · 共享工具（停用名单读写 / 变动日志）
 
 # 分红日期查询措辞（按优先级尝试；2026-09-13：主措辞改为「最近分红情况」）
 PHRASINGS = ['{} 最近分红情况', '{} 最近分红发放日期', '{} 基金分红 分红发放日']
@@ -129,13 +134,16 @@ def ts():
     return time.strftime('%H:%M:%S')
 
 
-# 「月月分红」名单自动剔除（2026-10-06 用户要求）
+# 「月月分红」名单自动剔除（2026-10-06 用户要求；2026-10-08 改为写停用名单）
 # ------------------------------------------------------------------
 # 规则：月月分红产品应「每月连续分红」。若某只的最近一次分红发放日
 #   早于「上一个月」（例：2026-10 运行 → 要求最近分红 ≥ 2026-09-01），
 #   说明它已不再月月分红，从名单中剔除（保底：divDate 为空者不动，避免误删）。
-# 自愈：Excel 快照仍会把它带回来 → 每周重建后本剔除再跑一次；
-#   若该产品恢复月月分红（divDate 变新），下轮自然重新纳入。
+# 自愈（2026-10-08 改）：除从名单移除（kept/removed）外，**同时写入停用名单**
+#   data/curation/_retired.json（原因「停止月月分红」、附最近分红日期）——
+#   build_lists.py 每次按 curation 真源整表重建（含「表外行护栏」），单删成品 JSON 会被带回；
+#   写停用名单后由 build_lists 在所有护栏之后统一剔除，重建不再把它带回来。
+#   若该产品恢复正常月月分红，由 sync_new_monthly 自动移出停用名单并恢复。
 # 仅对月月名单（ALWAYS_FILES：etfData / fundData）生效。
 def _prev_month_first(today=None):
     t = today or datetime.date.today()
@@ -143,7 +151,14 @@ def _prev_month_first(today=None):
 
 
 def prune_stale_monthly(d, fn):
+    """月月名单自动剔除：最近分红早于「上一个月」的成员 → 移出名单并写入停用名单。
+
+    fn 形如 'fundData.json' / 'etfData.json'；据其判定 list（'fund'/'etf'）。
+    写入停用名单后，build_lists 整表重建（含表外行护栏）不再把它带回来；
+    恢复正常月月分红由 sync_new_monthly 自动移出停用名单并恢复。
+    """
     cutoff = _prev_month_first()
+    list_name = 'fund' if 'fundData' in fn else 'etf'
     kept, removed = [], []
     for item in d:
         dd = item.get('divDate')
@@ -158,7 +173,17 @@ def prune_stale_monthly(d, fn):
         else:
             kept.append(item)
     if removed:
-        print('  [月月剔除] {}：{} 只最近分红早于 {}（已非月月分红）→ 移出名单：'.format(
+        today = datetime.date.today().isoformat()
+        # 同时写入停用名单（重建不再带回）+ 追加「移出」事件
+        lc.add_retired([{
+            'code': c, 'name': n, 'reason': '停止月月分红', 'list': list_name,
+            'lastDivDate': dd, 'retiredDate': today, 'source': 'sync_fund_divdate',
+        } for c, n, dd in removed])
+        lc.record_list_changes([{
+            'action': 'retire', 'list': list_name, 'code': c, 'name': n,
+            'reason': '停止月月分红', 'source': 'sync_fund_divdate',
+        } for c, n, dd in removed])
+        print('  [月月剔除] {}：{} 只最近分红早于 {}（已非月月分红）→ 移出名单（写入停用名单）：'.format(
             fn, len(removed), cutoff.isoformat()), flush=True)
         for c, n, dd in removed:
             print('    - {} {}（最近分红 {}）'.format(c, n, dd), flush=True)
@@ -171,7 +196,8 @@ def process(fn, label, norecord):
     force_all = '--force-all' in sys.argv
     always = fn in ALWAYS_FILES          # 月月分红产品：每周必刷
     today = datetime.date.today()
-    mode = '全量' if force_all else ('月月分红必刷' if always else '增量(空值/超期>{}天)'.format(STALE_DAYS))
+    mode = ('只补查空日期' if MONTHLY_EMPTY else
+            ('全量' if force_all else ('月月分红必刷' if always else '增量(空值/超期>{}天)'.format(STALE_DAYS))))
     todo_items, skipped = [], 0
     for item in d:
         code = item.get('code', '')
@@ -181,6 +207,14 @@ def process(fn, label, norecord):
         # 港股 ETF：Wind 基金库不支持，跳过（保留原值）
         if code.endswith('.HK'):
             skipped += 1
+            continue
+        # 日更·只补查空日期模式（--monthly-empty）：仅把 divDate 为空/缺失的成员加入待查队列，
+        #   已有日期的成员跳过；其余逻辑（并发查询 / 写回 / 剔除）不变。
+        if MONTHLY_EMPTY:
+            if item.get('divDate'):
+                skipped += 1
+                continue
+            todo_items.append((item, code, name))
             continue
         # 增量：月月分红必刷；其余「有日期→超期才查」「无记录→命中缓存且未到复查期则跳过」（2026-09-26）
         if not force_all and not always:
@@ -240,12 +274,18 @@ def process(fn, label, norecord):
     return updated
 
 def main():
+    global MONTHLY_EMPTY
     targets = sys.argv[1] if len(sys.argv) > 1 else 'all'
+    MONTHLY_EMPTY = '--monthly-empty' in sys.argv
     jobs = []
-    if targets in ('all', 'fund'): jobs.append(('fundData.json', 'fundData'))
-    if targets in ('all', 'etf'): jobs.append(('etfData.json', 'etfData'))
-    if targets in ('all', 'cnetf'): jobs.append(('cnEtfData.json', 'cnEtfData'))
-    if targets in ('all', 'hketf'): jobs.append(('hkEtfData.json', 'hkEtfData'))
+    if MONTHLY_EMPTY:
+        # 日更·只补查空日期模式：只处理月月分红两个名单（不受 targets 影响）
+        jobs = [('fundData.json', 'fundData'), ('etfData.json', 'etfData')]
+    else:
+        if targets in ('all', 'fund'): jobs.append(('fundData.json', 'fundData'))
+        if targets in ('all', 'etf'): jobs.append(('etfData.json', 'etfData'))
+        if targets in ('all', 'cnetf'): jobs.append(('cnEtfData.json', 'cnEtfData'))
+        if targets in ('all', 'hketf'): jobs.append(('hkEtfData.json', 'hkEtfData'))
     norecord = load_norecord()
     total = 0
     for fn, label in jobs:

@@ -135,6 +135,30 @@ def main():
                 e.get('code') or '', e.get('name') or '',
                 e.get('reason') or '', e.get('source') or ''))
 
+    # 月月名单空日期补查（2026-10-08）：列出 etfData/fundData 中 divDate 为空/缺失的成员
+    #   （无论上面「清单变动」是否为「无」，都输出本小节）
+    lines.append('')
+    lines.append('### 月月名单中分红日期为空（需补查）')
+    _empty = []
+    for _fn, _lbl in (('etfData.json', '月月分红ETF'), ('fundData.json', '月月分红基金')):
+        try:
+            with io.open(os.path.join(BASE, 'data', _fn), encoding='utf-8') as _f:
+                _rows = json.load(_f)
+        except Exception:
+            _rows = []
+        for _it in (_rows or []):
+            if not isinstance(_it, dict):
+                continue
+            if not _it.get('divDate'):
+                _empty.append((_lbl, _it.get('code') or '', _it.get('name') or ''))
+    if _empty:
+        lines.append('| 清单 | 代码 | 名称 |')
+        lines.append('|---|---|---|')
+        for _lbl, _code, _name in _empty:
+            lines.append('| %s | %s | %s |' % (_lbl, _code, _name))
+    else:
+        lines.append('（无）')
+
     os.makedirs(LOGS_DIR, exist_ok=True)
     out = os.path.join(LOGS_DIR, 'update-%s.md' % now.strftime('%Y%m%d-%H%M'))
     with io.open(out, 'w', encoding='utf-8') as f:

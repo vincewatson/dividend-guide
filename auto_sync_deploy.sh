@@ -166,6 +166,7 @@ WEEKLY_NUMS="12 13 14"                                   # 周更「编号」步
 is_weekly_num() { case " $WEEKLY_NUMS " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 is_weekly_step() {   # 按 label 判定是否周更档步骤
   case "$1" in
+    *sync_fund_divdate.py*--monthly-empty*) return 1 ;;   # 月月空日期补查：日更步骤（须排在下方 fund_divdate 分支之前）
     *sync_new_etf.py*|*sync_new_reits.py*|*sync_fund_divdate.py*|*sync_lifecycle.py*|*sync_new_hk_etf.py*|*sync_new_monthly.py*)
       return 0 ;;
     *) return 1 ;;
@@ -338,6 +339,18 @@ run_py "sync_fund_divdate.py all --force" sync_fund_divdate.py all --force
 else
 echo "===== [14/21] 恢复基金最近分红日期 — ⏭ 跳过 ====="
 report_event "sync_fund_divdate.py all --force" skip "周更步骤（本次日更不跑）"
+fi
+
+echo ""
+# 编号外·日更：月月名单空日期补查（2026-10-08）——只把 etfData/fundData 中 divDate 为空的成员补查；
+#   label 同时含 sync_fund_divdate.py 与 --monthly-empty → is_weekly_step 判为「非周更」（走 daily 额度）；
+#   失败不阻断（保留原值）。
+if [ "$RUN_DAILY" = "1" ]; then
+echo "===== [编号外] 月月名单空日期补查（Wind，仅日更）====="
+run_py "sync_fund_divdate.py --monthly-empty" sync_fund_divdate.py monthly --monthly-empty || echo "  ⚠ 月月名单空日期补查失败（Wind 抖动），保留原值，下次重试"
+else
+echo "===== [编号外] 月月名单空日期补查 — ⏭ 跳过 ====="
+report_event "sync_fund_divdate.py --monthly-empty" skip "月月空日期补查：仅日更"
 fi
 
 echo ""
