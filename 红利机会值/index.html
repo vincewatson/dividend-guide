@@ -32,8 +32,8 @@ html.embed .top-bar{display:none}
 .brand svg{width:50px;height:28.7px;display:block}
 .brand-name{font-size:16px;font-weight:700;letter-spacing:-0.02em;line-height:1.2}
 .brand-tagline{font-size:10px;color:var(--muted);line-height:1.2}
-.page{max-width:calc(var(--content-max) + var(--page-pad)*2);margin:0 auto;padding-inline:var(--page-pad);padding-block:24px 0;display:grid;gap:32px}
-@media (max-width:767px){.page{padding-inline:14px;gap:26px}.top-bar{height:60px;padding-inline:14px}}
+.page{max-width:calc(var(--content-max) + var(--page-pad)*2);margin:0 auto;padding-inline:var(--page-pad);padding-block:24px 12px;display:grid;gap:48px}   /* 2026-10-08 用户要求：各 panel 间距 32→48px（图表/数据密集、原间距偏挤）；底部留 12px 与首页末段一致 */
+@media (max-width:767px){.page{padding-inline:14px;gap:34px}.top-bar{height:60px;padding-inline:14px}}
 .page>*{min-width:0}
 .section-title{font-size:var(--fs-xl);font-weight:700;letter-spacing:-0.02em;margin:0;line-height:1.2}
 .section-sub{font-size:var(--fs-base);color:var(--muted);margin:6px 0 0}
@@ -79,7 +79,7 @@ html.embed .top-bar{display:none}
 .chart-wrap{position:relative}
 #chart{display:block;width:100%;height:320px}
 @media (max-width:767px){#chart{height:300px}.chart-legend{flex-direction:column;align-items:stretch}.range{width:100%}.range button{flex:1 1 0}}
-#tip{position:absolute;top:8px;pointer-events:none;background:#fff;border:1px solid var(--grid);border-radius:6px;box-shadow:0 2px 8px rgba(70,128,253,0.12);padding:8px 10px;font-size:var(--fs-2xs);min-width:150px}
+#tip{position:absolute;top:8px;pointer-events:none;background:#fff;border:1px solid var(--grid);border-radius:6px;box-shadow:0 2px 8px rgba(70,128,253,0.12);padding:8px 10px;font-size:12px;min-width:150px}   /* 2026-10-08 用户要求：图表 hover 弹框与全站弹框统一 12px */
 #tip .d{color:var(--faint);margin-bottom:4px}
 #tip .r{display:flex;align-items:center;gap:6px;color:#404040}
 #tip .r b{margin-left:auto;font-weight:600;color:var(--ink)}
@@ -110,11 +110,12 @@ tr.now td{background:var(--brand-wash)}
 .hint:hover .hint-tip,.hint:focus .hint-tip,.hint[aria-expanded="true"] .hint-tip{visibility:visible;opacity:1}
 @media (prefers-reduced-motion:reduce){.hint-tip{transition:none}}
 .sec-head h2{display:inline-flex;align-items:center}
-.footnote{border-top:1px solid var(--line-soft);margin-top:8px;padding-block:24px 12px;font-size:var(--fs-2xs);color:var(--muted);line-height:1.6;display:grid;gap:4px}   /* 2026-10-08 用户要求：底部内边距 32→12px。实测首页末段(.asset-table)margin-bottom=12px → 附注到页脚净距与首页一致（12 + 页脚 margin-top 40 = 52；此前 32px 明显过远）*/
-.footnote p{margin:0}
-.footnote .calc-group{font-weight:700;color:var(--body);margin-top:6px}   /* 2026-10-08：底部「指标说明」分「核心/观察」两组，逐项列出计算口径 */
-.footnote .calc-list{display:grid;gap:3px}
-.footnote .calc-list .l b{color:var(--body);font-weight:600}
+.notes{margin:0;padding-left:1.5em;font-size:var(--fs-base);color:var(--body);line-height:1.7}   /* 2026-10-08 用户要求：底部「指标说明」独立为 20px 标题 panel + 有序列表 */
+.notes>li{margin-top:10px}
+.notes>li:first-child{margin-top:0}
+.notes ul{margin:8px 0 0;padding-left:1.2em;list-style:disc}
+.notes ul li{margin-top:6px;color:var(--muted)}
+.notes ul li b{color:var(--body);font-weight:600}
 </style>
 
 <header class="top-bar">
@@ -192,13 +193,15 @@ tr.now td{background:var(--brand-wash)}
       <tbody id="obs"></tbody></table></div>
   </section>
 
-  <footer class="footnote">
-    <p id="method"></p>
-    <p class="calc-group">核心指标计算口径（计入机会值）</p>
-    <div id="calcCore" class="calc-list"></div>
-    <p class="calc-group">观察指标计算口径（不计入机会值）</p>
-    <div id="calcObs" class="calc-list"></div>
-  </footer>
+  <section>
+    <div class="sec-head"><h2>指标说明</h2></div>
+    <ol class="notes">
+      <li>本页数据基于Wind数据计算，可能存在错漏或误导，请勿作为投资依据。</li>
+      <li id="noteMethod"></li>
+      <li>核心指标包含4项，全部计入机会值计算。<ul id="noteCore"></ul></li>
+      <li>观察指标包含4项，不计入机会值。<ul id="noteObs"></ul></li>
+    </ol>
+  </section>
 </main>
 
 <script src="data/opportunity.js"></script>
@@ -227,9 +230,9 @@ function render(){
   $('bands').innerHTML=BANDS.map((d,i)=>{const r=DATA.bands[4-i], now=d===b, col=d[0]>=60?C.brand:(d[0]>=40?'#949494':C.red);
     return `<tr class="${now?'now':''}"><td><span class="sw2" style="background:${col}"></span>${d[0]}–${d[1]}${now?'（当前）':''}</td><td>${d[2]} · ${d[3]}</td><td class="col-num num">${r[0]}</td><td class="col-num num" style="color:${r[1]>=0?'#dc2626':'#059661'}">${r[1]>=0?'+':'−'}${Math.abs(r[1]).toFixed(1)}%</td><td class="col-num num">${r[2]}%</td><td class="col-num num">−${Math.abs(r[3]).toFixed(1)}%</td></tr>`}).join('');
   $('obs').innerHTML=DATA.observe.map(o=>`<tr><td><b>${o.name}</b></td><td class="num">${o.value}</td><td class="muted">${o.note}</td></tr>`).join('');
-  $('method').textContent='指标说明：'+DATA.method;
-  $('calcCore').innerHTML=DATA.core.map(c=>`<span class="l"><b>${c.name}</b>：${c.calc||''}</span>`).join('');
-  $('calcObs').innerHTML=DATA.observe.map(o=>`<span class="l"><b>${o.name}</b>：${o.calc||''}</span>`).join('');
+  $('noteMethod').textContent=DATA.method;
+  $('noteCore').innerHTML=DATA.core.map(c=>`<li><b>${c.name}</b>：${c.calc||''}</li>`).join('');
+  $('noteObs').innerHTML=DATA.observe.map(o=>`<li><b>${o.name}</b>：${o.calc||''}</li>`).join('');
 }
 let years=3;
 function slice(){const S=DATA.series; if(!years) return S; const last=new Date(S.d[S.d.length-1]); const from=new Date(last); from.setFullYear(last.getFullYear()-years);

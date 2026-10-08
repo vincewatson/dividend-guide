@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.165">
+<meta name="app-version" content="v0.1.166">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -3421,6 +3421,9 @@ function showToast(msg){var el=document.getElementById('toast');el.textContent=m
 // 访问代号表：divlab.net/#/my 等，可直达、可分享、支持前进后退
 var PAGE_ROUTE = { pageData:'', pageWeekly:'digest', pageIndex:'index', pageMonthly:'monthly', pageBlog:'blog', pageProfile:'my' };
 var NAV_SUB_ROUTE = { browser:'browser', etf:'etf', hkEtf:'hketf', opportunity:'opportunity', etfList:'etf', fundList:'fund' };
+// 一级菜单直达的默认子页（2026-10-08 用户要求：点子菜单之外的「一级菜单」直接路由到该页默认子页，如 #/index/opportunity）
+var NAV_DEFAULT_SUB = { pageIndex:'opportunity', pageMonthly:'etf' };
+function tabRoute(tab){ var base = PAGE_ROUTE[tab] || ''; var ds = NAV_DEFAULT_SUB[tab]; return ds ? base + '/' + (NAV_SUB_ROUTE[ds] || ds) : base; }
 
 function resolveSub(pageId, subKey) {
   if (pageId === 'pageIndex') {
@@ -3588,7 +3591,7 @@ applyRoute((location.hash || '#/').replace(/^#\/?/, ''));
 document.querySelectorAll('.main-nav-item[data-tab]').forEach(function(tab){
   tab.addEventListener('click',function(e){
     if(e.target.closest('.dropdown-item')) return;
-    navigate(PAGE_ROUTE[this.dataset.tab] || '');
+    navigate(tabRoute(this.dataset.tab));
   });
 });
 
@@ -4820,9 +4823,8 @@ function _footerBrandText(sel) {
 
 /* 与顶部导航同一路由口径：PAGE_ROUTE / NAV_SUB_ROUTE */
 function _footerRoute(tab, sub) {
-  var route = PAGE_ROUTE[tab] || '';
-  if (sub) route += '/' + (NAV_SUB_ROUTE[sub] || '');
-  return route;
+  if (sub) return (PAGE_ROUTE[tab] || '') + '/' + (NAV_SUB_ROUTE[sub] || '');
+  return tabRoute(tab);   // 无二级 → 直达该页默认子页（2026-10-08 与顶部一级菜单一致）
 }
 
 function renderFooter() {
