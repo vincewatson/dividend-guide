@@ -12,3 +12,14 @@
 
 /data/*
   Cache-Control: public, max-age=0, must-revalidate
+
+# 红利机会值子页（2026-10-08 修复：此前未列规则 → HTML 与 data/*.js 均落 Cloudflare 默认 max-age=14400，
+#   iframe 单独请求 data/opportunity.js 时浏览器可缓存旧数据最长 4h，页面显示旧文案/缺计算口径）
+/红利机会值/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/红利机会值/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/红利机会值/data/*
+  Cache-Control: public, max-age=0, must-revalidate
