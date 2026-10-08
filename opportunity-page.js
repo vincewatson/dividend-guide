@@ -103,7 +103,8 @@
     var pts = S.v.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
     var area = m.l + ',' + y(50) + ' ' + pts + ' ' + x(n - 1) + ',' + y(50);
     s += '<polygon points="' + area + '" fill="' + C.brand + '" fill-opacity="0.14" clip-path="url(#oppAb)"/><polygon points="' + area + '" fill="' + C.brand + '" fill-opacity="0.06" clip-path="url(#oppBe)"/>';
-    s += '<polyline points="' + S.p.map(function (v, i) { return x(i).toFixed(1) + ',' + yp(v).toFixed(1); }).join(' ') + '" fill="none" stroke="' + C.idx + '" stroke-width="1.2" stroke-linejoin="round"/>';
+    // 中证红利指数点位线：用图表网格横线的浅灰（C.grid），比原来的 C.idx 更浅（2026-10-08 用户要求，与标注数据的灰色横线一致）
+    s += '<polyline points="' + S.p.map(function (v, i) { return x(i).toFixed(1) + ',' + yp(v).toFixed(1); }).join(' ') + '" fill="none" stroke="' + C.grid + '" stroke-width="1.2" stroke-linejoin="round"/>';
     s += '<line x1="' + m.l + '" x2="' + (m.l + iw) + '" y1="' + y(50) + '" y2="' + y(50) + '" stroke="' + C.ink + '" stroke-width="1"/>';
     s += '<polyline points="' + pts + '" fill="none" stroke="' + C.brand + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
     var lv = S.v[n - 1];

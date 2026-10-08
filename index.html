@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.169">
+<meta name="app-version" content="v0.1.170">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -772,7 +772,8 @@
     --pad-row:18px; --pad-row-tb:11px;
     color: var(--ink); line-height: 1.4;
   }
-  #subOpportunity .opp-root { display: grid; gap: 32px; padding-block: 4px 12px; }
+  #subOpportunity .opp-root { display: grid; gap: 48px; padding-block: 4px 12px; }   /* 2026-10-08 用户反馈：核心指标/打分参考/观察指标/指标说明各 panel 间距放大，与「历史机会值↔顶部蓝框」一致（48px）*/
+  @media (max-width:767px) { #subOpportunity .opp-root { gap: 32px; } }
   #subOpportunity .opp-root > * { min-width: 0; }
   #subOpportunity .section-title { font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; margin: 0; line-height: 1.2; }
   #subOpportunity .section-sub { font-size: var(--fs-base); color: var(--muted); margin: 6px 0 0; }
@@ -782,7 +783,7 @@
   #subOpportunity .num { font-variant-numeric: tabular-nums; }
 
   /* 结论面板（沿用站点 .reminder：6px 圆角、浅蓝外框、品牌蓝双晕） */
-  #subOpportunity .reminder { position: relative; overflow: hidden; background: #FBFCFE; border: 1px solid #E3EBFC; border-radius: var(--r-ctl); padding: 22px 24px; }
+  #subOpportunity .reminder { position: relative; overflow: hidden; background: #FBFCFE; border: 1px solid #E3EBFC; border-radius: var(--r-ctl); padding: 22px 24px; margin-bottom: 0; }   /* margin-bottom:0 覆盖全站 .reminder 的 16px，避免本页蓝框下间距比其它 panel 多 16px */
   #subOpportunity .reminder::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 12% 0%, rgba(70,128,253,0.11), rgba(70,128,253,0) 42%), radial-gradient(circle at 88% 100%, rgba(70,128,253,0.09), rgba(70,128,253,0) 46%), linear-gradient(135deg, #FBFCFE 0%, #F0F5FF 100%); }
   #subOpportunity .reminder > * { position: relative; }
   #subOpportunity .hero { display: grid; grid-template-columns: auto minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr); gap: 0; align-items: stretch; }
@@ -5107,6 +5108,6 @@ window.__mainReady = true;   // 主脚本完整执行标志（interaction-fix �
   <!-- 移动端排序下拉框（2026-08-17）：视口 ≤767px 时注入 -->
   <script src="mobile.js?v=51"></script>
   <!-- A股红利机会值 · 渲染/图表（2026-10-08 由独立页面并入主站）-->
-  <script src="opportunity-page.js?v=1"></script>
+  <script src="opportunity-page.js?v=2"></script>
 </body>
 </html>
