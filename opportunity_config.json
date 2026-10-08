@@ -1,12 +1,7 @@
 {
   "inputs": {
-    "source": "auto",
-    "daily_csv": "inputs/opportunity/wind_daily.csv",
-    "wind_xlsx": "inputs/opportunity/data_add.xlsx",
-    "sheet_quote": "收盘价+成交额+换手率",
-    "sheet_valuation": "市盈率+市净率",
-    "y10_csv": "inputs/opportunity/中国_国债到期收益率_10年.csv",
-    "y10_encoding": "gbk",
+    "central_dir": "../../data_center",
+    "increments_csv": "inputs/opportunity/increments.csv",
     "observe_json": "data/curation/opportunity_observe.json"
   },
   "outputs": {

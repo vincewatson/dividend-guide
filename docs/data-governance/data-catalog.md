@@ -159,9 +159,9 @@ ETF代码 | ETF扩位场内简称 | 跟踪指数代码 | 跟踪指数名称 | �
 
 | 文件 | 来源 | 生成脚本 | 频次 | 备注 |
 |---|---|---|---|---|
-| `data/opportunity.json` | Wind 原始导出（`inputs/opportunity/`）+ 引擎计算 | `opportunity_engine.py`（仓库根） | 周更（已并入 `auto_sync_deploy.sh`）| 页面 fetch；另有 `index.html` 内嵌兜底（`embed_data.py` 刷新）|
+| `data/opportunity.json` | **中央库 data_center**（`exports/dividend/`）+ Wind MCP 增量（`fetch_opportunity_inputs.py` → `inputs/opportunity/increments.csv`，并写回中央库）（2026-10-08 起，不再读手工导出）| `opportunity_engine.py`（仓库根）+ `opportunity_central.py` | 周更（已并入 `auto_sync_deploy.sh`）| 页面 fetch；另有 `index.html` 内嵌兜底（`embed_data.py` 刷新）|
 | `data/opportunity_history_monthly.csv` | 同上 | 同上 | 同上 | 2018 年以来每月末机会值与四项机会分 |
-| `inputs/opportunity/*.xlsx`/`*.csv` | 用户从 Wind 导出 | — | 手动 | **不入库、不部署**（根 `.gitignore` + `deploy_cloudflare.sh` 已挡）|
+| `inputs/opportunity/increments.csv` + `.cache/` | Wind MCP 增量缓存与写回中央库队列（不再有手工导出）| `fetch_opportunity_inputs.py`（增量） | 周更 | **不入库、不部署**（根 `.gitignore` + `deploy_cloudflare.sh` 已挡）|
 | `data/curation/opportunity_observe.json` | 用户手工 | — | 手动 | 观察指标，不参与计算；入库 |
 
 > 口径/方法见 `docs/data-governance/opportunity/方法说明.md`；分工见 `docs/data-governance/opportunity/README.md`；取数（若并入流水线）须走 `wind_client.py`。

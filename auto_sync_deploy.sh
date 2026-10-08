@@ -174,7 +174,7 @@ is_weekly_num() { case " $WEEKLY_NUMS " in *" $1 "*) return 0 ;; *) return 1 ;; 
 is_weekly_step() {   # 按 label 判定是否周更档步骤
   case "$1" in
     *sync_fund_divdate.py*--monthly-empty*) return 1 ;;   # 月月空日期补查：日更步骤（须排在下方 fund_divdate 分支之前）
-    *sync_new_etf.py*|*sync_new_reits.py*|*sync_fund_divdate.py*|*sync_lifecycle.py*|*sync_new_hk_etf.py*|*sync_new_monthly.py*|*opportunity_engine.py*)
+    *sync_new_etf.py*|*sync_new_reits.py*|*sync_fund_divdate.py*|*sync_lifecycle.py*|*sync_new_hk_etf.py*|*sync_new_monthly.py*)
       return 0 ;;
     *) return 1 ;;
   esac
@@ -379,20 +379,23 @@ report_event "sync_daily.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步�
 fi
 
 echo ""
-# A股红利机会值引擎（2026-10-08 由 红利机会值/ 并入主站）：周更档运行，读取 inputs/opportunity/ 的
-#   Wind 导出（data_add.xlsx + 10年国债 csv，或优先 wind_daily.csv），产出 data/opportunity.json。
-#   输入缺失 / 引擎失败 → 跳过并保留上一版数据（绝不阻断其它数据与部署）。
-if label_on "opportunity_engine.py"; then
-echo "===== [周更·机会值] A股红利机会值引擎（Wind 导出 → data/opportunity.json）====="
-if [ -f "inputs/opportunity/wind_daily.csv" ] || [ -f "inputs/opportunity/data_add.xlsx" ]; then
-  run_py "opportunity_engine.py" opportunity_engine.py || echo "  ⚠ 机会值引擎失败，保留上一版 data/opportunity.json，下次重试"
+# A股红利机会值（日更档，2026-10-08 起）。数据来自中央库 data_center（exports/dividend/）+ Wind MCP 增量：
+#   ① fetch_opportunity_inputs.py：按「中央库连续覆盖到哪天 → A 股最新交易日」算缺口，把中间缺的交易日**一次补齐**
+#      （不是只取最后一天；缺口上限 120 天，更早的以中央库为准，故跳过一两天再跑也能追平）。无缺口 → 0 次 Wind，约 4–6 次/有缺口。
+#      写 inputs/opportunity/increments.csv，并经 data_center/pipelines/submit.py 写回中央库；
+#   ② opportunity_engine.py：只读中央库 + 本地增量（不再读手工导出）；中央库不完整则报错、保留上一版。
+#   须排在 sync_div_history（日更）之后：000922 股息率直接复用 indexData，不另调 Wind。
+#   取数 / 引擎失败 → 跳过并保留上一版 data/opportunity.json（绝不阻断其它数据与部署）。
+#   2026-10-08（Claude）：日更、周更**任一档都跑**——手动 --weekly 时也会把此前每日缺的交易日一次补齐；无缺口 0 次 Wind。
+if [ "$RUN_DAILY" = "1" ] || [ "$RUN_WEEKLY" = "1" ] || pending_has "opportunity"; then
+echo "===== [机会值·日频] ① Wind 增量取数（自动补齐缺口）+ 写回中央库 ====="
+run_py "fetch_opportunity_inputs.py" fetch_opportunity_inputs.py || echo "  ⚠ 机会值增量取数失败，引擎用已有数据计算，下次重试"
+echo "===== [机会值·日频] ② A股红利机会值引擎（中央库 → data/opportunity.json）====="
+run_py "opportunity_engine.py" opportunity_engine.py || echo "  ⚠ 机会值引擎失败，保留上一版 data/opportunity.json，下次重试"
 else
-  echo "  ⏭ 跳过：inputs/opportunity/ 无输入文件（需从 Wind 导出 data_add.xlsx + 10年国债 csv）"
-  report_event "opportunity_engine.py" skip "inputs/opportunity/ 无 Wind 输入文件"
-fi
-else
-echo "===== [周更] A股红利机会值引擎 — ⏭ 跳过 ====="
-report_event "opportunity_engine.py" skip "周更步骤（本次日更不跑）"
+echo "===== [日更] A股红利机会值（取数 + 引擎）— ⏭ 跳过 ====="
+report_event "fetch_opportunity_inputs.py" skip "日更步骤（本次周更不跑）"
+report_event "opportunity_engine.py" skip "日更步骤（本次周更不跑）"
 fi
 
 echo ""

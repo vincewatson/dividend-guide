@@ -2,8 +2,9 @@
 """
 红利机会值（A股）计算引擎（2026-10-08 由 红利机会值/engine/ 并入主站）
 =========================
-输入：Wind 导出的行情/估值表（inputs/opportunity/data_add.xlsx）+ 10年期国债收益率（CSV），
-     或 inputs/opportunity/wind_daily.csv（由 Wind MCP 生成，存在则优先读它）
+输入：中央数据库 data_center（经 exports/dividend/，见 opportunity_central.py）
+     + 本地增量 inputs/opportunity/increments.csv（fetch_opportunity_inputs.py 经 Wind MCP 取得并写回中央库）
+     2026-10-08 起不再读任何手工导出文件
 输出：data/opportunity.json（站点运行时读取）与 data/opportunity_history_monthly.csv
 
 用法：
@@ -18,7 +19,7 @@
      - 换手率 T：20日均换手率滚动5年分位，取反
   2. 加权：P 55% + S 20% + R 15% + T 10%
   3. 标准化：与加权分自身过去5年的均值/标准差比较，机会值 = 50 + 20 × z，截断在 0–100
-依赖：pandas、openpyxl
+依赖：pandas
 """
 import argparse, json, os, sys, datetime as dt
 import numpy as np
@@ -28,61 +29,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = HERE   # 引擎已并入主站根目录：输入/输出路径均相对仓库根
 
 # ---------------------------------------------------------------- 读数
-def read_block(xls, sheet, c0, names):
-    df = pd.read_excel(xls, sheet_name=sheet, header=None, skiprows=6, usecols=range(c0, c0 + len(names) + 1))
-    df.columns = ["d"] + names
-    df = df[pd.to_datetime(df["d"], errors="coerce").notna()].copy()
-    df["d"] = pd.to_datetime(df["d"])
-    for c in names:
-        df[c] = pd.to_numeric(df[c], errors="coerce")
-    return df.set_index("d").sort_index()
-
-# 标准化 CSV（由 engine/fetch_inputs.py 通过 Wind MCP 生成）列名 → 引擎内部列名
-CSV_COLS = {"hl_close": "close", "hl_turn": "turn", "hl_tr": "tr",
-            "hl_dy": "dy", "wa_dy": "wa_dy", "y10": "y10"}
-CSV_OPTIONAL = {"hl_amt": "amt", "wa_close": "wa_close", "wa_amt": "wa_amt", "wa_turn": "wa_turn"}
-
-def load_csv_inputs(cfg):
-    path = os.path.join(ROOT, cfg["inputs"]["daily_csv"])
-    raw = pd.read_csv(path, encoding="utf-8")
-    miss = [c for c in ["date", *CSV_COLS] if c not in raw.columns]
-    if miss:
-        raise SystemExit(f"❌ {path} 缺少列：{miss}")
-    raw["date"] = pd.to_datetime(raw["date"])
-    raw = raw.set_index("date").sort_index()
-    keep = {**CSV_COLS, **{k: v for k, v in CSV_OPTIONAL.items() if k in raw.columns}}
-    df = raw[list(keep)].rename(columns=keep).apply(pd.to_numeric, errors="coerce")
-    df["y10"] = df["y10"].ffill()
-    return df.dropna(subset=["close"])
-
 def load_inputs(cfg):
-    inp = cfg["inputs"]
-    src = inp.get("source", "auto")
-    csv_ok = "daily_csv" in inp and os.path.exists(os.path.join(ROOT, inp["daily_csv"]))
-    if src == "csv" or (src == "auto" and csv_ok):
-        print(f"· 读取 {inp['daily_csv']}")
-        return load_csv_inputs(cfg)
-    return load_xlsx_inputs(cfg)
-
-def load_xlsx_inputs(cfg):
-    inp = cfg["inputs"]
-    print(f"· 读取 {inp['wind_xlsx']} + {inp['y10_csv']}")
-    path = os.path.join(ROOT, inp["wind_xlsx"])
-    xls = pd.ExcelFile(path)
-    s1, s2 = inp["sheet_quote"], inp["sheet_valuation"]
-    hl = read_block(xls, s1, 0, ["close", "amt", "turn"])
-    tr = read_block(xls, s1, 5, ["tr", "_a", "_t"])[["tr"]]
-    wa = read_block(xls, s1, 10, ["wa_close", "wa_amt", "wa_turn"])
-    v1 = read_block(xls, s2, 0, ["dy", "pe", "pb"])
-    v2 = read_block(xls, s2, 5, ["wa_dy", "wa_pe", "wa_pb"])
-    df = hl.join(tr).join(wa).join(v1).join(v2)
-    y = pd.read_csv(os.path.join(ROOT, inp["y10_csv"]), header=None, skiprows=5,
-                    encoding=inp.get("y10_encoding", "gbk"), names=["d", "y"])
-    y = y[pd.to_datetime(y["d"], errors="coerce").notna()].copy()
-    y["d"] = pd.to_datetime(y["d"]); y["y"] = pd.to_numeric(y["y"], errors="coerce")
-    y = y.set_index("d")["y"].sort_index()
-    df["y10"] = y.reindex(df.index).ffill()
-    df = df.dropna(subset=["close"])
+    """唯一输入源：中央数据库 data_center（经 exports/dividend/）+ 本地增量（Wind MCP，见 opportunity_central.py）。
+    2026-10-08 起不再读手工导出的 Excel/CSV；中央库数据不完整时直接报错退出，流水线保留上一版 data/。"""
+    import opportunity_central as oc
+    inc = os.path.join(ROOT, cfg["inputs"].get("increments_csv", "inputs/opportunity/increments.csv"))
+    long_df, info = oc.combined_long(cfg, inc)
+    df, msg = oc.to_engine_frame(long_df)
+    if df is None:
+        raise SystemExit(f"❌ 中央库输入不完整：{msg}（读取到 {info['central_files'] or '无导出文件'}）")
+    print(f"· 读取中央库 {'+'.join(info['central_files'])} + 本地增量 {info['increment_rows']} 行：{msg}")
     return df
 
 # ---------------------------------------------------------------- 工具
@@ -184,8 +140,11 @@ def build_payload(df, C, cfg):
          "score": round(float(last["T"]), 1), "weight": int(round(w["turnover"] * 100)), "judge": ["up"],
          "calc": "20日均换手率取过去5年滚动分位后反转（换手越低分越高）。"},
     ]
-    wk = pd.DataFrame({"o": s, "p": df["close"]}).loc[p["series_start"]:].resample("W-FRI").last().dropna()
-    dates = [i.strftime("%Y-%m-%d") for i in wk.index]; dates[-1] = last_d.strftime("%Y-%m-%d")
+    # 2026-10-08 用户反馈：图表原为周频（W-FRI），与 compare 的日频取值对不上
+    # （如 2026-07-08 日频=50.1，但图上只画周五点 7/3=57.0、7/10=59.8）
+    # → 改为日频序列：图表与「历史对比」同源，篮框里 1周/1月/3月/1年前 的数值都能在图上精确对上
+    da = pd.DataFrame({"o": s, "p": df["close"]}).loc[p["series_start"]:].dropna()
+    dates = [i.strftime("%Y-%m-%d") for i in da.index]
     obs_path = os.path.join(ROOT, cfg["inputs"]["observe_json"])
     observe = json.load(open(obs_path, encoding="utf-8")) if os.path.exists(obs_path) else []
     return {
@@ -202,7 +161,7 @@ def build_payload(df, C, cfg):
         "bands": backtest_bands(df, C["opp"], p["series_start"]),
         "observe": observe,
         "method": "机会值＝阶段涨跌幅55%（近一年涨跌与偏离年线各半）＋股息率溢价20%＋相对性价比15%＋换手率10%，再与自身过去5年的平均水平比较。等于平均记50分，每高（低）一个标准差加（减）20分。阶段涨跌幅用价格指数，股息率类指标已剔除年度调样跳升。",
-        "series": {"d": dates, "v": [round(float(v), 1) for v in wk["o"]], "p": [int(round(v)) for v in wk["p"]]},
+        "series": {"d": dates, "v": [round(float(v), 1) for v in da["o"]], "p": [int(round(v)) for v in da["p"]]},
     }
 
 def main():

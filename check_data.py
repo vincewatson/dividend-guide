@@ -517,8 +517,8 @@ if _op is not None:
     check('opportunity.json asof 有效日期', _o_asof_ok, str(_op.get('asof')))
     check('opportunity.json 机会值 0–100',
           isinstance(_op.get('score'), (int, float)) and 0 <= _op['score'] <= 100, str(_op.get('score')))
-    check('opportunity.json 序列完整(周频)',
-          len(_o_d) >= 50 and len(_o_d) == len(_o_v) == len(_o_p), '周数=%d' % len(_o_d))
+    check('opportunity.json 序列完整(日频)',
+          len(_o_d) >= 250 and len(_o_d) == len(_o_v) == len(_o_p), '日数=%d' % len(_o_d))
     _o_keys = ('schema', 'index', 'score', 'compare', 'core', 'bands', 'observe', 'method', 'series')
     _o_miss = [k for k in _o_keys if k not in _op]
     check('opportunity.json 字段齐备', not _o_miss, ('缺: %s' % _o_miss) if _o_miss else 'ok')

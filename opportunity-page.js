@@ -9,11 +9,12 @@
 
   var BANDS = [[80, 100, "机会很多", "积极加仓"], [60, 80, "机会较多", "加仓"], [40, 60, "中性区间", "持有"], [20, 40, "机会偏少", "暂停加仓"], [0, 20, "机会很少", "减仓"]];
   var JUDGE = { up: ["up", "上行空间"], dn: ["dn", "下行风险"], rel: ["rel", "相对全A"] };
-  var C = { brand: "#4680FD", red: "#dc2626", idx: "#949494", grid: "#e5e5e5", axis: "#737373", ink: "#000000" };
+  var C = { brand: "#4680FD", red: "#dc2626", green: "#059661", idx: "#949494", grid: "#e5e5e5", axis: "#737373", ink: "#000000" };
   var $ = function (id) { return document.getElementById(id); };
   var r0 = function (v) { return Math.round(v); };
   var bandOf = function (v) { return BANDS.find(function (b) { return v >= b[0] && (v < b[1] || b[1] === 100); }); };
-  var colorOf = function (v) { return v >= 60 ? C.brand : (v >= 40 ? C.ink : C.red); };
+  /* 机会值语义配色（2026-10-08 用户要求，中式习惯「红涨绿跌」）：机会多=红、中性=黑、机会偏少/没什么机会=绿 */
+  var colorOf = function (v) { return v >= 60 ? C.red : (v >= 40 ? C.ink : C.green); };
 
   var years = 3;
   var DATA = (window.opportunityData && window.opportunityData.schema) ? window.opportunityData : null;
@@ -22,13 +23,13 @@
   function render() {
     if (!DATA) return;
     var s = r0(DATA.score), b = bandOf(s);
-    $('oppSub').textContent = '参照指数：' + DATA.index.replace(/([\u4e00-\u9fa5])(\d)/, '$1 $2') + ' · 数据截至' + DATA.asof + ' · 本页信息仅供交流学习之用，不作为投资建议';
-    $('oppUpd').textContent = '更新于' + DATA.asof;
+    $('oppSub').textContent = '参照指数：' + DATA.index.replace(/([\u4e00-\u9fa5])(\d)/, '$1 $2') + ' · 本页信息仅供交流学习之用，不作为投资建议';
+    $('oppUpd').textContent = '数据截至：' + DATA.asof;   /* 2026-10-08 用户要求：由「更新于<日期>」改为「数据截至：<日期>」；页面副标题里不再重复日期 */
     $('oppScore').innerHTML = s + '<small>/100</small>';
     $('oppScore').style.color = colorOf(s);
     var chip = $('oppBand');
-    chip.textContent = b[0] + '–' + b[1] + ' · ' + b[2];
-    chip.style.background = 'rgba(70,128,253,0.1)';
+    chip.textContent = b[0] + '~' + b[1] + ' · ' + b[2];   /* 2026-10-08 用户要求：档位区间分隔由「–」改为「~」 */
+    chip.style.background = 'none';   /* 2026-10-08 用户要求：去掉档位标签的浅蓝底色，仅保留彩色文字 */
     chip.style.color = colorOf(s);
     $('oppAdvice').textContent = b[3];
     $('oppSummary').textContent = DATA.summary;
@@ -39,12 +40,12 @@
     }).join('');
     $('oppCore').innerHTML = DATA.core.map(function (c) {
       return '<tr><td><b>' + c.name + '</b></td><td class="num">' + c.value + '</td>' +
-        '<td><div class="scorebar"><div class="track"><i style="width:' + c.score + '%;background:' + (c.score >= 50 ? C.brand : C.red) + '"></i></div><b class="num">' + r0(c.score) + '</b></div></td>' +
+        '<td><div class="scorebar"><div class="track"><i style="width:' + c.score + '%;background:' + (c.score >= 50 ? C.red : C.green) + '"></i></div><b class="num">' + r0(c.score) + '</b></div></td>' +
         '<td class="col-num num">' + c.weight + '%</td>' +
         '<td>' + c.judge.map(function (j) { return '<span class="tag ' + JUDGE[j][0] + '">' + JUDGE[j][1] + '</span>'; }).join('') + '</td></tr>';
     }).join('');
     $('oppBands').innerHTML = BANDS.map(function (d, i) {
-      var r = DATA.bands[4 - i], now = (d === b), col = d[0] >= 60 ? C.brand : (d[0] >= 40 ? '#949494' : C.red);
+      var r = DATA.bands[4 - i], now = (d === b), col = d[0] >= 60 ? C.red : (d[0] >= 40 ? '#949494' : C.green);
       return '<tr class="' + (now ? 'now' : '') + '"><td><span class="sw2" style="background:' + col + '"></span>' + d[0] + '–' + d[1] + (now ? '（当前）' : '') + '</td>' +
         '<td>' + d[2] + ' · ' + d[3] + '</td>' +
         '<td class="col-num num">' + r[0] + '</td>' +
@@ -93,7 +94,8 @@
     [lo, hi].forEach(function (v) {
       s += '<text x="' + (m.l + iw + 8) + '" y="' + (yp(v) + 4) + '" font-size="14" font-family=\'' + F + '\' fill="' + C.idx + '">' + v + '</text>';
     });
-    var ticks = 5;
+    // 横轴刻度：2026-10-08 用户反馈——手机端窄屏下 4~5 个 YYYY-MM 标签会叠在一起，故手机端最多 3 个
+    var ticks = (window.innerWidth < 768 || W < 560) ? 3 : 5;
     for (var k = 0; k < ticks; k++) {
       var tt = t0 + (t1 - t0) * k / (ticks - 1), dtx = new Date(tt);
       var lab = dtx.getFullYear() + '-' + String(dtx.getMonth() + 1).padStart(2, '0');
