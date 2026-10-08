@@ -176,7 +176,10 @@ def fetch_one(api, key, start, end):
         inner = api.call("economic_data", "query_economic_indicator_data",
                          {"question": "中国国债到期收益率10年", "beginDate": start.isoformat(), "endDate": end.isoformat()})
         return {d: float(v) / 100 for d, v in parse_edb(inner).items() if start.isoformat() <= d <= end.isoformat()}
-    for s, e in segments(start, end):
+    # 自然语言日频查询：区间只含 1 个交易日时 Wind 可能不返回「日期」列（REITs 10-08 实测，见 sync_reits_daily）。
+    # → 起点往前多取 7 天，保证区间 ≥2 个交易日；多取的天数在下面按 start 过滤掉，不重复写回。
+    q_start = start - dt.timedelta(days=7) if how != "kline" else start
+    for s, e in segments(q_start, end):
         if how == "kline":
             inner = api.call("index_data", "get_index_kline",
                              {"windcode": code, "begin_date": s.isoformat(), "end_date": e.isoformat(), "period": "1d"})
@@ -186,7 +189,10 @@ def fetch_one(api, key, start, end):
             q = f"{code} {NAMES[code]} {s.isoformat()}至{e.isoformat()}的{word}历史数据按交易日列出，给出每个交易日的值"
             pts = {d: v / 100 for d, v in parse_nl(api.call("index_data", "get_index_fundamentals", {"question": q}),
                                                  word, code).items()}
-        out.update({d: v for d, v in pts.items() if s.isoformat() <= d <= e.isoformat()})
+        lo = max(s, start).isoformat()
+        out.update({d: v for d, v in pts.items() if lo <= d <= e.isoformat()})
+        if how != "kline" and not pts:
+            print(f"  [⚠️] {code} {metric} {s}~{e} 未解析到数据（可能无「日期」列或措辞漂移）", flush=True)
     return out
 
 

@@ -47,6 +47,7 @@
 
 | 2026-10-08 | `data/hkEtfData.json` `03590.HK` 华夏港高息 | `trackName` / `trackCode` | `富时香港高收益低波动净税指数(净总回报指数)` / 空 → **`富时香港高收益低波动净税指数` / 空**（代码查不到则留空）| 用户指定跟踪指数名称；该富时指数 Wind 取不到代码 | **C（新增保留护栏）**：`03590.HK` 是「表外行」（不在 `hk_etf_pro.json`），`build_lists` 重建时由 hkEtfData 表外行护栏**整行保留**；另在 `sync_wind_fields.update_hk_etf` 增加护栏——**trackCode 为空且已有非空 `trackName` 时不覆盖**（否则每日 Wind 字段刷新会把手值冲掉）；`03145.HK`（彭博）同受益，`trackCode` 均维持留空 | ✅ |
 | 2026-10-08 | （索引）配套记录 | — | backlog 决定 / 文档说明 / changelog | 本次治理落实同时更新 backlog（B-5 决定）、审计文档与变更记录 | **D（仅文档）** | ✅ |
+| 2026-10-08 | `data/indexData.json` + 跟踪它的 `etfData`/`cnEtfData`/`hkEtfData`/`fundData` + curation 源（10 个文件，共 31 处，TRAE 执行）| **HSHYLV.HI** `name`/`fullname`；相关产品 `trackName`；`019260.OF` 名称 | 恒生港股通**高股息低波动**(指数) → 恒生港股通**红利低波动**(指数)；`富国恒生港股通高股息低波动ETF联接A` → `富国恒生港股通红利低波动ETF联接A` | 用户口径：指数已更名 | **D（改清单真源）**：curation 源同步，`build_lists` 重建不回退；ETF `trackName` 由 `sync_wind_fields` 按指数库规范名对齐，不会被 Wind 旧名覆盖。⚠️ 中央库 `fund.product` / `idx.master` 名称不会自动跟改（已有非空字段不覆盖）| ✅ |
 
 > 上表"历史"行 = 代码 `build_lists.py · AUTHORITATIVE_MANUAL` 中既有的权威硬编码值（补登记，非本次新增）。
 > 后续新增手工修订请**追加行**，勿覆盖历史行。
