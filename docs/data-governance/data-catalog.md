@@ -153,6 +153,20 @@ ETF代码 | ETF扩位场内简称 | 跟踪指数代码 | 跟踪指数名称 | �
 - 修改 JSON 简称后，**必须同时更新 `data/curation/` 里对应行的简称**（清单/标注来源），否则下次重建（`build_lists.py`，唯一一次；2026-10-07 起由原第 4/11 步合并）会按 curation 旧值重建并回退。
 - 新 ETF（`sync_new_etf.py` 自动发现）不走 curation 清单，其简称由 `fetch_ext_short_names()` 从 Wind 取「基金扩位场内简称」，已内置，无需人工干预。
 
+## 关联子页面数据 · 红利机会值（A股）（2026-10-08 接入）
+
+> 独立静态子页（`红利机会值/`），iframe 嵌入站内路由 `#/index/opportunity`；**算法与数字由 Claude 的 `engine/` 生成，网页侧不改**。
+
+| 文件 | 来源 | 生成脚本 | 频次 | 备注 |
+|---|---|---|---|---|
+| `红利机会值/data/opportunity.json` | Wind 原始导出（`inputs/`）+ 引擎计算 | `红利机会值/engine/opportunity_engine.py` | 手动（每周一次，暂不自动化）| 供程序读取 |
+| `红利机会值/data/opportunity.js` | 同上 | 同上 | 同上 | 包成 `window.DIVIDEND_OPPORTUNITY`，页面读它 |
+| `红利机会值/data/opportunity_history_monthly.csv` | 同上 | 同上 | 同上 | 2018 年以来每月末机会值与四项机会分 |
+| `红利机会值/inputs/*.xlsx`/`*.csv` | 用户从 Wind 导出 | — | 手动 | **不入库、不部署**（文件夹 `.gitignore` 已挡）|
+| `红利机会值/inputs/observe.json` | 用户手工 | — | 手动 | 观察指标，不参与计算；可入库 |
+
+> 口径/方法见 `红利机会值/docs/方法说明.md`；分工见 `红利机会值/README.md`；取数（若并入流水线）须走 `wind_client.py`。
+
 ## 数据源优先级
 
 **优先使用万得（Wind）数据，不得已才取其他数据源。**

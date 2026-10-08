@@ -175,6 +175,8 @@
 
 ### 目录结构规范
 运行必需留根目录（index.html/package.json/auto_sync_deploy.sh/**deploy_cloudflare.sh**/**preflight.py**/**market_calendar.json**/**functions/**（Pages Functions）/**\_redirects**/**\_headers**/api/studio/blog/data/sync_*.py/**build_lists.py**/backup_db.py/embed_data.py/extract_digests.js）；数据 JSON 在 data/；**原用户 Excel 已归档 `archive/excel-baseline-*/`（不入库）**；备份产物进 backup/；历史演示进 archive/；勿删脚本间互相引用（archive/weekly-feed-2026-09/ 内的 extract_digests.js 被 sync_weekly.py 引用，属归档件；现行日报链路为 sync_daily.py）。
+>
+> **`红利机会值/`（2026-10-08 接入）**：独立静态子页，以 **iframe 嵌入站内路由 `#/index/opportunity`**（子页 `?embed=1` 隐藏自带顶栏并 postMessage 汇报高度），英文别名 `/dividend-opportunity`（见 `_redirects`）。**部署范围**：只有 `红利机会值/index.html` + `红利机会值/data/`（opportunity.js/json/csv）上线；**`inputs/` `engine/` `prompts/` `docs/` 及 `*.md` 均排除**（见 `deploy_cloudflare.sh`）。算法与数字由 Claude 的 `engine/` 生成，**网页侧不改**。
 
 ### 部署（2026-10-03 起：Cloudflare Pages，取代 Vercel）
 

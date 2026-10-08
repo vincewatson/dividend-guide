@@ -38,6 +38,8 @@ rsync -a \
   --exclude='archive' --exclude='backup' --exclude='docs' --exclude='/api' \
   --exclude='prototype' \
   --exclude='data/user' --exclude='user_upload' \
+  --exclude='红利机会值/inputs' --exclude='红利机会值/engine' --exclude='红利机会值/prompts' --exclude='红利机会值/docs' \
+  --exclude='红利机会值/*.md' \
   --exclude='vercel.json' --exclude='.vercelignore' --exclude='.gitignore' --exclude='/*.md' \
   --exclude='/.*' --exclude='/logs' \
   "./" "$DEPLOY_DIR/"

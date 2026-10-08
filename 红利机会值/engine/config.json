@@ -1,0 +1,35 @@
+{
+  "inputs": {
+    "source": "auto",
+    "daily_csv": "inputs/wind_daily.csv",
+    "wind_xlsx": "inputs/data_add.xlsx",
+    "sheet_quote": "收盘价+成交额+换手率",
+    "sheet_valuation": "市盈率+市净率",
+    "y10_csv": "inputs/中国_国债到期收益率_10年.csv",
+    "y10_encoding": "gbk",
+    "observe_json": "inputs/observe.json"
+  },
+  "outputs": {
+    "dir": "data"
+  },
+  "params": {
+    "pct_window": 1250,
+    "pct_min_periods": 750,
+    "map_ret250": [
+      -0.12,
+      0.18
+    ],
+    "map_dev250": [
+      -0.135,
+      0.165
+    ],
+    "weights": {
+      "price": 0.55,
+      "spread": 0.2,
+      "relative": 0.15,
+      "turnover": 0.1
+    },
+    "z_scale": 20,
+    "series_start": "2018-01-01"
+  }
+}
