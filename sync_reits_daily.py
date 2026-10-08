@@ -134,6 +134,11 @@ def fetch_range(code, start, end):
                 d = str(r[3])[:10]
                 if start <= d <= end:
                     out[d] = float(r[2])
+            elif len(r) >= 3 and r[2] is not None:
+                # 2026-10-08：区间仅剩 1 个交易日时 Wind 不返回「日期」列（3 列）→ 无法定位日期。
+                #   调用方已改为「从最后一天起查」规避（见 updates_for）；此处显式告警，避免再次静默丢数据。
+                print('  [⚠️] %s %s~%s 返回无日期列（%d 列），本行未采用'
+                      % (code, start, end, len(r)), flush=True)
     return out
 
 
@@ -160,10 +165,13 @@ def updates_for(code, series, listed, full_mode, today):
         start = listed if listed and listed > BASE_START else BASE_START
         return fetch_since(code, start), 'baseline:' + start
     last = max(series)
-    start = (datetime.date.fromisoformat(last) + datetime.timedelta(days=1)).isoformat()
-    if start <= today:
-        return fetch_since(code, start), 'incr:' + start
-    return {}, 'nochange'
+    if last >= today:
+        return {}, 'nochange'
+    # 2026-10-08 修复：从「最后一天」起查（含 last），而非 last+1。
+    #   原因：Wind 在区间仅含 1 个交易日时不返回「日期」列（只剩 3 列），旧代码 `len(r) >= 4` 会丢弃该行，
+    #   导致单日增量被静默略过（节后首个交易日、以及任何「缺口=1 个交易日」的情形必现）。
+    #   含 last 可保证区间 ≥2 个交易日 → Wind 带上日期列；重取 last 当天值不变，无害。
+    return fetch_since(code, last), 'incr:' + last
 
 
 def rebuild_medians(cache):

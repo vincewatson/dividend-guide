@@ -10,10 +10,10 @@
   "listedDate": "2012-02-10",
   "fee": "0.55%",
   "feeNum": 0.0055,
-  "size": 11.66,
+  "size": 11.78,
   "divDate": "2026-06-23",
   "detailUrl": "https://asset.pingan.com.hk/zh-hk/PACT-PACCHKD",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03110.HK",
@@ -26,26 +26,26 @@
   "listedDate": "2013-06-11",
   "fee": "0.68%",
   "feeNum": 0.0068,
-  "size": 50.26,
+  "size": 50.46,
   "divDate": "2026-03-25",
   "detailUrl": "https://www.globalxetfs.com.hk/zh-hant/funds/hang-seng-high-dividend-yield-etf/",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03145.HK",
   "name": "华夏亚洲高息股",
   "fullname": "华夏亚洲高息股票ETF",
   "connect": false,
-  "trackCode": "",
-  "trackName": "彭博亚太高股息40净回报指数(港元)",
+  "trackCode": "DAAXJP.GI",
+  "trackName": "纳斯达克亚洲(日本除外)高息股票TM指数",
   "manager": "华夏基金(香港)有限公司",
-  "listedDate": "2014-11-13",
+  "listedDate": "2014-11-07",
   "fee": "0.45%",
   "feeNum": 0.0045,
   "size": 13.86,
   "divDate": "2026-07-08",
   "detailUrl": "https://www.chinaamc.com.hk/detail?fundId=HKAHDF&fundName=ChinaAMC-Asia-High-Dividend-ETF&lan=SC",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03190.HK",
@@ -55,13 +55,13 @@
   "trackCode": "HSSSCHD.HI",
   "trackName": "恒生沪深港(特选企业)高股息率",
   "manager": "富邦基金管理(香港)有限公司",
-  "listedDate": "2022-07-08",
+  "listedDate": "2022-06-07",
   "fee": "0.60%",
   "feeNum": 0.006,
-  "size": 6.97,
+  "size": 7.06,
   "divDate": "2026-06-18",
   "detailUrl": "https://www.fubonfund.com.hk/etf3190",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03116.HK",
@@ -77,7 +77,7 @@
   "size": 0.48,
   "divDate": "2026-07-02",
   "detailUrl": "https://www.globalxetfs.com.hk/zh-hant/funds/asia-pacific-high-dividend-yield-etf/",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03437.HK",
@@ -87,13 +87,13 @@
   "trackCode": "931722.CSI",
   "trackName": "国新港股通央企红利",
   "manager": "博时基金(国际)有限公司",
-  "listedDate": "2024-07-10",
+  "listedDate": "2024-07-04",
   "fee": "0.50%",
   "feeNum": 0.005,
-  "size": 7.68,
+  "size": 7.79,
   "divDate": "2026-03-30",
   "detailUrl": "https://www.bosera.com.hk/minisite/CSOEHIDVL/index.html",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03441.HK",
@@ -101,15 +101,15 @@
   "fullname": "南方东英富时东西股票精选ETF",
   "connect": true,
   "trackCode": "CFIIECMA.FI",
-  "trackName": "富时ETF通东西传承股票精选指数",
+  "trackName": "富时ETF通东西传承股票精选指数（净总回报版本）",
   "manager": "南方东英资产管理有限公司",
-  "listedDate": "2025-03-31",
+  "listedDate": "2025-03-25",
   "fee": "0.99%",
   "feeNum": 0.0099,
-  "size": 18.7,
+  "size": 18.75,
   "divDate": null,
   "detailUrl": "https://www.csopasset.com/tc/products/hk-ccew",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03466.HK",
@@ -119,13 +119,13 @@
   "trackCode": "HSHD30.HI",
   "trackName": "恒生高息股30",
   "manager": "恒生投资管理有限公司",
-  "listedDate": "2025-04-02",
+  "listedDate": "2025-04-01",
   "fee": "0.55%",
   "feeNum": 0.0055,
-  "size": 111.45,
+  "size": 112.1,
   "divDate": "2026-07-02",
   "detailUrl": "https://cms.hangsenginvestment.com/cms/hsvm/feature_product/highdiv30/chi.html",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03483.HK",
@@ -135,13 +135,13 @@
   "trackCode": "758918HKDN.MI",
   "trackName": "MSCI亚太地区精选高股息净收益(港币)",
   "manager": "易方达资产管理(香港)有限公司",
-  "listedDate": "2025-09-26",
-  "fee": "0.50%",
-  "feeNum": 0.005,
+  "listedDate": "2025-09-22",
+  "fee": "0.00%",
+  "feeNum": 0.0,
   "size": 5.74,
   "divDate": "2026-03-23",
   "detailUrl": "https://www.efunds.com.hk/products/47/info/",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03469.HK",
@@ -151,13 +151,13 @@
   "trackCode": "HSHYLV.HI",
   "trackName": "恒生港股通高股息低波动",
   "manager": "南方东英资产管理有限公司",
-  "listedDate": "2025-09-30",
+  "listedDate": "2025-09-25",
   "fee": "0.99%",
   "feeNum": 0.0099,
-  "size": 4.58,
+  "size": 4.6,
   "divDate": null,
   "detailUrl": "https://www.csopasset.com/tc/products/hk-cdvd",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03031.HK",
@@ -165,15 +165,15 @@
   "fullname": "Fullgoal恒生港股红利ETF",
   "connect": false,
   "trackCode": "HSHYLV.HI",
-  "trackName": "恒生港股通高股息低波动",
+  "trackName": "恒生港股通高股息低波动指数",
   "manager": "富国资产管理(香港)有限公司",
-  "listedDate": "2026-03-27",
+  "listedDate": "2026-03-23",
   "fee": "0.50%",
   "feeNum": 0.005,
-  "size": 5.41,
+  "size": 5.46,
   "divDate": "2026-07-02",
   "detailUrl": "https://www.fullgoal.com.hk/fundDetail/HKHighDividendETF/index.html",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03488.HK",
@@ -183,13 +183,13 @@
   "trackCode": "CCX50596.WI",
   "trackName": "中诚信港美红利低波(港币净收益)",
   "manager": "惠理基金管理香港有限公司",
-  "listedDate": "2026-03-27",
+  "listedDate": "2026-03-25",
   "fee": "0.90%",
   "feeNum": 0.009,
-  "size": 21.63,
+  "size": 20.37,
   "divDate": null,
   "detailUrl": "https://www.valueetf.com.hk/trad/value-partners-hk-us-dividend-low-volatility-etf-3488.html",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03555.HK",
@@ -203,12 +203,12 @@
   "listedDate": "2026-08-19",
   "fee": "0.75%",
   "feeNum": 0.0075,
-  "size": 1.9,
+  "size": 1.91,
   "shares": 2425,
   "sharesUnit": "万份",
   "divDate": "2026-10-07",
   "detailUrl": "https://www.globalxetfs.com.hk/zh-hant/funds/hang-seng-high-dividend-yield-enhanced-income-etf/",
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  },
  {
   "code": "03590.HK",
@@ -221,8 +221,8 @@
   "listedDate": "2026-09-24",
   "fee": "0.65%",
   "feeNum": 0.0065,
-  "size": 4.05,
+  "size": 4.04,
   "divDate": null,
-  "sizeDate": "2026-10-07"
+  "sizeDate": "2026-10-08"
  }
 ]
