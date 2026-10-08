@@ -84,7 +84,6 @@ html.embed .top-bar{display:none}
 #tip .r{display:flex;align-items:center;gap:6px;color:#404040}
 #tip .r b{margin-left:auto;font-weight:600;color:var(--ink)}
 #tip .sw{width:8px;height:8px;display:inline-block}
-.chart-note{font-size:var(--fs-2xs);color:var(--axis);margin-top:8px}
 
 /* 表格：对齐站点 .index-table */
 .tbl-wrap{overflow-x:auto}
@@ -169,7 +168,6 @@ tr.now td{background:var(--brand-wash)}
         </div>
       </div>
       <div class="chart-wrap"><svg id="chart" role="img" aria-label="红利机会值与中证红利指数走势"></svg><div id="tip" hidden></div></div>
-      <div class="chart-note" id="chartNote"></div>
     </div>
   </section>
 
@@ -256,8 +254,6 @@ function draw(){
   const lv=S.v[n-1]; s+=`<circle cx="${x(n-1)}" cy="${y(lv)}" r="4.5" fill="${C.brand}" stroke="#fff" stroke-width="2"/>`;
   s+=`<line id="hl" y1="${m.t}" y2="${m.t+ih}" stroke="${C.axis}" stroke-dasharray="3 3" visibility="hidden"/><circle id="hd" r="4" fill="${C.brand}" stroke="#fff" stroke-width="2" visibility="hidden"/>`;
   svg.innerHTML=s;
-  const above=S.v.filter(v=>v>=50).length/n*100;
-  $('chartNote').textContent=`区间内：最高${r0(Math.max(...S.v))} · 最低${r0(Math.min(...S.v))} · 高于50的时间占${r0(above)}%`;
   svg.onpointermove=e=>{const r=svg.getBoundingClientRect(), px=(e.clientX-r.left)*(W/r.width); let i=0,best=1e9; for(let k=0;k<n;k++){const dd=Math.abs(x(k)-px); if(dd<best){best=dd;i=k}}
     const hl=svg.querySelector('#hl'), hd=svg.querySelector('#hd'); hl.setAttribute('x1',x(i)); hl.setAttribute('x2',x(i)); hl.setAttribute('visibility','visible'); hd.setAttribute('cx',x(i)); hd.setAttribute('cy',y(S.v[i])); hd.setAttribute('visibility','visible');
     tip.hidden=false; tip.innerHTML=`<div class="d">${S.d[i]}</div><div class="r"><span class="sw" style="background:${C.brand}"></span>红利机会值<b>${r0(S.v[i])}</b></div><div class="r"><span class="sw" style="background:${C.idx}"></span>中证红利<b>${S.p[i]}</b></div>`;
