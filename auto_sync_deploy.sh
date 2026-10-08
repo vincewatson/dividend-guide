@@ -106,8 +106,19 @@ for _a in "$@"; do
   case "$_a" in
     --weekly) MANUAL_WEEKLY=1 ;;
     --daily)  MANUAL_DAILY=1 ;;
+    --deploy) SX_DEPLOY=1 ;;
   esac
 done
+
+# ---- 本地开发模式（2026-10-08 用户要求）----------------------------------------------
+# deploy/LOCAL_MODE 存在 ⇒ 本地模式：数据更新照常跑，但【不部署】，改为把本次更新记进 deploy/待部署清单.md；
+# 用户说「部署」时再统一部署（或本脚本加 --deploy / SX_DEPLOY=1 强制部署）。退出本地模式 = 删除 deploy/LOCAL_MODE。
+LOCAL_MODE=0
+if [ -f "deploy/LOCAL_MODE" ] && [ "${SX_DEPLOY:-0}" != "1" ]; then
+  LOCAL_MODE=1
+  SX_NO_DEPLOY=1
+  echo "[本地模式] deploy/LOCAL_MODE 存在 → 本次不部署，更新内容记入 deploy/待部署清单.md（需要上线时说「部署」，或加 --deploy）"
+fi
 
 # 输出一行：lastWeekly  距今天数  中文星期  是否周末(0/1)  本周末是否已跑过周更(0/1)
 _TIER="$(python3 -c '
@@ -409,6 +420,12 @@ echo ""
 if [ "$SX_NO_DEPLOY" = "1" ]; then
   echo "===== [20/21] 部署到 Cloudflare Pages — ⏭ 跳过（SX_NO_DEPLOY=1）====="
   report_event "部署 deploy_cloudflare" skip "SX_NO_DEPLOY=1（只跑数据）"
+  if [ "$LOCAL_MODE" = "1" ]; then
+    PENDING_MD="deploy/待部署清单.md"
+    [ -f "$PENDING_MD" ] || printf '# 待部署清单\n\n> 本地模式下累积的、尚未上线的改动。正式部署并线上核对后，删除本文件（规则见 deploy/README.md）。\n\n| 时间 | 类型 | 内容 | 涉及文件 |\n|---|---|---|---|\n' > "$PENDING_MD"
+    printf '| %s | 数据更新 | 网站数据更新（档位：%s） | data/*.json、index.html（内嵌兜底数据） |\n' "$(date '+%Y-%m-%d %H:%M')" "${MODE_LABEL:-日更}" >> "$PENDING_MD"
+    echo "[本地模式] 已记入 $PENDING_MD"
+  fi
 else
   echo "===== [20/21] 部署到 Cloudflare Pages ====="
   bash "$(pwd)/deploy_cloudflare.sh"

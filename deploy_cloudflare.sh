@@ -41,7 +41,7 @@ rsync -a \
   --exclude='红利机会值/inputs' --exclude='红利机会值/engine' --exclude='红利机会值/prompts' --exclude='红利机会值/docs' \
   --exclude='红利机会值/*.md' \
   --exclude='vercel.json' --exclude='.vercelignore' --exclude='.gitignore' --exclude='/*.md' \
-  --exclude='/.*' --exclude='/logs' \
+  --exclude='/.*' --exclude='/logs' --exclude='/deploy' \
   "./" "$DEPLOY_DIR/"
 
 echo "== 部署目录抽查 =="

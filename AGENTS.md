@@ -57,3 +57,13 @@
 - **与 data_center 的关系**：**上游**——只读取 `../../data_center/exports/common/*.json`（`hk-etf-list.json` / `fund-liquidated.json`）；写入须经 `data_center/pipelines/submit.py`，project 名 `dividend-guide`
 - **文档惯例**：`reference/` 与 `data-governance/` 为权威；`changelog/` 仅为历史；手工修订登记到 `docs/data-governance/manual-overrides.md`
 - **本项目特有的检查项**：① `check_data.py` 全 ✅ 是**部署硬门槛**；② 清单进出闭环（`data/curation/_retired.json` / `_auto_added.json`）；③ 港交所代码统一 **5 位 + `.HK`**（与中央库 `sec_code` 对齐）；④ 坚果云冲突副本（`*冲突*`）不入库、不部署
+
+## 本地开发模式 · 暂停自动部署（2026-10-08 用户确立）
+
+**`deploy/LOCAL_MODE` 存在期间，所有改动都不部署。** 规则全文见 `deploy/README.md`，要点：
+
+1. 任何任务做完：给用户看**本地页面**（双击 `deploy/本地预览.command`，或本地打开 `http://localhost:8090/`），**不要部署**。
+2. 每完成一项改动，在 `deploy/待部署清单.md` **追加一行**（时间 / 类型 / 用户看得懂的一句话 / 涉及文件）；没有就新建。
+3. 数据更新 `auto_sync_deploy.sh` 在本地模式下自动跳过部署与线上验证，并自动在清单里记一行。
+4. **只有用户明确说“部署”才部署**：复述清单 → `check_data.py` 全通过 → 提交 → `deploy_cloudflare.sh`（或 `auto_sync_deploy.sh --deploy`）→ 逐项线上核对 → 清单内容写入 `docs/changelog/` 当月文件 → **删除 `deploy/待部署清单.md`**。
+5. 退出本地模式 = 删除 `deploy/LOCAL_MODE`（需用户同意）。
