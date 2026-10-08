@@ -31,7 +31,7 @@
 4. **不要运行** data_center 的 `build.py`，除非用户明确要求。它只在 Windows 主构建机上运行。
 5. **本站自己的 `data/` 目录目前仍是网站的数据来源**，本规则不改变现有的取数、同步和部署流程。
 6. **和 data_center 重叠的数据**：红利 ETF、红利指数股息率、利率序列（见 `exports/dividend/`）。修改这几类数据的取数口径时，要同步考虑 data_center。
-7. **已知口径问题**：`cnEtfData.json` 的规模字段没有标注日期，和资管棱镜的数据有出入（见 data_center 的 `docs/build-report.md`）。修改取数脚本时请补上日期字段。
+7. **规模字段已带日期（2026-10-08 更新）**：2026-09-26 起规模字段已补 `sizeDate`（清单来源快照日期 / Wind 取数日期），历史上的「`cnEtfData.json` 规模字段没有标注日期」问题**已修复**。截至 2026-10-08 仅 3 只新 ETF（`158039`/`561650`/`562200`）缺 `sizeDate`（`sync_wind_fields` 下轮补齐）。
 
 ## 数据更新流程重构（2026-10-06 起）
 
@@ -43,3 +43,17 @@
 - Wind 额度保护（2026-10-06）：`wind_guard_cli.mjs`（调用级每日硬上限）+ `run_gate.py`（每日整跑闸，`SX_FORCE_RUN=1` 可强制）。
 - **入口自动判档（2026-10-07 · 按星期 · 北京时间）**：`auto_sync_deploy.sh` 默认按星期自动决定档位——**周一至周五只跑日更；周六/周日同一次运行「日更 + 周更」、只部署一次**；**同一个周末只跑一次周更**（若本周六 0 点后已跑过周更，即 `.run_state.json:lastWeekly ≥ 本周六`，则周日再点只跑日更）；**兜底：距上次周更 > 13 天，不论周几都补跑周更**。手动覆盖：`--weekly` 只跑周更、`--daily` 只跑日更（手动优先）。运行报告开头写明本次档位与原因。
 - **测试与额度规矩（2026-10-07）**：见 `./.trae/rules/project_rules.md`「数据更新 · 测试与额度规矩」——一天最多真实整跑一次；改代码先用模拟/单项检查；不用 `SX_FORCE_RUN=1`（除非用户明确同意）；日更 ≤300 / 周更 ≤650 / 当天合计 ≤1600；开跑前用 1 次最轻调用确认账号可用。
+
+## 治理档案（供 project-governance-review 使用）
+
+- **项目名 / 复盘目录名**：`dividend-guide`（复盘报告写 `Codes/all_coding_projects/_复盘/dividend-guide/<日期>.md`）
+- **主力 Agent 与电脑**：TRAE · Mac；⚠️ Windows 侧 Claude / WorkBuddy 会经坚果云同步同一目录，易产生冲突副本（已在 `.gitignore` 忽略 `*冲突*`）
+- **规则文档**：`.trae/rules/project_rules.md`（Agent 规则）+ `docs/reference/*`（格式 / 口径 / 样式）
+- **误操作记录**：`docs/known-issues.md`（`## N. 标题（日期）` 体例）
+- **数据清单文档**：`docs/data-governance/data-catalog.md` + `docs/data-governance/update-mechanism.md`
+- **数据目录**：`data/`（体检用 `--data data`）
+- **更新方式**：`bash auto_sync_deploy.sh`（入口按【星期·北京时间】自动判「日更 / 周更」）；定时任务 = TRAE「食息指南 - 网站数据更新」`a0479427`（cron `0 15 * * SAT`，Paused，按需手动触发）
+- **部署**：Cloudflare Pages 项目 `dividend-guide`（主域 `divlab.net`）；脚本 `deploy_cloudflare.sh`（wrangler 直传；排除清单见其 rsync `--exclude`）
+- **与 data_center 的关系**：**上游**——只读取 `../../data_center/exports/common/*.json`（`hk-etf-list.json` / `fund-liquidated.json`）；写入须经 `data_center/pipelines/submit.py`，project 名 `dividend-guide`
+- **文档惯例**：`reference/` 与 `data-governance/` 为权威；`changelog/` 仅为历史；手工修订登记到 `docs/data-governance/manual-overrides.md`
+- **本项目特有的检查项**：① `check_data.py` 全 ✅ 是**部署硬门槛**；② 清单进出闭环（`data/curation/_retired.json` / `_auto_added.json`）；③ 港交所代码统一 **5 位 + `.HK`**（与中央库 `sec_code` 对齐）；④ 坚果云冲突副本（`*冲突*`）不入库、不部署

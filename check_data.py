@@ -240,6 +240,49 @@ for fn, keys in _MONTHLY_KEYS.items():
     check(f'{fn} 行结构完整', not miss,
           ('缺字段: %s' % miss[:3]) if miss else f'{len(d)} 行齐备')
 
+# 7d. 清单未含「停用名单」标的（2026-10-08 新增 · 防 _retired.json 的「出」成员被重建带回）。
+#     与「进」机制（表外行护栏 + _auto_added）互为对手方：护栏只保留、停用剔除，此处确认最终 JSON 里
+#     没有任何已停用 code 回灌（022097.OF 这类问题的安全网）。
+try:
+    with io.open(os.path.join(BASE, 'data', 'curation', '_retired.json'), encoding='utf-8') as _rf:
+        _retired = (json.load(_rf) or {}).get('retired') or {}
+except Exception:
+    _retired = {}
+for fn in ('cnEtfData.json', 'hkEtfData.json', 'etfData.json', 'fundData.json',
+           'moneyFundData.json', 'reitsData.json'):
+    d = jload(fn)
+    if not d:
+        continue
+    _hit = [x.get('code') for x in d if x.get('code') in _retired]
+    check(f'{fn} 未含停用名单标的', not _hit,
+          ('仍含: %s' % _hit) if _hit else f'停用名单 {len(_retired)} 项均未回灌')
+
+# 7e. 月月名单「分红日期为空」成员（信息项，**不计入 FAIL**，2026-10-08）。
+#     022097 失守的根因正是「divDate 为空 → 7b 跳过 → 不被察觉」。此处显式列出，提示日更会
+#     用 `sync_fund_divdate --monthly-empty` 补查；连续为空且确无分红时应走人工/停用，而非静默留在名单。
+_any_empty = False
+for fn in ('etfData.json', 'fundData.json'):
+    d = jload(fn) or []
+    _empty = [x.get('code') for x in d if not x.get('divDate')]
+    if _empty:
+        _any_empty = True
+    print('{} {} 分红日期为空成员: {}'.format(
+        'ℹ️' if _empty else '✅', fn,
+        ('%d 只 %s（日更 --monthly-empty 会补查）' % (len(_empty), _empty[:8])) if _empty
+        else '无'))
+if _any_empty:
+    print('   ↳ 提示：空 divDate 成员不参与 7b「超期」判定，需人工确认是否已停止月月分红。')
+
+# 7f. 港交所 ETF 代码格式（5 位 + .HK，与中央库 fund.product.sec_code 对齐，2026-10-08 新增）。
+#     2026-10-08 站内港股代码统一为 5 位；此项防回退（出现 4 位/非 .HK 即报错）。
+_hk_list = jload('hkEtfData.json') or []
+_bad_hk = [x.get('code') for x in _hk_list
+           if x.get('code') and not (str(x.get('code')).endswith('.HK')
+                                     and len(str(x.get('code'))) == 8
+                                     and str(x.get('code'))[:5].isdigit())]
+check('hkEtfData 代码为 5 位.HK', not _bad_hk,
+      '异常: %s' % _bad_hk[:5] if _bad_hk else f'{len(_hk_list)} 只均为 5 位.HK')
+
 # 8. dailyChange 日期（与 divHistory 合并最新一致；跨市场/源差异允许 ≤2 天，2026-10-07 放宽）
 if idx:
     dc_dates = [x.get('dailyDate', '') for x in idx if x.get('dailyDate')]

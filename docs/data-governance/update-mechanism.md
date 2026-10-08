@@ -21,8 +21,10 @@
 ## 标准流程（21 步：步骤 1–2 任务准备 + 步骤 3–21 脚本流水线）
 
 > 编号自 2026-09-19 起统一为**连续 1..20**（原 `0`/`0.1`/`6.5`/`7.5` 与 `0a/0b/0c` 已废除）；**2026-09-26 起新增步骤 13（sync_new_reits 新 REITs 自动发现），编号顺延为连续 1..21**（原 13–20 步整体 +1）。`auto_sync_deploy.sh` 从**步骤 3** 开始打印（步骤 1–2 由任务层在上游完成）。
+>
+> ⚠️ **2026-10-07 重构阶段 3/4 起的两处变化（此处为现行说法，`[N/21]` 为历史编号，连续重编号见 backlog B-5）**：① **`build_lists` 由原来的「步骤 4 + 步骤 11」两次重建合并为「只跑一次」**（置于原第 11 步位置——即 `div_history/daily_change` 之后，assetData 才能取到当日最新 divHistory）；脚本中打印为**无编号的 `[重建]`**，原「步骤 4」「步骤 11」编号已不再出现。② **`fix_laggard_indexes.py` 已删除**，逻辑并入 `sync_div_history.py`（步骤 5 只剩 `sync_div_history`）。
 
-1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 4 build_lists(1) → 5 div_history+fix_laggard → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → 11 build_lists(2)（assetData 取最新）→ 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → **（2026-10-06 起）步骤 13 之后插入一个编号外步骤 `sync_new_monthly`（月月分红名单自动补入：全市场「近 1 年分红次数 ≥ 11」的指数产品，A 类去重）** → 14 fund_divdate（恢复 divDate + 月月名单剔除超期成员）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。（**2026-10-05 起**在步骤 12 之后插入一个**编号外**步骤 `sync_product_quotes`（产品行情快照入库），不计入 1..21；详见下方「产品行情快照库 productQuotes」。**2026-10-06 起**在步骤 13 之后插入编号外步骤 `sync_new_monthly`，详见「月月分红名单『自动补入 + 自动移出』规则」。**2026-10-08 起**在步骤 14 之后插入**编号外·仅日更**步骤 `sync_fund_divdate --monthly-empty`（只补查月月名单中 `divDate` 为空的成员）。）
+1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 5 div_history → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → **重建 build_lists（唯一一次，原第 11 步位置；assetData 取最新）** → 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → **（2026-10-06 起）步骤 13 之后插入一个编号外步骤 `sync_new_monthly`（月月分红名单自动补入：全市场「近 1 年分红次数 ≥ 11」的指数产品，A 类去重）** → 14 fund_divdate（恢复 divDate + 月月名单剔除超期成员）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。（**2026-10-05 起**在步骤 12 之后插入一个**编号外**步骤 `sync_product_quotes`（产品行情快照入库），不计入 1..21；详见下方「产品行情快照库 productQuotes」。**2026-10-06 起**在步骤 13 之后插入编号外步骤 `sync_new_monthly`，详见「月月分红名单『自动补入 + 自动移出』规则」。**2026-10-08 起**在步骤 14 之后插入**编号外·仅日更**步骤 `sync_fund_divdate --monthly-empty`（只补查月月名单中 `divDate` 为空的成员）。）
 
 > **更新前体检（preflight，2026-10-04 新增；不计入 21 步编号）**：`python3 preflight.py` 读取交易日历（根目录 `market_calendar.json`）与本地各 JSON 最新日期，判断 **A股/港股今天是否开盘、各数据域是否已覆盖到最新交易日、建议跑/跳过哪些步骤**，并给出耗时粗估。`auto_sync_deploy.sh` 在步骤 3 前自动执行并打印；按建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`（保守：仅跳过纯 Wind 日频 5–10 + 资讯 16，`build_lists`/校验/部署一律保留）。目的：假期/休市日不空跑全量（如国庆 A股多日休市，多数日频域无新点，可省去一半步骤）。
 
@@ -32,14 +34,14 @@
 
 | 更新对象（文件 · 字段）| 数据来源 | 更新脚本 | 频次 | 触发 / 步骤 |
 |---|---|---|---|---|
-| indexData · divHistory | Wind 指数股息率（日频）| sync_div_history + fix_laggard_indexes | **每次**（增量补最新交易日）| 步骤 5 |
+| indexData · divHistory | Wind 指数股息率（日频）| sync_div_history | **每次**（增量补最新交易日；2026-10-07 起 `fix_laggard_indexes` 已并入本脚本、脚本已删除）| 步骤 5 |
 | indexData · dailyChange / yrChange | Wind 涨跌幅 | sync_daily_change | **每次** | 步骤 6 |
 | productQuotes · 产品行情快照（当日涨跌幅/今年以来回报）| Wind `fund_data.get_fund_price_indicators` | sync_product_quotes | **每次**（按日期【追加】，同日仅补空值、绝不覆盖旧值）| 「月月名单自动补入」之后（**编号外**步骤）|
 | moneyFundData · 头部 7 日年化 | Wind 实时 | sync_money_fund | **每次** | 步骤 7 |
 | yuebaoHistory | Wind 日频 | sync_yuebao_history | **每次**（动态 180 天）| 步骤 8 |
 | assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单）| Wind EDB（国债=Wind 债券发行记录）| sync_asset_macro | **每次** | 步骤 9 |
 | assetHistory · REITs 两类日频 | Wind 日频中位数 | sync_reits_daily | **每次**（增量；**2026-09-26 起覆盖 reitsData.json 全量**，分组由 projectType 推导）| 步骤 10 |
-| cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData / assetData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起；原用户 Excel 快照已弃用）| build_lists（跑两次）| **每周**（`data/curation/` 变更时才变化）| 步骤 4 / 11（「出」由编号外 `sync_lifecycle.py` → `_retired.json` 负责）|
+| cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData / assetData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起；原用户 Excel 快照已弃用）| build_lists（**只跑一次**，2026-10-07 阶段 3 由原「两次」合并）| **每周**（`data/curation/` 变更时才变化）| 重建（唯一一次，原第 11 步位置）；「出」由编号外 `sync_lifecycle.py` → `_retired.json` 负责 |
 | cnEtfData · 新 ETF、indexData · 新指数 | Wind 自动发现 | sync_new_etf | **每次**（检索近 30 天）| 步骤 12 |
 | reitsData · 新 REITs + 空字段补齐 | Wind 自动发现 / 补齐 | sync_new_reits | **每次**（全量检索已上市 REITs；并为字段为空的 REITs 补 分红次数·年化派息率·累计/年化派息额·收盘价，取不到留空不写 0；2026-09-26 起）| 步骤 13 |
 | divDate（fund / etf / cnEtf）**＋ 月月名单剔除超期成员** | Wind 最近分红 | sync_fund_divdate | **每次**（全量重拉；顺带把最近分红早于「上一个月」的 etfData/fundData 成员移出，2026-10-06）| 步骤 14 |
@@ -82,7 +84,7 @@
 1. **新 REITs 发现**：Wind `search_funds` 检索**全部已上市公募 REITs**（代码 508xxx.SH / 180xxx.SZ）→ 对照 `reitsData.json` → 新标的自动补入。核心字段（名称 / 资产类型 / 上市日 / 项目类型＝产权类·特许经营权类）取自 Wind **基金级档案** `get_fund_info`（须用「含项目类型列」的表，排除底层资产明细表）。
 2. **留空不填 0**：新标的的明细字段（分红次数 totalDiv、年化派息率 annualDiv、累计/年化派息额、yield/yieldNum、volatility、prevClose…）本次取不到 → **数值型写 `null`、字符串型写 `''`（不写 0）**，待后续人工/其它脚本补齐。
 3. **联动**：`build_lists.py` 重建 reitsData 时保留 Wind 自动补充的标的（不删 curation 清单外条目）；`auto_sync_deploy.sh` 在 sync_new_etf（步骤 12）后挂载 `sync_new_reits.py`（步骤 13）。
-4. **代码范围**：Wind 若返回 181xxx.SZ 等范围外 REITs（如 181001.SZ 创金合信北京国资公司REIT），脚本会识别并**单独打印、不自动纳入**（需人工确认后放开 `ALLOWED_PREFIX`）。
+4. **代码范围**：沪市 `508xxx.SH`、深市 `18xxxx.SZ`（**含 `180xxx` / `181xxx`**，2026-09-26 用户放开，`ALLOWED_PREFIX = (('SH','508'), ('SZ','18'))`）。范围外的**其它**代码仍会被单独打印、**不自动纳入**（需人工确认后放开 `ALLOWED_PREFIX`）。
 5. **先跑 --dry-run**：`python3 sync_new_reits.py --dry-run` 只打印不写入，核对无误后再正式运行。
 6. **日频覆盖 + 空字段补齐（2026-09-26）**：`sync_reits_daily.py` 的日频覆盖以 `reitsData.json` **全量**为准（分组由 `projectType` 推导，新标的从上市日做基线拉取、之后增量）；`sync_new_reits.py` 会对**字段为空**的 REITs 用 Wind 补齐 累计分红次数 / 年化分红次数 / 单位累计分红 / 单位年化分红 / 年化派息率 / 前收盘价——**只补空值、绝不覆盖；取不到继续留空、不写 0**。`build_lists.py` 已加 reitsData 非 Excel 行保留（同 cnEtfData），避免 Excel 重建清掉自动发现标的。
 
@@ -101,7 +103,7 @@
 2. **调出（自动移出）**：`sync_fund_divdate.prune_stale_monthly`（步骤 14；2026-10-08 起亦在**编号外·仅日更**步骤 `--monthly-empty` 里跑）—— 最近一次分红**早于「上一个月」**（如 2026-10 运行要求 ≥ 2026-09-01）即移出 etfData/fundData，并**同时写入停用名单 `data/curation/_retired.json`**（原因「停止月月分红」、附 `lastDivDate`）；`build_lists` 在**所有**表外行护栏之后按 code 统一剔除，**重建不再带回**；`divDate` 为空者不动（防误删）。**恢复**：`sync_new_monthly` 发现其重新满足「近 1 年分红 ≥ 11 次」时，自动从停用名单移除并恢复入列。
    - 两个月月名单中 **`divDate` 为空的成员**会在运行报告「清单变动」小节列出；**日更**时对它们各补查一次最近分红日期（`sync_fund_divdate --monthly-empty`，计入日更 Wind 额度）。
 3. **防回退**：`build_lists.py` 重建 etfData/fundData 时**保留 curation 清单外的行**（新增表外行护栏，2026-10-06）—— 否则每周整表重建会冲掉自动补入成员；`check_data.py` 第 7b（无超期成员）/ 7c（行结构完整）为部署硬门槛。
-4. **顺序不可调**：`sync_new_monthly` 必须在 step 11 `build_lists(2)` **之后**（产物是表外行，靠护栏保留）、step 14 之前（同轮紧接刷 divDate 并做连续性剔除）。
+4. **顺序不可调**：`sync_new_monthly` 必须在**重建（`build_lists`，唯一一次；原第 11 步位置）之后**（产物是表外行，靠护栏保留）、step 14 之前（同轮紧接刷 divDate 并做连续性剔除）。
 5. **金额字段补空白（2026-10-06）**：自动补入的场外基金**不在 curation 清单内**，其 `annualDivAmt`/`monthlyDivAmt`/`divTotalAmt` 由步骤 15 `sync_wind_fields` **仅在为空/0 时**用 Wind「最新单位年度分红」「最新年度分红总额（亿元）」补齐（**清单行已有值 → 不动**）；口径 `monthlyDivAmt = 年度单位分红 ÷ 年度分红次数(annualDiv)`。此前缺失表现为「有最近分红日、但月均分红 = 0」。
 
 ## 数据更新机制
@@ -115,7 +117,7 @@
 
 ### 防回退机制（在线口径取代清单旧值）
 - **divDate**：build_lists 之后必须重跑 `sync_fund_divdate.py all --force`。
-- **余额宝 7 日年化**：build_asset_data 从 moneyFundData（含 yieldDate）覆盖；sync_money_fund 必须早于 build_lists(2)。
+- **余额宝 7 日年化**：build_asset_data 从 moneyFundData（含 yieldDate）覆盖；sync_money_fund 必须早于重建（build_lists）。
 - **国债**：`BOND_OVERRIDE` 从 assetHistory（Wind 债券发行记录的储蓄国债票面利率）取最新，清单储蓄国债旧值不覆盖。
 - **REITs 两类**：build_lists 特判从 assetHistory 最新日频中位数覆盖。
 - **红利指数**：yield/date 从 divHistory 最新值覆盖（build_lists 跑两次的顺序约束）。
@@ -134,12 +136,15 @@
 - **手工修订通道（2026-09-27 用户约定；2026-10-06 excel-exit P1/P2 升级）**：手工修订**在对话里告知 AI**，由 AI 落到 `data/*.json` 并登记到 `manual-overrides.md` 台账，同时确保该项能扛住 rebuild（落到 `MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / 专用护栏）。**不要直接改最终 JSON 了事**（非白名单字段会被下轮重建覆盖）。**「标注」类现统一来源 = `data/curation/*.json`**（指数详情页/加权附加条件/调整周期/调整生效日、港ETF详情页/互联互通、港股红利税系数、每月千元投入、博客内容标签/相关指数）；P1 后 `build_lists.py`/`sync_blog.py` **只读 curation、不再读飞书表/标注 Excel**；**清单**亦于 P2 改读 curation（`build_lists.py` 已不读任何 xlsx）—— 至此彻底脱离 Excel（见 `excel-exit-plan.md`）。
 - **新增 Wind 自动字段时的检查清单**：① 写入方在 step 11 之前还是之后？② 之前 → 必须在 `build_lists` 加保留护栏或在 step 11 之后重放；③ 之后 → 确认该文件不被后续步骤重建。
 
-### 清单「出」机制 · 停用名单 `_retired.json`（2026-10-06 新增）
-- **范围**：境内红利ETF / 港交所红利ETF / REITs / 货币基金 四类清单。
-- **港交所红利ETF 的判据 = 中央数据库「港交所上市 ETF」全量名单**（与「策略魔方」同源）：名单冻结在 `data/curation/_hk_etf_universe.json`（451 只，由**会话内 MCP** 从中央库 `fund.product` 导出：`SELECT security_id FROM fund.product WHERE sec_type='ETF' AND security_id LIKE '%.HK'`）；标的**不在**该名单 ⇒ 退市/终止 ⇒ 停用。该文件缺失时**自动退回**抓 aastocks 港股 ETF 列表（`default.aspx`，全量代码内嵌 HTML，实测约 450 个）作后备；两路失败则跳过，绝不误判。
-- **其余三类（境内红利ETF/REITs/货币基金）的判据 = Wind「基金到期日」≤ 今天** ⇒ 已结束 ⇒ 移出。⚠️ **不可**按「非空即出」——公募 REITs 运作中也有**未来**的「到期日」（成立日 + 合约存续期，实测 `180101.SZ`=2071-06-07、`508000.SH`=2056-06-07），按「非空」判定会**误杀全部 REITs**。约 28 天节流（`SX_LIFECYCLE_DAYS`）。
-- **实现**：编号外步骤 `sync_lifecycle.py`（置于**步骤 3 之后、步骤 4 之前**）；命中即写入 `data/curation/_retired.json`；`build_lists.py` 重建时**在全部「表外行护栏」之后**统一剔除该名单的 code（确保停用标的不会被重新并入）。**历史数据不删**，仅移出展示清单；**删条目即恢复**。
-- **说明**：港交所ETF 之所以不走 Wind，是因为 Wind 未返回其「到期日」（仅「存续期」）——故改用 aastocks 列表比对。
+### 清单「出」机制 · 停用名单 `_retired.json`（2026-10-06 新增；2026-10-07 判据升级）
+- **范围**：境内红利ETF / 港交所红利ETF / REITs / 月月分红ETF（etfData）/ 指数基金月月分红（fundData）/ 货币基金 六类清单。
+- **① 清盘名单（中央数据库导出）＝ 境内红利ETF / 货币基金 / 月月分红ETF / 指数基金月月分红 的判据**：数据源 `../../data_center/exports/common/fund-liquidated.json`（全市场已清盘名单，用户在 data_center 点「更新数据库」生成；2026-10-07 21:01 已到位）。**按代码前 6 位比对**，命中 ⇒ 已清盘 ⇒ **立即移出**（reason=「已清盘（中央数据库）」、source=`central-db-liquidated`）。文件缺失 ⇒ 该项跳过并打印（绝不误判）。
+- **② 港交所红利ETF 的判据 = 中央数据库「港交所上市 ETF」全量名单**（与「策略魔方」同源）：优先读 `../../data_center/exports/common/hk-etf-list.json`；缺失时**回退**本地冻结副本 `data/curation/_hk_etf_universe.json`（451 只，由**会话内 MCP** 从中央库 `fund.product` 导出）；再缺则退回抓 aastocks 港股 ETF 列表（`default.aspx`）。标的**不在**名单 ⇒ 退市/终止 ⇒ 停用。两路都失败则跳过，绝不误判。
+- **③ REITs 仍用 Wind「基金到期日」≤ 今天** ⇒ 已结束 ⇒ 移出。⚠️ **不可**按「非空即出」——公募 REITs 运作中也有**未来**的「到期日」（成立日 + 合约存续期，实测 `180101.SZ`=2071-06-07、`508000.SH`=2056-06-07），按「非空」判定会**误杀全部 REITs**。约 28 天节流（`SX_LIFECYCLE_DAYS`）。
+- **安全阀**：清盘名单命中 ⇒ **立即**移出；其它判据（REITs 到期日已过、港股不在名单）需**连续两次运行都命中**才真正移出，第一次仅在运行报告「清单变动」标「待观察」（观察计数存仓库根 `.lifecycle_state.json`，不入库）。
+- **实现**：编号外步骤 `sync_lifecycle.py`（置于**步骤 3 之后、流水线首个取数步骤之前**）；命中即写入 `data/curation/_retired.json`；`build_lists.py` 重建时**在全部「表外行护栏」之后**统一剔除该名单的 code（确保停用标的不会被重新并入）。**历史数据不删**，仅移出展示清单；**删条目即恢复**。
+- **月月分红「停止」语义**：步骤 14 `sync_fund_divdate.prune_stale_monthly`（及编号外·仅日更的 `--monthly-empty`）判定停止月月分红者，也写入本名单（reason=「停止月月分红」、附 `lastDivDate`）；`sync_new_monthly` 发现其恢复满足「近 1 年分红 ≥ 11 次」时自动从名单删除并复列。
+- **说明**：港交所 ETF 之所以不走 Wind，是因为 Wind 未返回其「到期日」（仅「存续期」）——故改用中央库 / aastocks 列表比对。
 
 ### 清单「进」机制 · 新上市红利港ETF 发现 `sync_new_hk_etf.py`（2026-10-06 新增）
 - **范围**：港交所红利ETF 清单（`hkEtfData`）的「进」= 新上市的**红利类**港 ETF。
@@ -194,7 +199,7 @@
    - 强制再跑：`SX_FORCE_RUN=1 bash auto_sync_deploy.sh`；上限可调 `SX_MAX_FULL_RUNS`。
    - 同时打印当日 Wind 用量（读 `.wind_calls_<date>`）。
 3. **按档位的每日预算 + 断点续跑 —— `wind_client.py`（2026-10-07 新增，重构阶段 1）**
-   - 统一 Wind 入口在调用级闸之内再加**按档位预算**：**日更默认 300 次 / 周更默认 800 次**（`SX_WIND_BUDGET` 可调；档位由 `SX_WIND_MODE` 决定）。
+   - 统一 Wind 入口在调用级闸之内再加**按档位预算**：**日更默认 300 次 / 周更默认 650 次**（`SX_WIND_BUDGET` 可调；档位由 `SX_WIND_MODE` 决定）。**（2026-10-07 将周更默认由 800 下调为 650，与 `.trae/rules/project_rules.md` 的「日更 ≤300 / 周更 ≤650 / 当天合计 ≤1600」一致。）**
    - 当日该档位调用数 ≥ 预算 → **拒绝**后续调用（返回 rc=3 合成结果），并把当前步骤记入 `.wind_pending.json`；脚本走「保留旧值」路径**安全降级**。
    - **先补 pending**：`auto_sync_deploy.sh` 开头读取 pending，本次**无论档位都先跑**这些步骤（读后清空）。
    - 档位：**日更**（日常日频数据）/ **周更**（仅周级步骤：分红日期、生命周期、新 REITs/新 ETF/港 ETF、月月发现）；备份/校验/内嵌（17/18/19）两档都跑。

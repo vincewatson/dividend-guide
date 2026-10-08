@@ -25,7 +25,7 @@
 
 ## B-2. 清单进出机制：两条「中央库数据源」路径待实测（2026-10-07 立项）
 
-- **现状**：2026-10-07 已实现——清盘判据改读 `../../data_center/exports/common/fund-liquidated.json`（按代码**前 6 位**比对），港股 ETF 名单改读 `../../data_center/exports/common/hk-etf-list.json`（缺失时回退冻结的 `data/curation/_hk_etf_universe.json`）。但这两个导出文件**当前尚不存在**（需在 data_center 点「更新数据库」生成），两条路径只走了「文件缺失 → 跳过 / 回退」分支，**未做真实命中测试**。
+- **现状**：2026-10-07 已实现——清盘判据改读 `../../data_center/exports/common/fund-liquidated.json`（按代码**前 6 位**比对），港股 ETF 名单改读 `../../data_center/exports/common/hk-etf-list.json`（缺失时回退冻结的 `data/curation/_hk_etf_universe.json`）。**（2026-10-08 复核更新）这两个导出文件已于 2026-10-07 21:01 生成到位**（`fund-liquidated.json` 287 KB、`hk-etf-list.json` 92 KB），但两条路径仍**未做真实命中测试**——`sync_lifecycle` 仅在周更运行，下次周更（或手动 `sync_lifecycle.py --dry-run`）即可实测命中/回退行为。
 - **风险**：命中逻辑（前 6 位匹配、文件字段结构、港股中央名单结构）未在真实数据上验证；中央库导出结构与预期不符时可能**静默不生效**。
 - **目标**：文件到位后各跑一次**单项验证（不调用 Wind）**：① 令 `fund-liquidated.json` 命中一只在册标的，确认写入 `_retired.json`（原因「已清盘（中央数据库）」）且被 `build_lists` 剔除；② 确认港股名单确实取自中央库而非冻结文件。
 - **触发时机**：用户点「更新数据库」生成 `fund-liquidated.json` / `hk-etf-list.json` 之后。
@@ -46,3 +46,11 @@
 - **目标**：评估将其从日更移到周更；需先确认无日频依赖（无字段被日更下游即时使用）。挪走后日更预计降至 **~80 次**左右。
 - **触发时机**：下一次调整日更 / 周更步骤边界时。
 - **验收**：挪动后日更 Wind 次数下降、`check_data` ✅、与挪动前数据除日期外无意外差异。
+
+## B-5. 流水线步骤重新连续编号（重构收尾，2026-10-08 立项）
+
+- **现状**：`auto_sync_deploy.sh` 自 2026-10-07 重构阶段 3 起，`build_lists` 由原「第 4 + 第 11 步」两次重建**合并为只跑一次**（脚本中打印为**无编号的 `[重建]`**），`fix_laggard_indexes.py` **已删除**（并入 `sync_div_history.py`）。但脚本的打印标签仍是历史的 `[N/21]`（实际只剩 17 个编号步骤 + 若干编号外步骤），`preflight.py` 内部仍以「步骤 11」代表重建；`update-mechanism.md` / `weekly-update-checklist.md` / TRAE 自动化任务 里也残留「步骤 4 / 11」历史说法。文档已在 2026-10-08 治理复盘中逐一改为「重建（唯一一次，原第 11 步位置）」，但**编号本身未重排**。
+- **风险**：`[N/21]` 分母与真实编号步骤数不符，读者易误数；跨文档引用步骤号时需带「历史编号」注解，长期易混。
+- **目标**：按 `update-redesign.md`「实施顺序 · 收尾：步骤重新连续编号」，一次性重排为**连续 1..N**（含编号外步骤的明确标注），同步改 `auto_sync_deploy.sh` 打印标签 + 顶部注释、`preflight.py` 的 `STEP_TIME`/`STEP_NAME`/`_TIMING_LABEL_STEP`、`update-mechanism.md`「标准流程」与频次表、`weekly-update-checklist.md` B1、TRAE 定时任务指令。**属纯展示编号改动，不动任何取数逻辑**。
+- **触发时机**：下次较大改动流水线顺序 / 步骤集合时；或用户要求时。
+- **验收**：`bash -n auto_sync_deploy.sh` 通过；`preflight.py` 正常输出；全仓库 `grep '\[.*/21\]'` 0 残留；docs/任务/脚本三处步骤表逐条一致；`SX_NO_DEPLOY=1` 跑一轮确认打印顺序与文档一致。

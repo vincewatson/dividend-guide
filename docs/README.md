@@ -25,7 +25,7 @@
 | 文件 | 内容 |
 |---|---|
 | [data-catalog.md](data-governance/data-catalog.md) | 数据矩阵（文件→来源→脚本→保护）、数据文件清单、各数据域来源明细、数据源优先级、指数币种变体归并、口径模糊 / 数据重复问题的标准处理范式 |
-| [update-mechanism.md](data-governance/update-mechanism.md) | 三条铁律、标准流程（21 步）、**更新频次总表（数据→来源→脚本→频次）**、新 ETF / 新指数自动发现、数据更新机制（增量优先 / 防回退 / 离线保障 / 上传区 / 目录规范）|
+| [update-mechanism.md](data-governance/update-mechanism.md) | 三条铁律、标准流程（**原 21 步；2026-10-07 起 `build_lists` 合并为一次、`fix_laggard_indexes` 已删**）、**更新频次总表（数据→来源→脚本→频次）**、新 ETF / 新指数自动发现、数据更新机制（增量优先 / 防回退 / 离线保障 / 上传区 / 目录规范）|
 | [wind-query-tips.md](data-governance/wind-query-tips.md) | Wind 拉取经验清单（拉取前 / 中 / 出错纪律 / 落地优化 / 08-16 实测补充）|
 | [manual-overrides.md](data-governance/manual-overrides.md) | **手工修订台账**——用户在对话里告知的手工修正登记处 + 落地方式（防重建冲掉）｜2026-09-27 建 |
 
@@ -50,4 +50,4 @@
 > - **步骤 2 · 确认自动任务执行逻辑**：核对「食息指南网站数据更新」定时任务与 `auto_sync_deploy.sh` 的步骤数、顺序、脚本清单是否与 `data-governance/update-mechanism.md` 一致；发现不一致先修正脚本/任务，再执行更新。顺序固定：**修订文档 → 确认逻辑 → 才允许开始数据同步**（脚本流水线从**步骤 3 语法预检**起）。
 > - 变更执行后，在 `changelog/` 对应月份文件追加一条记录（| 日期 | 变更 | 验证/要点 |）。
 >
-> 完整 21 步清单见 `data-governance/update-mechanism.md`「标准流程（21 步）」或 `runbooks/weekly-update-checklist.md` B1。
+> 完整步骤清单见 `data-governance/update-mechanism.md`「标准流程」或 `runbooks/weekly-update-checklist.md` B1。⚠️ **2026-10-07 重构阶段 3/4 起**：`build_lists` 由原「第 4 + 第 11 步」两次重建**合并为只跑一次**（脚本中打印为无编号的 `[重建]`）；`fix_laggard_indexes.py` **已删除**（逻辑并入 `sync_div_history.py`）。

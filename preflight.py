@@ -55,7 +55,7 @@ WEEKLY_EXTRA = [                                    # 编号外周级步骤（la
 STEP_NAME = {
     3: "语法预检", 5: "股息率 div_history", 6: "涨跌幅 daily_change",
     7: "货基 money_fund", 8: "余额宝 yuebao_history", 9: "宏观 asset_macro",
-    10: "REITs reits_daily", 11: "重建数据 build_lists", 12: "新ETF/指数 new_etf",
+    10: "REITs reits_daily", 11: "重建数据 build_lists（唯一一次）", 12: "新ETF/指数 new_etf",
     13: "新REITs new_reits", 14: "分红日 fund_divdate", 15: "Wind字段 wind_fields",
     16: "食息资讯 sync_daily", 17: "备份 backup_db", 18: "校验 check_data",
     19: "内嵌 embed_data", 20: "部署 deploy_cloudflare", 21: "线上验证",
@@ -304,7 +304,7 @@ def build(today, mode="daily"):
     else:
         lists_note = "清单/标注（curation）无更新" + ("" if cur_mt else "／未找到")
         lists_new = False
-    add("清单/标注类(7 文件重建)", "4/11", None, None, "event", lists_note)
+    add("清单/标注类(7 文件重建)", "重建", None, None, "event", lists_note)
 
     # ------------------------------------------------------------------
     # 汇总：可跳过 / 需执行
@@ -403,7 +403,7 @@ def print_report(rep):
     else:
         print("  （周更仅跑周级步骤；日更步骤由日常运行负责）")
     if rep["lists_new"]:
-        print("  🔸 清单/标注（data/curation）有更新 → 步骤 4/11（重建数据）需重跑以套用")
+        print("  🔸 清单/标注（data/curation）有更新 → 重建（`build_lists`，唯一一次；原第 4/11 步已合并）需重跑以套用")
     _src = "含上次实测，随运行自动更新" if rep.get("measured") else "粗估，可能偏大（尚无实测记录）"
     print("  预计耗时：约 %d 分 %d 秒（%s；已跳过 %d 个可跳步骤）"
           % (rep["total_time"] // 60, rep["total_time"] % 60, _src, len(rep["skip"])))

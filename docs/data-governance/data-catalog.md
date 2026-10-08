@@ -10,7 +10,7 @@
 
 | 数据文件 | 数据源 | 更新脚本 | 覆盖范围规则 | 写回保护 |
 |----------|--------|----------|--------------|----------|
-| indexData.json（divHistory）| Wind 指数股息率日频 | sync_div_history.py + fix_laggard | 增量补到最新交易日（2023-01 起全量）；fix_laggard 单查补缺口（**日频查询 + 合并**，2026-09-13 修订）| **绝不删除**（跳过做占位 + 写回兜底）|
+| indexData.json（divHistory）| Wind 指数股息率日频 | sync_div_history.py | 增量补到最新交易日（2023-01 起全量）；缺口由本脚本**日频查询 + 合并**补（2026-09-13 修订；2026-10-07 起 `fix_laggard_indexes` 已并入本脚本、脚本已删除）| **绝不删除**（跳过做占位 + 写回兜底）|
 | indexData.json（dailyChange）| Wind 涨跌幅 | sync_daily_change.py | 每日最新交易日 | 仅更新两字段；**存小数**（-0.0204=-2.04%）|
 | productQuotes.json（产品行情快照）| Wind `fund_data.get_fund_price_indicators` | **sync_product_quotes.py** | 各 ETF/基金【按日期追加】快照（当日涨跌幅 / 今年以来回报）；新交易日追加、同日仅补空值 | **只追加不覆盖**（历史永久保留）；**独立文件**，不受 build_lists 整表重建；缺数据写 `null`（前端「—」）；**绝不跨取跟踪指数**（2026-10-05）；位置=「月月名单自动补入」之后（2026-10-06 后移，使新补入产品同轮取到行情）|
 | indexData.json（新指数）| Wind（自动发现）| sync_new_etf.py | 新 ETF 跟踪指数缺失时补入 | 自动纳入，含 divHistory |
@@ -19,14 +19,14 @@
 | reitsData.json（新 REITs）| Wind（自动发现）| sync_new_reits.py | 全部已上市公募 REITs（508xxx.SH / 180xxx.SZ）对照补入；明细字段本次取不到**留空不填 0**（数值 null / 字符串 ''）| 与 curation 重建合并去重（build_lists 保留 Wind 自动发现标的，2026-09-26 起）|
 | etfData/fundData（月月名单**新增**成员）| Wind `search_funds` 全市场检索（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly.py** | 每次自动补入（2026-10-06 起；编号外步骤，位于 step 13 后）| 与 curation 重建合并去重（build_lists 保留表外行，2026-10-06 起）|
 | divDate | Wind 最近分红 | sync_fund_divdate.py | 全量重拉 | 无数据保留原值；**必须在 build_lists 之后**；措辞**多路兜底**（最近分红情况→最近分红发放日期→基金分红 分红发放日）|
-| moneyFundData（yield7d/yieldDate）| Wind 实时 | sync_money_fund.py | 最新交易日 | 重建时保留 yieldDate；**必须早于 build_lists(2)** |
+| moneyFundData（yield7d/yieldDate）| Wind 实时 | sync_money_fund.py | 最新交易日 | 重建时保留 yieldDate；**必须早于重建（build_lists，唯一一次）** |
 | yuebaoHistory.json | Wind 日频 | sync_yuebao_history.py | **动态：divHistory 最早日期向前 180 天** | 每段重试 3 次 + 写回前与现有文件**合并**兜底（2026-09-13 加固，防瞬时失败丢段）|
 | assetHistory.json | Wind EDB + 中指季度报告 | sync_asset_macro.py + sync_reits_daily.py | 各序列全量；REITs 两类为**日频增量**；重点50城租金率为**中指季度时点序列**（用户/季度报告更新，asset_macro 保留现有值）| safe_fetch：拉取空保留旧值；asset_macro 不覆盖 REITs 与重点50城租金率 |
 | reitsDaily.json | Wind REITs 日频原始缓存（89 只逐只）| sync_reits_daily.py | **增量缓存**（每只续补新段 → 汇总两类中位数 → 写 assetHistory）| 纯缓存，可从 Wind 重建；断点续传落盘处 |
 | dailyData.json | digest-db.json（坚果云同步，稳定机器接口）| sync_daily.py | 最新一期前置 | 独立 |
 | dailyTagColors.json | digest-db.json → meta.tagColors | sync_daily.py | 10 标签浅底/深字配色，前端直接复用 | 独立 |
 | blogData.json（博客 · 子弹列车文章目录）| **仓库内 curation JSON**（`data/curation/blog_articles.json` 文章清单 + `data/curation/blog_annotations.json` 内容标签/相关指数，按 url 合并）—— 原为用户 `user_upload/公众号历史文章*.xlsx` + `博客文章标注表*.xlsx`，2026-10-06 excel-exit P1 已冻结迁移 | **手动**（`sync_blog.py`：读 curation → 按链接去重 + 空格规范；**已不再依赖 Excel**）| 目标 = 公众号历史文章全量目录（当前 **289 篇**，含付费 **2** 篇；已标注内容标签 **114** 篇 / 相关指数 **86** 篇，其余留空待补；相关指数为 Wind 指数简称，前端按站点 `indexData` 匹配，命中者标蓝并可跳转其指数代码）| 独立（不参与自动流水线）|
-| etfData/fundData/cnEtfData/hkEtf/indexData（Wind 化字段）| Wind get_fund_financials / get_index_fundamentals | **sync_wind_fields.py** | 步骤 15，在 build_lists(2)（步骤 11）之后（不被覆盖）| **fundCount/yrChange/divDate/yield=指数股息率 均保护**；N 前缀摘除不恢复（fix_n_prefix + build_lists 保护）|
+| etfData/fundData/cnEtfData/hkEtf/indexData（Wind 化字段）| Wind get_fund_financials / get_index_fundamentals | **sync_wind_fields.py** | 步骤 15，在**重建（build_lists，唯一一次）**之后（不被覆盖）| **fundCount/yrChange/divDate/yield=指数股息率 均保护**；N 前缀摘除不恢复（fix_n_prefix + build_lists 保护）|
 
 ## 数据文件清单（data/）
 
@@ -149,7 +149,7 @@ ETF代码 | ETF扩位场内简称 | 跟踪指数代码 | 跟踪指数名称 | �
 
 ### 防回退要点
 
-- 修改 JSON 简称后，**必须同时更新 `data/curation/` 里对应行的简称**（清单/标注来源），否则下次 `build_lists.py`（每周步骤 4/11）会按 curation 旧值重建并回退。
+- 修改 JSON 简称后，**必须同时更新 `data/curation/` 里对应行的简称**（清单/标注来源），否则下次重建（`build_lists.py`，唯一一次；2026-10-07 起由原第 4/11 步合并）会按 curation 旧值重建并回退。
 - 新 ETF（`sync_new_etf.py` 自动发现）不走 curation 清单，其简称由 `fetch_ext_short_names()` 从 Wind 取「基金扩位场内简称」，已内置，无需人工干预。
 
 ## 数据源优先级

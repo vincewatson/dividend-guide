@@ -6,6 +6,8 @@
 #   ↑ 步骤编号：[3/21] 语法预检 + [5..21/21]；步骤 1–2（修订文档/确认逻辑）由任务层完成；
 #     原 [4/21] build_lists(1) 与 [11/21] build_lists(2) 合并为**一次** build_lists（置于原第 11 步位置，
 #     以确保 assetData 取到当日最新 divHistory，同时「新名单/分红日期/字段」等仍在其后更新）。
+#     ⚠️ 打印标签沿用历史 [N/21]（原第 4 步已取消、无第 11 步标签；实际编号步骤 17 个）；
+#        连续重编号见 docs/backlog.md B-5。fix_laggard_indexes.py 已删除（逻辑并入 sync_div_history.py）。
 # 顺序关键点（防复发）：
 #   - 步骤 3：全部 .py 语法预检（防 // 注释类错误）
 #   - build_lists **只跑一次**（原第 11 步位置）：在 div_history/daily_change 之后、rebuild 后 assetData 取最新 divHistory/yieldDate；
