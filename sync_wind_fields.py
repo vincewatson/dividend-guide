@@ -25,6 +25,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+import lifecycle_common as lc  # 港股代码 5 位→4 位（hk_wind；Wind 港股查询用 4 位）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 BATCH = 5          # 基金批量查询数量
 FC_BATCH = 4       # 指数批量查询数量（4 个/批更稳）
@@ -500,13 +501,16 @@ def update_hk_etf():
     updated = 0
     _iname = _index_name_map()   # trackCode → 站内指数规范名（ETF.trackName 须与之对齐）
     batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
-    queries = [' '.join('%s %s' % (x['code'], x.get('fullname') or x['name']) for x in b) +
+    # 2026-10-08：站内港股代码为 5 位（'03070.HK'），Wind 查询须用 4 位（'3070.HK'）
+    #   → 问句与返回码比对一律经 lc.hk_wind() 转换/归一，否则全部港ETF 取不到数据。
+    queries = [' '.join('%s %s' % (lc.hk_wind(x['code']) or x['code'], x.get('fullname') or x['name']) for x in b) +
                ' 这些基金的基金成立日 管理费率 基金规模合计 跟踪指数名称' for b in batches]
     results = _prefetch(queries)
     for bi, (batch, tbs) in enumerate(zip(batches, results)):
         by_code = _rows_by_code(tbs)
         for x in batch:
-            hit = by_code.get(x['code'])
+            _wcode = lc.hk_wind(x['code']) or x['code']
+            hit = by_code.get(_wcode) or by_code.get(x['code'])
             if not hit:
                 print('  [—] %s 无数据' % x['code'])
                 continue
@@ -543,8 +547,9 @@ def update_hk_etf():
             _tn = str(_tn).strip() if _tn else ''
             _canon = _iname.get(x.get('trackCode') or '')
             if _canon:
-                _tn = _canon      # 站内指数库为准：ETF 跟踪指数名须与指数库一致（2026-10-05 用户：与指数信息打通）
-            upd('trackName', _tn or None)
+                upd('trackName', _canon)   # 站内指数库为准：trackCode 命中指数库 → 用规范名（2026-10-05）
+            elif not (x.get('trackName') or '').strip():
+                upd('trackName', _tn or None)   # 2026-10-08：trackCode 为空且已有非空 trackName（多为手工修订）→ **不覆盖**，保住 manual-overrides
             if chg:
                 updated += 1
                 print('  [OK] %s (%d 字段)' % (x['code'], chg))

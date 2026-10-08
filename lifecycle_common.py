@@ -306,6 +306,22 @@ def hk_site(v):
     return ('%05d.HK' % int(n)) if n else ''
 
 
+def hk_wind(v):
+    """港交所代码 → **Wind 查询**形式（4 位 + .HK）。
+
+    2026-10-08：站内港股代码统一为 5 位（与中央库 sec_code 对齐），但 Wind 的
+    港股查询代码是 **4 位**（'03070.HK' → '3070.HK'）。凡把站内 hkEtfData 的 code
+    拿去调 Wind 的地方，一律先经本函数转换；写回站点数据时再用 hk_site() 转回 5 位。
+
+    '03070.HK' / '3070.HK' / '3070' → '3070.HK'；非 .HK 或取不到 → ''（调用方回退原值）。
+    """
+    s = str(v or '').strip().upper()
+    if not s.endswith('.HK'):
+        return ''
+    n = hk_num(s)
+    return ('%04d.HK' % int(n)) if n else ''
+
+
 # ── 清盘名单（fund-liquidated.json）────────────────────────────────────────
 def load_liquidated_codes():
     """读取中央库清盘名单 → (set_of_code6, 导出说明)。

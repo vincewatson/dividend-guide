@@ -34,6 +34,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(BASE, 'data')
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+import lifecycle_common as lc  # 港股代码 5 位↔4 位转换（hk_wind / hk_num）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 QUOTES_FILE = os.path.join(DATA, 'productQuotes.json')
 
@@ -130,9 +131,26 @@ def _parse_price_table(inner):
     return out
 
 
+def _wind_code(c):
+    """站点代码 → Wind 查询代码：港股 5 位转 4 位（'03070.HK'→'3070.HK'），其余原样。"""
+    return lc.hk_wind(c) or c
+
+
+def _code_key(c):
+    """代码归一键：港股按数字归一（4/5 位互通），其余原样 —— 用于把 Wind 返回码映射回站点码。"""
+    s = str(c or '').strip()
+    n = lc.hk_num(s) if s.upper().endswith('.HK') else ''
+    return 'HK:' + n if n else s
+
+
 def call_wind_batch(codes):
-    """批量拉取。返回 {code: (date, daily, yr)}；None 表示整批失败（调用方回退单只）。"""
-    q = json.dumps({'windcode': ','.join(codes), 'indexes': INDEXES}, ensure_ascii=False)
+    """批量拉取（codes 为**站点代码**）。返回 {site_code: (date, daily, yr)}；None 表示整批失败（调用方回退单只）。
+
+    2026-10-08：站内港股代码为 5 位（'03070.HK'），Wind 查询须用 4 位（'3070.HK'）→
+    发送前经 _wind_code() 转换；Wind 返回码再按数字归一映射回站点码（4/5 位互通）。
+    """
+    winds = [_wind_code(c) for c in codes]
+    q = json.dumps({'windcode': ','.join(winds), 'indexes': INDEXES}, ensure_ascii=False)
     for attempt in range(4):
         try:
             r = wind_client.run(
@@ -148,8 +166,19 @@ def call_wind_batch(codes):
             text = outer['content'][0]['text']
             if '没找到' in text:
                 return {}
-            parsed = _parse_price_table(json.loads(text))
-            return parsed
+            parsed = _parse_price_table(json.loads(text))     # 键 = Wind 返回码
+            lookup = {}
+            for k, v in parsed.items():
+                lookup.setdefault(str(k).strip(), v)          # 原样（Wind 返回什么就按什么）
+                lookup.setdefault(_code_key(k), v)            # 数字归一（4/5 位互通）
+            out = {}
+            for site in codes:
+                v = lookup.get(str(site).strip())
+                if v is None:
+                    v = lookup.get(_code_key(site))
+                if v is not None:
+                    out[site] = v
+            return out
         except Exception:
             time.sleep(5)
     return None

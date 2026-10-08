@@ -1,6 +1,265 @@
 {
  "schema": "auto_added: { <code>: {addedDate,list,reason,source} }",
  "note": "清单「进」机制（2026-10-07）：sync_new_etf / sync_new_reits / sync_new_hk_etf(--add) / sync_new_monthly 自动补入成功后登记于此；build_lists.py 读取本文件，把其中 code 并入各清单的「表外行保留」护栏（防每周整表重建冲掉自动发现的成员）。**本文件入库（不 gitignore）**。",
- "updatedAt": "",
- "added": {}
+ "updatedAt": "2026-10-08 11:14",
+ "added": {
+  "158023.OF": {
+   "addedDate": "2026-10-08",
+   "list": "cnEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "158039.OF": {
+   "addedDate": "2026-10-08",
+   "list": "cnEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "159083.OF": {
+   "addedDate": "2026-10-08",
+   "list": "cnEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "561650.OF": {
+   "addedDate": "2026-10-08",
+   "list": "cnEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "562150.OF": {
+   "addedDate": "2026-10-08",
+   "list": "cnEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "562180.OF": {
+   "addedDate": "2026-10-08",
+   "list": "cnEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "562200.OF": {
+   "addedDate": "2026-10-08",
+   "list": "cnEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "03555.HK": {
+   "addedDate": "2026-10-08",
+   "list": "hkEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "03590.HK": {
+   "addedDate": "2026-10-08",
+   "list": "hkEtf",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "021583.OF": {
+   "addedDate": "2026-10-08",
+   "list": "fund",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "022325.OF": {
+   "addedDate": "2026-10-08",
+   "list": "fund",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "021375.OF": {
+   "addedDate": "2026-10-08",
+   "list": "fund",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "180305.SZ": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "180306.SZ": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "180503.SZ": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "180605.SZ": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "180606.SZ": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "180607.SZ": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "180901.SZ": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "181001.SZ": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508016.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508020.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508029.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508030.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508039.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508050.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508055.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508059.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508060.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508078.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508080.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508082.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508084.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508085.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508087.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508090.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508091.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508092.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508093.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508600.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508601.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508602.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  },
+  "508603.SH": {
+   "addedDate": "2026-10-08",
+   "list": "reits",
+   "reason": "backfill-2026-10-08",
+   "source": "backfill"
+  }
+ }
 }

@@ -67,7 +67,8 @@
 - `divCount/size/shares/holders`：② 快照；空值 `—`。
 
 ### 港交所红利ETF（hkEtfData.json）
-- `connect/trackCode/trackName`：① 用户手动（修订 Wind 缺失）；`divDate` 港股 Wind 不支持，保留 Excel 值；其余 ② 快照。
+- **代码约定（2026-10-08）**：站点存储 **5 位 + `.HK`**（与中央库 `sec_code` 对齐）；**调 Wind 用 4 位**（`03070.HK`→`3070.HK`，经 `lifecycle_common.hk_wind()`），写回用 `hk_site()` 转回 5 位。
+- `connect/trackCode/trackName`：① 用户手动（修订 Wind 缺失；如 `03145.HK` 彭博、`03590.HK` 富时——`trackCode` 均留空）；`divDate` 港股 Wind 不支持，保留 Excel 值；其余 ② 快照。
 
 ### 月月分红 ETF/场外基金（etfData/fundData.json）
 

@@ -45,5 +45,9 @@
 | 2026-10-07 | `data/hkEtfData.json` + `data/curation/hk_etf_pro.json`（**全部港股 ETF**，14 / 12 条）| `code` / `ETF代码` | 4 位 `3070.HK` → **5 位 `03070.HK`**（与中央库 `fund.product.sec_code` 对齐）| 用户口径：站内港股数据统一 5 位、与中央数据库保持一致 | **D（改清单真源 + 代码归一）**：清单真源 `hk_etf_pro.json` 直接改 5 位；`build_lists.build_hk_etf_data` 增 `hk_code5()` 归一；`sync_new_hk_etf` 比对/判重改按 `hk_num()` 数字归一（否则会把 13 只全误判为新标的）、写入用 `hk_site()` | ✅ |
 | 2026-10-08 | `data/curation/monthly_fund.json` + `data/fundData.json`（**移出** `022097.OF 长城中证红利低波100ETF联接A`）| 整条记录（从「月月分红基金」名单移除）| 在名单（`divDate` 为空；官方最近分红 2026-07-21）→ 移出 | 用户：官方最近分红 2026-07-21，已不满足月月分红 | **C（停用名单机制）**：写入 `data/curation/_retired.json`（`reason`「停止月月分红」、`lastDivDate` 2026-07-21）；`build_lists` 在所有护栏之后按 code 剔除，重建不再带回；`sync_new_monthly` 在其恢复正常（近 1 年 ≥11 次）时自动移出停用名单并恢复 | ✅ |
 
+| 2026-10-08 | `data/hkEtfData.json` `03590.HK` 华夏港高息 | `trackName` / `trackCode` | `富时香港高收益低波动净税指数(净总回报指数)` / 空 → **`富时香港高收益低波动净税指数` / 空**（代码查不到则留空）| 用户指定跟踪指数名称；该富时指数 Wind 取不到代码 | **C（新增保留护栏）**：`03590.HK` 是「表外行」（不在 `hk_etf_pro.json`），`build_lists` 重建时由 hkEtfData 表外行护栏**整行保留**；另在 `sync_wind_fields.update_hk_etf` 增加护栏——**trackCode 为空且已有非空 `trackName` 时不覆盖**（否则每日 Wind 字段刷新会把手值冲掉）；`03145.HK`（彭博）同受益，`trackCode` 均维持留空 | ✅ |
+| 2026-10-08 | （索引）配套记录 | — | backlog 决定 / 文档说明 / changelog | 本次治理落实同时更新 backlog（B-5 决定）、审计文档与变更记录 | **D（仅文档）** | ✅ |
+
 > 上表"历史"行 = 代码 `build_lists.py · AUTHORITATIVE_MANUAL` 中既有的权威硬编码值（补登记，非本次新增）。
 > 后续新增手工修订请**追加行**，勿覆盖历史行。
+> 配套记录：backlog 决定、文档说明、变更记录（changelog）见对应文档，本台账只作索引，权威值仍以落地的 JSON/代码为准。

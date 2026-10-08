@@ -54,3 +54,4 @@
 - **目标**：按 `update-redesign.md`「实施顺序 · 收尾：步骤重新连续编号」，一次性重排为**连续 1..N**（含编号外步骤的明确标注），同步改 `auto_sync_deploy.sh` 打印标签 + 顶部注释、`preflight.py` 的 `STEP_TIME`/`STEP_NAME`/`_TIMING_LABEL_STEP`、`update-mechanism.md`「标准流程」与频次表、`weekly-update-checklist.md` B1、TRAE 定时任务指令。**属纯展示编号改动，不动任何取数逻辑**。
 - **触发时机**：下次较大改动流水线顺序 / 步骤集合时；或用户要求时。
 - **验收**：`bash -n auto_sync_deploy.sh` 通过；`preflight.py` 正常输出；全仓库 `grep '\[.*/21\]'` 0 残留；docs/任务/脚本三处步骤表逐条一致；`SX_NO_DEPLOY=1` 跑一轮确认打印顺序与文档一致。
+- **用户决定（2026-10-08）**：**不单独安排**，**下次改动时顺手一起做**（并入下一次对流水线的较大改动）。

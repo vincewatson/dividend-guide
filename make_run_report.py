@@ -159,6 +159,34 @@ def main():
     else:
         lines.append('（无）')
 
+    # 港ETF 行情快照覆盖（2026-10-08）：日更 sync_product_quotes 应给全部港ETF 取到行情。
+    #   背景：港股代码 4→5 位后未转回 4 位调 Wind → 全部取不到；本次修复后此处应「全覆盖」。
+    lines.append('')
+    lines.append('### 港ETF 行情快照覆盖（productQuotes）')
+    _hkcodes = []
+    try:
+        with io.open(os.path.join(BASE, 'data', 'hkEtfData.json'), encoding='utf-8') as _f:
+            _hkcodes = [x.get('code') for x in (json.load(_f) or [])
+                        if isinstance(x, dict) and x.get('code')]
+    except Exception:
+        _hkcodes = []
+    _q = {}
+    try:
+        with io.open(os.path.join(BASE, 'data', 'productQuotes.json'), encoding='utf-8') as _f:
+            _q = (json.load(_f) or {}).get('quotes') or {}
+    except Exception:
+        _q = {}
+    _last = {c: ((_q.get(c) or [{}])[-1].get('date') or '') for c in _hkcodes}
+    _maxd = max(_last.values()) if _last and any(_last.values()) else ''
+    _cov = [c for c in _hkcodes if _last.get(c) == _maxd and _maxd]
+    _miss = [c for c in _hkcodes if c not in _cov]
+    if not _hkcodes:
+        lines.append('- （未找到 hkEtfData.json）')
+    else:
+        lines.append('- 港ETF **%d/%d** 只有最新快照（最新快照日 %s）%s' % (
+            len(_cov), len(_hkcodes), _maxd or '—',
+            '' if not _miss else '；缺：' + '、'.join(_miss)))
+
     os.makedirs(LOGS_DIR, exist_ok=True)
     out = os.path.join(LOGS_DIR, 'update-%s.md' % now.strftime('%Y%m%d-%H%M'))
     with io.open(out, 'w', encoding='utf-8') as f:
