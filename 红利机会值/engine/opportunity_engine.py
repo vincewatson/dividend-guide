@@ -171,13 +171,17 @@ def build_payload(df, C, cfg):
     spread = row.dy - row.y10
     core = [
         {"name": "阶段涨跌幅", "value": f"近一年{sgn(last.p250*100)}｜偏离年线{sgn(last.dev*100)}",
-         "score": round(float(last.P), 1), "weight": int(round(w["price"] * 100)), "judge": ["up", "dn"]},
+         "score": round(float(last.P), 1), "weight": int(round(w["price"] * 100)), "judge": ["up", "dn"],
+         "calc": "中证红利价格指数：近250日涨跌幅（−12%→100，+18%→0）与偏离250日均线（−13.5%→100，+16.5%→0）各半。"},
         {"name": "股息率溢价", "value": f"{spread:.2f}pct（{row.dy:.2f}%−{row.y10:.2f}%）",
-         "score": round(float(last.S), 1), "weight": int(round(w["spread"] * 100)), "judge": ["dn"]},
+         "score": round(float(last.S), 1), "weight": int(round(w["spread"] * 100)), "judge": ["dn"],
+         "calc": "中证红利股息率（近12个月，剔除每年12月调样跳升）− 10年期国债收益率，取过去5年滚动分位。"},
         {"name": "相对性价比", "value": f"红利/全A股息率{row.dy / row.wa_dy:.2f}倍",
-         "score": round(float(last.R), 1), "weight": int(round(w["relative"] * 100)), "judge": ["dn", "rel"]},
+         "score": round(float(last.R), 1), "weight": int(round(w["relative"] * 100)), "judge": ["dn", "rel"],
+         "calc": "中证红利股息率（剔除调样跳升）÷ 万得全A股息率，取过去5年滚动分位。"},
         {"name": "换手率", "value": f"20日均{last.turn20:.2f}%",
-         "score": round(float(last["T"]), 1), "weight": int(round(w["turnover"] * 100)), "judge": ["up"]},
+         "score": round(float(last["T"]), 1), "weight": int(round(w["turnover"] * 100)), "judge": ["up"],
+         "calc": "20日均换手率取过去5年滚动分位后反转（换手越低分越高）。"},
     ]
     wk = pd.DataFrame({"o": s, "p": df["close"]}).loc[p["series_start"]:].resample("W-FRI").last().dropna()
     dates = [i.strftime("%Y-%m-%d") for i in wk.index]; dates[-1] = last_d.strftime("%Y-%m-%d")

@@ -113,6 +113,9 @@ tr.now td{background:var(--brand-wash)}
 .sec-head h2{display:inline-flex;align-items:center}
 .footnote{border-top:1px solid var(--line-soft);margin-top:8px;padding-block:24px 12px;font-size:var(--fs-2xs);color:var(--muted);line-height:1.6;display:grid;gap:4px}   /* 2026-10-08 用户要求：底部内边距 32→12px。实测首页末段(.asset-table)margin-bottom=12px → 附注到页脚净距与首页一致（12 + 页脚 margin-top 40 = 52；此前 32px 明显过远）*/
 .footnote p{margin:0}
+.footnote .calc-group{font-weight:700;color:var(--body);margin-top:6px}   /* 2026-10-08：底部「指标说明」分「核心/观察」两组，逐项列出计算口径 */
+.footnote .calc-list{display:grid;gap:3px}
+.footnote .calc-list .l b{color:var(--body);font-weight:600}
 </style>
 
 <header class="top-bar">
@@ -187,12 +190,16 @@ tr.now td{background:var(--brand-wash)}
   <section>
     <div class="sec-head"><h2>观察指标<button type="button" class="hint" aria-label="说明" aria-describedby="h-obs">i<span class="hint-tip" role="tooltip" id="h-obs">这些指标对未来行情的预测力不足，不计入机会值，但适合用来解释当前行情。</span></button></h2></div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>指标</th><th>最新值</th><th>表征事项</th></tr></thead>
+      <thead><tr><th>指标</th><th>最新值</th><th>指标说明</th></tr></thead>
       <tbody id="obs"></tbody></table></div>
   </section>
 
   <footer class="footnote">
     <p id="method"></p>
+    <p class="calc-group">核心指标计算口径（计入机会值）</p>
+    <div id="calcCore" class="calc-list"></div>
+    <p class="calc-group">观察指标计算口径（不计入机会值）</p>
+    <div id="calcObs" class="calc-list"></div>
   </footer>
 </main>
 
@@ -223,6 +230,8 @@ function render(){
     return `<tr class="${now?'now':''}"><td><span class="sw2" style="background:${col}"></span>${d[0]}–${d[1]}${now?'（当前）':''}</td><td>${d[2]} · ${d[3]}</td><td class="col-num num">${r[0]}</td><td class="col-num num" style="color:${r[1]>=0?'#dc2626':'#059661'}">${r[1]>=0?'+':'−'}${Math.abs(r[1]).toFixed(1)}%</td><td class="col-num num">${r[2]}%</td><td class="col-num num">−${Math.abs(r[3]).toFixed(1)}%</td></tr>`}).join('');
   $('obs').innerHTML=DATA.observe.map(o=>`<tr><td><b>${o.name}</b></td><td class="num">${o.value}</td><td class="muted">${o.note}</td></tr>`).join('');
   $('method').textContent='指标说明：'+DATA.method;
+  $('calcCore').innerHTML=DATA.core.map(c=>`<span class="l"><b>${c.name}</b>：${c.calc||''}</span>`).join('');
+  $('calcObs').innerHTML=DATA.observe.map(o=>`<span class="l"><b>${o.name}</b>：${o.calc||''}</span>`).join('');
 }
 let years=3;
 function slice(){const S=DATA.series; if(!years) return S; const last=new Date(S.d[S.d.length-1]); const from=new Date(last); from.setFullYear(last.getFullYear()-years);
