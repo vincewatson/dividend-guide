@@ -20,7 +20,7 @@
   --base:#15A877; --idx:#949494;
   --up:#dc2626; --down:#059661;
   --font:Arial,-apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC','Helvetica Neue','Microsoft YaHei',sans-serif;
-  --fs-2xs:12px; --fs-base:14px; --fs-lg:20px; --fs-xl:22px;
+  --fs-2xs:14px; --fs-base:14px; --fs-lg:20px; --fs-xl:22px;   /* 2026-10-08 用户要求：本页 12px 文字统一升为 14px（hint 弹框 12px 为 .hint-tip 硬编码，不受影响）*/
   --pad-row:18px; --pad-row-tb:11px; --content-max:1280px; --page-pad:28px; --r-ctl:6px;
 }
 *{box-sizing:border-box}
@@ -63,9 +63,9 @@ html.embed .top-bar{display:none}
 .cmp small{font-size:var(--fs-2xs);color:var(--muted)}
 
 /* 图卡：对齐站点详情页图表卡 */
-.chart-card{border:1px solid var(--line-soft);padding:20px}
+.chart-card{padding:0}   /* 2026-10-08 用户要求：取消「历史机会值」面板外框与内边距，使图表与下方各节内容左对齐 */
 .chart-header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
-.chart-title{font-size:16px;font-weight:600;color:#171717}
+.chart-title{font-size:var(--fs-lg);font-weight:700;letter-spacing:-0.02em;color:var(--ink)}   /* 2026-10-08 用户要求：字号与「核心指标」(sec-head h2) 一致 */
 .chart-update{font-size:var(--fs-2xs);color:var(--axis)}
 .chart-legend{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 8px}
 .legend-items{display:flex;gap:16px;flex-wrap:wrap}
@@ -78,7 +78,7 @@ html.embed .top-bar{display:none}
 .range button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
 .chart-wrap{position:relative}
 #chart{display:block;width:100%;height:320px}
-@media (max-width:767px){#chart{height:300px}.chart-card{padding:16px 12px}.chart-legend{flex-direction:column;align-items:stretch}.range{width:100%}.range button{flex:1 1 0}}
+@media (max-width:767px){#chart{height:300px}.chart-legend{flex-direction:column;align-items:stretch}.range{width:100%}.range button{flex:1 1 0}}
 #tip{position:absolute;top:8px;pointer-events:none;background:#fff;border:1px solid var(--grid);border-radius:6px;box-shadow:0 2px 8px rgba(70,128,253,0.12);padding:8px 10px;font-size:var(--fs-2xs);min-width:150px}
 #tip .d{color:var(--faint);margin-bottom:4px}
 #tip .r{display:flex;align-items:center;gap:6px;color:#404040}
@@ -111,7 +111,7 @@ tr.now td{background:var(--brand-wash)}
 .hint:hover .hint-tip,.hint:focus .hint-tip,.hint[aria-expanded="true"] .hint-tip{visibility:visible;opacity:1}
 @media (prefers-reduced-motion:reduce){.hint-tip{transition:none}}
 .sec-head h2{display:inline-flex;align-items:center}
-.footnote{border-top:1px solid var(--line-soft);margin-top:8px;padding-block:24px 32px;font-size:var(--fs-2xs);color:var(--muted);line-height:1.6;display:grid;gap:4px}
+.footnote{border-top:1px solid var(--line-soft);margin-top:8px;padding-block:24px 0;font-size:var(--fs-2xs);color:var(--muted);line-height:1.6;display:grid;gap:4px}   /* 2026-10-08 用户要求：去掉底部 32px 内边距，使附注到页脚的间距与首页一致（仅剩父级 --page-pad 28px）*/
 .footnote p{margin:0}
 </style>
 

@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.161">
+<meta name="app-version" content="v0.1.162">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -527,6 +527,7 @@
   .detail-chart-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
   .detail-chart-title { display: flex; align-items: center; gap: 6px; font-size: var(--fs-lg); font-weight: 600; color: #171717; }
   .detail-chart-title .hint, .detail-info-row .hint { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #949494; background: #fff; color: #767676; font: italic 700 11px/1 Georgia,'Times New Roman',serif; display: inline-flex; align-items: center; justify-content: center; cursor: help; position: relative; vertical-align: middle; margin-left: 4px; flex-shrink: 0; }  /* 复用「A股红利机会值」页 hint 样式（2026-10-08）*/
+  .detail-chart-title .hint:hover, .detail-chart-title .hint:focus-visible, .detail-info-row .hint:hover, .detail-info-row .hint:focus-visible { border-color: #4680FD; color: #4680FD; outline: none; }  /* 2026-10-08 用户要求：hover 变蓝，与「A股红利机会值」页 .hint 一致 */
   /* 提示气泡 */
   .detail-chart-title .hint .hint-tip, .detail-info-row .hint .hint-tip { display: none; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); max-width: min(300px, 68vw); width: max-content; min-width: 150px; padding: 8px 10px; background: #fff; border: 1px solid #e5e5e5; border-radius: 6px; box-shadow: 0 2px 8px rgba(70,128,253,0.12); color: #404040; font: 400 12px/1.6 Arial, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif; z-index: 200; text-align: left; white-space: normal; }  /* 复用「A股红利机会值」页提示气泡：浅色卡片（2026-10-08）；用 font 简写重置字体族/字形，避免弹出文字继承 .hint 的斜体宋体（2026-10-08 用户反馈）*/
   .detail-chart-title .hint .hint-tip::after, .detail-info-row .hint .hint-tip::after { content: none; }  /* 2026-10-08：复用浅色气泡后不再用深色小箭头 */
