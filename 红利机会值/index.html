@@ -111,7 +111,7 @@ tr.now td{background:var(--brand-wash)}
 .hint:hover .hint-tip,.hint:focus .hint-tip,.hint[aria-expanded="true"] .hint-tip{visibility:visible;opacity:1}
 @media (prefers-reduced-motion:reduce){.hint-tip{transition:none}}
 .sec-head h2{display:inline-flex;align-items:center}
-.footnote{border-top:1px solid var(--line-soft);margin-top:8px;padding-block:24px 0;font-size:var(--fs-2xs);color:var(--muted);line-height:1.6;display:grid;gap:4px}   /* 2026-10-08 用户要求：去掉底部 32px 内边距，使附注到页脚的间距与首页一致（仅剩父级 --page-pad 28px）*/
+.footnote{border-top:1px solid var(--line-soft);margin-top:8px;padding-block:24px 12px;font-size:var(--fs-2xs);color:var(--muted);line-height:1.6;display:grid;gap:4px}   /* 2026-10-08 用户要求：底部内边距 32→12px。实测首页末段(.asset-table)margin-bottom=12px → 附注到页脚净距与首页一致（12 + 页脚 margin-top 40 = 52；此前 32px 明显过远）*/
 .footnote p{margin:0}
 </style>
 
@@ -235,10 +235,10 @@ function draw(){
   const F='Arial,"Helvetica Neue",Helvetica,sans-serif';
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
   let s=`<defs><clipPath id="ab"><rect x="${m.l}" y="${m.t}" width="${iw}" height="${y(50)-m.t}"/></clipPath><clipPath id="be"><rect x="${m.l}" y="${y(50)}" width="${iw}" height="${m.t+ih-y(50)}"/></clipPath></defs>`;
-  [0,20,40,60,80,100].forEach(v=>{s+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${y(v)}" y2="${y(v)}" stroke="${C.grid}" stroke-dasharray="${v===20||v===80?'4 4':''}"/><text x="${m.l-8}" y="${y(v)+4}" text-anchor="end" font-size="12" font-family='${F}' fill="${C.axis}">${v}</text>`});
-  [lo,hi].forEach(v=>{s+=`<text x="${m.l+iw+8}" y="${yp(v)+4}" font-size="12" font-family='${F}' fill="${C.idx}">${v}</text>`});
+  [0,20,40,60,80,100].forEach(v=>{s+=`<line x1="${m.l}" x2="${m.l+iw}" y1="${y(v)}" y2="${y(v)}" stroke="${C.grid}" stroke-dasharray="${v===20||v===80?'4 4':''}"/><text x="${m.l-8}" y="${y(v)+4}" text-anchor="end" font-size="14" font-family='${F}' fill="${C.axis}">${v}</text>`});
+  [lo,hi].forEach(v=>{s+=`<text x="${m.l+iw+8}" y="${yp(v)+4}" font-size="14" font-family='${F}' fill="${C.idx}">${v}</text>`});
   const ticks=5; for(let k=0;k<ticks;k++){const tt=t0+(t1-t0)*k/(ticks-1), dt=new Date(tt), lab=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`, xx=m.l+(tt-t0)/(t1-t0)*iw;
-    s+=`<text x="${xx}" y="${H-6}" text-anchor="${k===0?'start':(k===ticks-1?'end':'middle')}" font-size="12" font-family='${F}' fill="${C.axis}">${lab}</text>`}
+    s+=`<text x="${xx}" y="${H-6}" text-anchor="${k===0?'start':(k===ticks-1?'end':'middle')}" font-size="14" font-family='${F}' fill="${C.axis}">${lab}</text>`}
   const pts=S.v.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '), area=`${m.l},${y(50)} ${pts} ${x(n-1)},${y(50)}`;
   s+=`<polygon points="${area}" fill="${C.brand}" fill-opacity="0.14" clip-path="url(#ab)"/><polygon points="${area}" fill="${C.brand}" fill-opacity="0.06" clip-path="url(#be)"/>`;
   s+=`<polyline points="${S.p.map((v,i)=>`${x(i).toFixed(1)},${yp(v).toFixed(1)}`).join(' ')}" fill="none" stroke="${C.idx}" stroke-width="1.2" stroke-linejoin="round"/>`;
