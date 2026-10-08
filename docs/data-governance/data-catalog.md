@@ -69,6 +69,7 @@
 ### 港交所红利ETF（hkEtfData.json）
 - **代码约定（2026-10-08）**：站点存储 **5 位 + `.HK`**（与中央库 `sec_code` 对齐）；**调 Wind 用 4 位**（`03070.HK`→`3070.HK`，经 `lifecycle_common.hk_wind()`），写回用 `hk_site()` 转回 5 位。
 - `connect/trackCode/trackName`：① 用户手动（修订 Wind 缺失；如 `03145.HK` 彭博、`03590.HK` 富时——`trackCode` 均留空）；`divDate` 港股 Wind 不支持，保留 Excel 值；其余 ② 快照。
+- **管理规模来源（2026-10-08 口径确认）**：规模由 `sync_wind_fields.update_hk_etf` 写入本站 `data/hkEtfData.json` 的 `fundSize`（+ `sizeDate` 取数日期）；**中央库 data_center 今后直接读取本站 `hkEtfData.json` 的规模，站内不再通过 `submit_data` 推送港股 ETF 规模**（站内历史上也无该推送脚本）。
 
 ### 月月分红 ETF/场外基金（etfData/fundData.json）
 

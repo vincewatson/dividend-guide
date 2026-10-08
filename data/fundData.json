@@ -177,7 +177,7 @@
  },
  {
   "code": "019260.OF",
-  "name": "富国恒生港股通高股息低波动ETF联接A",
+  "name": "富国恒生港股通红利低波动ETF联接A",
   "fundCompany": "富国基金",
   "establishDate": "2023-09-12",
   "divDate": "2026-09-09",
@@ -188,7 +188,7 @@
   "monthlyDivAmt": 0.0058,
   "nav": 1.2769,
   "trackCode": "HSHYLV.HI",
-  "trackName": "恒生港股通高股息低波动",
+  "trackName": "恒生港股通红利低波动",
   "fundSize": 17.39,
   "divTotalAmt": 0.23,
   "yield": "6.10%",
