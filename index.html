@@ -557,6 +557,17 @@
   .detail-chart-note { margin-top: 12px; font-size: var(--fs-sm); color: #737373; line-height: var(--lh-body); }
   .chart-canvas-wrap { position: relative; }
   .chart-mask { position: absolute; inset: 0; background: rgba(255,255,255,0.72); display: flex; align-items: center; justify-content: center; z-index: 40; font-size: var(--fs-md); color: #949494; letter-spacing: 3px; border-radius: 0; }  /* 数据暂缺遮罩（2026-08-11）*/
+  /* 详情页图表「顶到卡片两端」（2026-10-09 用户要求：与「A股红利机会值」页图表同宽）
+     移动端 mobile.css 已于 2026-09-20 实现同款（-16px，对应手机卡片 16px 内边距）；
+     桌面卡片 .detail-main-card 左右各 22px、图表区又各 20px → 图表比卡片窄 42px/侧。
+     → 负 margin 抵消卡片 22px + 图表区横向内边距归零，图表 canvas 到达卡片两端（28..1252）。
+     不动的：标题/图例/附注仍与正文对齐；滑条保持原几何（其手柄按自身宽度百分比定位，
+     而图表绘图区另有内部左 52/右 62 的轴内边距，故滑条维持原状反而更贴近绘图区）。*/
+  @media (min-width: 768px) {
+    .detail-card-section:has(.detail-chart-area) > .detail-chart-area,
+    .detail-card-section:has(.detail-chart-area) > .chart-canvas-wrap { margin-left: -22px; margin-right: -22px; }
+    .detail-card-section:has(.detail-chart-area) .detail-chart-area { padding-left: 0; padding-right: 0; }
+  }
   .detail-slider { position: relative; height: 28px; margin: 16px 0 0; cursor: pointer; user-select: none; touch-action: none; min-width: 0; max-width: 100%; overflow: visible; }  /* 2026-09-20：滑块下方的起止日期标签已移除（图表正文已有日期），只保留滑块；2026-10-04 用户要求：overflow hidden → visible（右把手顶到 100% 时不再被裁） */
   .detail-slider-track { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); height: 3px; background: #e5e5e5; border-radius: 0; }  /* 2026-10-04 用户要求：滑块（手柄+区间线）整体缩 1/4，轨道同步 4→3px 保持对齐 */
   .detail-slider-range { position: absolute; top: 50%; transform: translateY(-50%); height: 3px; background: #767676; border-radius: 0; }  /* 2026-10-03 浅蓝→深灰；2026-10-04 用户要求：粗细 4→3px、颜色 深灰 #525252 → 更浅的灰 #767676 */
@@ -3716,6 +3727,8 @@ function applyRoute(route) {
     currentDetailRoute = dRoute;
     detailPushedByApp = false;                                // 经地址栏进入 = 深链语义
     _openDetail(dType, _decodeSeg(dSeg));
+    // 详情页不属于任何二级页面 → 清掉下拉选中态（2026-10-09：否则展开下拉会默认高亮「红利指数浏览器」）
+    document.querySelectorAll('.dropdown-item').forEach(function (d) { d.classList.remove('active'); });
     return;
   }
 
@@ -3743,6 +3756,10 @@ function applyRoute(route) {
     });
     // 红利机会值：本子页已置为 .active（可见）后再重绘图表——隐藏时 clientWidth=0，画出来是空图
     if (subId === 'subOpportunity' && window.OpportunityPage) { try { window.OpportunityPage.show(); } catch (e) {} }
+  } else {
+    // 首页 / 无子页（2026-10-09 修）：清掉所有二级菜单的「选中」高亮。
+    //   此前 HTML 里预置了 class="active"（红利指数浏览器 / ETF），回首页时无人重置 → 页头始终高亮它。
+    document.querySelectorAll('.dropdown-item').forEach(function (d) { d.classList.remove('active'); });
   }
 }
 
