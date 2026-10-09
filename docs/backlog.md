@@ -30,6 +30,7 @@
 - **目标**：文件到位后各跑一次**单项验证（不调用 Wind）**：① 令 `fund-liquidated.json` 命中一只在册标的，确认写入 `_retired.json`（原因「已清盘（中央数据库）」）且被 `build_lists` 剔除；② 确认港股名单确实取自中央库而非冻结文件。
 - **触发时机**：用户点「更新数据库」生成 `fund-liquidated.json` / `hk-etf-list.json` 之后。
 - **验收**：`_retired.json` 与运行报告「清单变动」正确反映；`check_data` ✅。
+- **验证记录（2026-10-09 周更前预检，不调 Wind）**：`python3 sync_lifecycle.py --dry-run --only hk,cn,money,etf,fund` → 清盘名单 `fund-liquidated.json` 正确加载 **2447 个代码**（导出 2026-10-08），四类清单（境内红利ETF 95 / 货基 43 / 月月ETF 15 / 月月基金 28）**命中 0**（无误判）；港交所红利ETF **14 只**经中央库 `hk-etf-list.json`（**456 行**，导出 2026-10-08）核对全部在册。`python3 sync_new_hk_etf.py`（仅报告）→ 数据源确为**中央库导出**（非冻结副本）、归并后红利类港ETF **13 只**、**无新标的**。⇒ **② 已确认（确取自中央库）；① 的「正向命中即写入 `_retired.json`」仍待真实清盘事件或人造样本触发**（避免为此改动在册数据）。
 
 ## B-3. 日更耗时归因：`sync_daily_change` 正常交易日复核（2026-10-07 立项）
 
