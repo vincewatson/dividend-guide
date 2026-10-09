@@ -5,7 +5,7 @@
 **本站（食息指南 dividend-guide）的所有网站改动，只能写入本目录：**
 `/Users/vincentwatson/Library/CloudStorage/坚果云-vincent.watson@live.com/Codes/trae/dividend-guide-website`
 
-不得写入微云（`~/Documents/微云/...`，该目录已废弃、即将删除）或任何其他位置。
+不得写入本目录以外的任何其他位置。
 
 ## Git 提交约定（2026-10-04 确立）
 
