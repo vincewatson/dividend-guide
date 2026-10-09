@@ -1034,11 +1034,11 @@
   "fee": "0.50%",
   "feeNum": 0.005,
   "divCount": 0,
-  "size": 1.05,
+  "size": 1.04,
   "shares": 0.77,
   "holders": 0.31,
   "divDate": null,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "520900.OF",
@@ -1051,11 +1051,11 @@
   "fee": "0.15%",
   "feeNum": 0.0015,
   "divCount": 2,
-  "size": 14.73,
+  "size": 14.83,
   "shares": 15.9,
   "holders": 0.52,
   "divDate": "2026-08-20",
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "520990.OF",
@@ -1068,11 +1068,11 @@
   "fee": "0.50%",
   "feeNum": 0.005,
   "divCount": 1,
-  "size": 31.9,
+  "size": 32.13,
   "shares": 36.76,
   "holders": 1.69,
   "divDate": "2026-06-29",
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "530880.OF",
@@ -1085,11 +1085,11 @@
   "fee": "0.45%",
   "feeNum": 0.0045,
   "divCount": 6,
-  "size": 0.41,
+  "size": 0.42,
   "shares": 0.42,
   "holders": 0.13,
   "divDate": "2026-09-14",
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "560020.OF",
@@ -1102,11 +1102,11 @@
   "fee": "0.50%",
   "feeNum": 0.005,
   "divCount": 0,
-  "size": 1.47,
+  "size": 1.49,
   "shares": 1.38,
   "holders": 0.07,
   "divDate": "2025-11-17",
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "560070.OF",
@@ -1546,11 +1546,11 @@
   "fee": "0.50%",
   "feeNum": 0.005,
   "divCount": 0,
-  "size": 59.63,
+  "size": 60.21,
   "shares": 0.66,
   "holders": 0.18,
   "divDate": null,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "563690.OF",
@@ -1563,11 +1563,11 @@
   "fee": "0.50%",
   "feeNum": 0.005,
   "divCount": 0,
-  "size": 64.94,
+  "size": 62.56,
   "shares": 0.36,
   "holders": 0.12,
   "divDate": null,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "563700.OF",
@@ -1580,11 +1580,11 @@
   "fee": "0.15%",
   "feeNum": 0.0015,
   "divCount": 3,
-  "size": 380.59,
+  "size": 382.86,
   "shares": 4.06,
   "holders": 0.29,
   "divDate": "2026-07-15",
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "563890.OF",
@@ -1597,11 +1597,11 @@
   "fee": "0.45%",
   "feeNum": 0.0045,
   "divCount": 0,
-  "size": 21.59,
+  "size": 21.8,
   "shares": 0.25,
   "holders": 0.12,
   "divDate": null,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "563980.OF",
@@ -1614,10 +1614,10 @@
   "fee": "0.50%",
   "feeNum": 0.005,
   "divCount": 2,
-  "size": 241.93,
+  "size": 244.6,
   "shares": 1.93,
   "holders": 0.13,
   "divDate": "2026-09-28",
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  }
 ]

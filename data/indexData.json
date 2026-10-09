@@ -10,8 +10,8 @@
   "currency": "HKD",
   "weight": "现金分红预案股息率/过去一年股价波动率加权",
   "fundCount": 0,
-  "yield": "6.25%",
-  "yieldNum": 6.2527,
+  "yield": "6.98%",
+  "yieldNum": 6.9825,
   "yrChange": -0.1058,
   "fullReturn": "932584CNY110.CSI;932584CNY210.CSI;932584HKD210.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=932584",
@@ -336,6 +336,10 @@
    {
     "date": "2026-10-08",
     "yield": 6.2527
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 6.9825
    }
   ],
   "dailyChange": 0.0087,
@@ -354,7 +358,7 @@
   "fundCount": 7,
   "yield": "4.09%",
   "yieldNum": 4.0917,
-  "yrChange": -0.0126,
+  "yrChange": -0.0117,
   "fullReturn": "932422CNY010.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=932422",
   "weightExtra": "个股权重上限10%，一级行业上限30%",
@@ -2066,10 +2070,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.0917
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.0917
    }
   ],
-  "dailyChange": 0.0102,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0009,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "932305.CSI",
@@ -2082,9 +2090,9 @@
   "currency": "CNY",
   "weight": "现金分红预案股息率÷波动率",
   "fundCount": 3,
-  "yield": "6.15%",
-  "yieldNum": 6.1497,
-  "yrChange": -0.004,
+  "yield": "6.11%",
+  "yieldNum": 6.1141,
+  "yrChange": 0.0062,
   "fullReturn": "932305CNY010.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=932305",
   "weightExtra": "个股权重上限10%",
@@ -3635,11 +3643,15 @@
    },
    {
     "date": "2026-10-08",
-    "yield": 6.1497
+    "yield": 6.1496
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 6.1141
    }
   ],
-  "dailyChange": 0.0129,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0103,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "932315.CSI",
@@ -3652,9 +3664,9 @@
   "currency": "CNY",
   "weight": "多因子综合加权",
   "fundCount": 11,
-  "yield": "3.90%",
-  "yieldNum": 3.899,
-  "yrChange": -0.0813,
+  "yield": "3.89%",
+  "yieldNum": 3.889,
+  "yrChange": -0.0724,
   "fullReturn": "932315CNY010.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=932315",
   "weightExtra": "个股权重上限5%，前五大持仓上限40%，一级行业上限30%",
@@ -5842,10 +5854,14 @@
    {
     "date": "2026-10-08",
     "yield": 3.899
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.889
    }
   ],
-  "dailyChange": 0.0045,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0097,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "931848.CSI",
@@ -5858,9 +5874,9 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 9,
-  "yield": "4.07%",
-  "yieldNum": 4.0712,
-  "yrChange": 0.008,
+  "yield": "4.08%",
+  "yieldNum": 4.0829,
+  "yrChange": 0.0104,
   "fullReturn": "931848CNY010.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=931848",
   "weightExtra": "个股权重上限10%，一级行业上限30%",
@@ -7656,10 +7672,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.0712
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.0829
    }
   ],
-  "dailyChange": 0.0111,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0024,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "989016.CNI",
@@ -7672,9 +7692,9 @@
   "currency": "CNY",
   "weight": "预期股息率和低残差波动率复合因子",
   "fundCount": 4,
-  "yield": "4.47%",
-  "yieldNum": 4.4729,
-  "yrChange": -0.0202,
+  "yield": "4.46%",
+  "yieldNum": 4.4568,
+  "yrChange": -0.0108,
   "fullReturn": "489016.CNI",
   "detailUrl": "https://indices.cnfin.com/3318780/index.html?idx=3",
   "weightExtra": "个股权重上限5%，一级行业上限30%",
@@ -10030,10 +10050,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.4729
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.4568
    }
   ],
-  "dailyChange": 0.0101,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0096,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "931722.CSI",
@@ -10046,9 +10070,9 @@
   "currency": "HKD",
   "weight": "经股息率调整的自由流通市值",
   "fundCount": 12,
-  "yield": "5.88%",
-  "yieldNum": 5.8808,
-  "yrChange": 0.0146,
+  "yield": "5.84%",
+  "yieldNum": 5.8428,
+  "yrChange": 0.0246,
   "fullReturn": "931722HKD210.CSI;931722CNY110.CSI;931722USD210.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=931722",
   "weightExtra": "个股权重上限10%，金融、房地产行业个股权重上限2%",
@@ -13076,10 +13100,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.8808
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.8428
    }
   ],
-  "dailyChange": 0.0106,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0099,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "HSSCSOY.HI",
@@ -13092,9 +13120,9 @@
   "currency": "HKD",
   "weight": "净股息率",
   "fundCount": 4,
-  "yield": "5.23%",
-  "yieldNum": 5.2254,
-  "yrChange": 0.0224,
+  "yield": "5.47%",
+  "yieldNum": 5.4687,
+  "yrChange": 0.0322,
   "fullReturn": "HSSCSOYT.HI",
   "detailUrl": "https://www.hsi.com.hk/chi/indexes/all-indexes/hsscsoy",
   "weightExtra": "个股权重上限10%",
@@ -16370,10 +16398,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.2254
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.4687
    }
   ],
-  "dailyChange": 0.0062,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0095,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "931231.CSI",
@@ -16386,9 +16418,9 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 4,
-  "yield": "3.84%",
-  "yieldNum": 3.8425,
-  "yrChange": 0.0424,
+  "yield": "3.83%",
+  "yieldNum": 3.8284,
+  "yrChange": 0.0469,
   "fullReturn": "931231CNY01.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=931231",
   "weightExtra": "个股权重上限10%",
@@ -19740,10 +19772,14 @@
    {
     "date": "2026-10-08",
     "yield": 3.8425
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.8284
    }
   ],
-  "dailyChange": 0.0165,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0043,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "931132.CSI",
@@ -19756,9 +19792,9 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 3,
-  "yield": "3.90%",
-  "yieldNum": 3.9035,
-  "yrChange": 0.0414,
+  "yield": "3.88%",
+  "yieldNum": 3.8828,
+  "yrChange": 0.0493,
   "fullReturn": "931132CNY01.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=931132",
   "weightExtra": "个股权重上限10%",
@@ -23090,10 +23126,14 @@
    {
     "date": "2026-10-08",
     "yield": 3.9035
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.8828
    }
   ],
-  "dailyChange": 0.0207,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0076,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "932039.CSI",
@@ -23106,9 +23146,9 @@
   "currency": "CNY",
   "weight": "现金分红和回购总额占总市值比率",
   "fundCount": 10,
-  "yield": "3.99%",
-  "yieldNum": 3.9935,
-  "yrChange": 0.0521,
+  "yield": "3.98%",
+  "yieldNum": 3.9837,
+  "yrChange": 0.0564,
   "fullReturn": "932039CNY01.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=932039",
   "weightExtra": "个股权重上限10%",
@@ -26752,10 +26792,14 @@
    {
     "date": "2026-10-08",
     "yield": 3.9935
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.9837
    }
   ],
-  "dailyChange": 0.0169,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0041,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "995128.SSI",
@@ -28744,8 +28788,8 @@
     "yield": 5.9
    }
   ],
-  "dailyChange": 0.008,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.012,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "995127.SSI",
@@ -30902,8 +30946,8 @@
     "yield": 5.53
    }
   ],
-  "dailyChange": 0.0064,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0099,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "995082.SSI",
@@ -30918,7 +30962,7 @@
   "fundCount": 2,
   "yield": "4.82%",
   "yieldNum": 4.82,
-  "yrChange": -0.0034,
+  "yrChange": 0.0035,
   "fullReturn": "T95082.SSI",
   "detailUrl": "https://idmt.chindices.com/indexDetails/995082",
   "weightExtra": "个股权重上限5%，一级行业上限30%",
@@ -33584,8 +33628,8 @@
     "yield": 4.82
    }
   ],
-  "dailyChange": 0.0059,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.007,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "987016.CNI",
@@ -33598,9 +33642,9 @@
   "currency": "HKD",
   "weight": "经股息率调整的自由流通市值",
   "fundCount": 3,
-  "yield": "5.28%",
-  "yieldNum": 5.2838,
-  "yrChange": 0.0783,
+  "yield": "5.45%",
+  "yieldNum": 5.4543,
+  "yrChange": 0.0877,
   "fullReturn": "487016.CNI;487017.CNI",
   "detailUrl": "https://www.cnindex.com.cn/module/index-detail.html?act_menu=1&indexCode=987016",
   "weightExtra": "个股权重上限10%，一级行业上限30%",
@@ -37280,10 +37324,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.2838
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.4543
    }
   ],
-  "dailyChange": 0.0037,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0087,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "931468.CSI",
@@ -37296,9 +37344,9 @@
   "currency": "CNY",
   "weight": "盈利质量指标打分",
   "fundCount": 4,
-  "yield": "3.17%",
-  "yieldNum": 3.1668,
-  "yrChange": 0.0063,
+  "yield": "3.15%",
+  "yieldNum": 3.1489,
+  "yrChange": 0.0185,
   "fullReturn": "921468.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=931468",
   "weightExtra": "个股权重上限10%，前五大持仓上限40%",
@@ -40998,10 +41046,14 @@
    {
     "date": "2026-10-08",
     "yield": 3.1668
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.1489
    }
   ],
-  "dailyChange": -0.0145,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0122,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "931446.CSI",
@@ -41014,9 +41066,9 @@
   "currency": "CNY",
   "weight": "预期股息率",
   "fundCount": 3,
-  "yield": "4.13%",
-  "yieldNum": 4.1325,
-  "yrChange": -0.0149,
+  "yield": "4.15%",
+  "yieldNum": 4.1515,
+  "yrChange": -0.0159,
   "fullReturn": "921446.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=931446",
   "weightExtra": "个股权重上限5%",
@@ -43988,10 +44040,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.1325
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.1515
    }
   ],
-  "dailyChange": 0.007,
-  "dailyDate": "2026-10-08"
+  "dailyChange": -0.0011,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "HSSCHKY.HI",
@@ -44004,9 +44060,9 @@
   "currency": "HKD",
   "weight": "股息率",
   "fundCount": 6,
-  "yield": "5.33%",
-  "yieldNum": 5.3308,
-  "yrChange": 0.075,
+  "yield": "5.48%",
+  "yieldNum": 5.4759,
+  "yrChange": 0.0892,
   "fullReturn": "HSSCHKYT.HI;HSSCHKYTC.HI",
   "detailUrl": "https://www.hsi.com.hk/chi/indexes/all-indexes/hsschky",
   "weightExtra": "个股权重上限10%",
@@ -47706,10 +47762,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.3308
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.4759
    }
   ],
-  "dailyChange": 0.0035,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0132,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "HSMCHYI.HI",
@@ -47722,9 +47782,9 @@
   "currency": "HKD",
   "weight": "净股息率",
   "fundCount": 3,
-  "yield": "5.28%",
-  "yieldNum": 5.2845,
-  "yrChange": 0.0454,
+  "yield": "5.45%",
+  "yieldNum": 5.4544,
+  "yrChange": 0.0559,
   "fullReturn": "HSMCHYIT.HI",
   "detailUrl": "https://www.hsi.com.hk/chi/indexes/all-indexes/hsmchyi",
   "weightExtra": "个股权重上限10%",
@@ -51424,10 +51484,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.2845
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.4544
    }
   ],
-  "dailyChange": 0.0057,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.01,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "CESFHY.CSI",
@@ -51440,9 +51504,9 @@
   "currency": "HKD",
   "weight": "股息率",
   "fundCount": 2,
-  "yield": "6.89%",
-  "yieldNum": 6.8909,
-  "yrChange": -0.1462,
+  "yield": "6.83%",
+  "yieldNum": 6.835,
+  "yrChange": -0.132,
   "fullReturn": "CES213.CSI;CES113.CSI",
   "detailUrl": "https://www.cesc.com/sc/Index/Hong-Kong-Overseas/Ces-Fhy.html",
   "weightExtra": "个股权重上限10%",
@@ -55106,10 +55170,14 @@
    {
     "date": "2026-10-08",
     "yield": 6.8909
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 6.835
    }
   ],
-  "dailyChange": 0.0003,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0167,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "931157.CSI",
@@ -55122,9 +55190,9 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 3,
-  "yield": "4.53%",
-  "yieldNum": 4.5255,
-  "yrChange": -0.0308,
+  "yield": "5.49%",
+  "yieldNum": 5.4944,
+  "yrChange": -0.0255,
   "fullReturn": "h21157.CSI;h21158.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=931157",
   "weightExtra": "个股权重上限10%",
@@ -58312,10 +58380,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.5255
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.4944
    }
   ],
-  "dailyChange": 0.0054,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0055,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "SPCLLHCP.SPI",
@@ -58328,8 +58400,8 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 5,
-  "yield": "4.26%",
-  "yieldNum": 4.2618,
+  "yield": "4.28%",
+  "yieldNum": 4.2795,
   "yrChange": -0.0039,
   "fullReturn": "SPCLLHCT.SPI",
   "detailUrl": "https://www.spglobal.com/spdji/zh/indices/dividends-factors/sp-china-a-share-largecap-low-volatility-high-dividend-50-index/",
@@ -61974,10 +62046,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.2618
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.2795
    }
   ],
-  "dailyChange": 0.0114,
-  "dailyDate": "2026-10-08"
+  "dailyChange": -0.0008,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "930740.CSI",
@@ -61990,9 +62066,9 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 7,
-  "yield": "4.31%",
-  "yieldNum": 4.3056,
-  "yrChange": -0.0073,
+  "yield": "4.32%",
+  "yieldNum": 4.3197,
+  "yrChange": -0.0082,
   "fullReturn": "h20740.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=930740",
   "weightExtra": "个股权重上限10%，一级行业上限30%",
@@ -65644,10 +65720,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.3056
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.3197
    }
   ],
-  "dailyChange": 0.0129,
-  "dailyDate": "2026-10-08"
+  "dailyChange": -0.0009,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "SPCADMCP.SPI",
@@ -65682,9 +65762,9 @@
   "currency": "HKD",
   "weight": "股息率",
   "fundCount": 18,
-  "yield": "5.34%",
-  "yieldNum": 5.3409,
-  "yrChange": 0.0155,
+  "yield": "5.51%",
+  "yieldNum": 5.5055,
+  "yrChange": 0.0256,
   "fullReturn": "931233CNY110.CSI;931233HKD210.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=931233",
   "weightExtra": "个股权重上限10%",
@@ -69384,10 +69464,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.3409
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.5055
    }
   ],
-  "dailyChange": 0.0081,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0099,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "930955.CSI",
@@ -69402,7 +69486,7 @@
   "fundCount": 36,
   "yield": "4.37%",
   "yieldNum": 4.3656,
-  "yrChange": -0.0361,
+  "yrChange": -0.0317,
   "fullReturn": "h20955.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=930955",
   "weightExtra": "个股所属中证二级行业权重上限20%",
@@ -73102,10 +73186,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.3656
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.3656
    }
   ],
-  "dailyChange": 0.0071,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0046,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "HSHYLV.HI",
@@ -73118,9 +73206,9 @@
   "currency": "HKD",
   "weight": "净股息率",
   "fundCount": 15,
-  "yield": "6.10%",
-  "yieldNum": 6.1011,
-  "yrChange": -0.0486,
+  "yield": "6.07%",
+  "yieldNum": 6.0721,
+  "yrChange": -0.0372,
   "fullReturn": "HSHYLVDVCNY.HI;HSHYLVDV.HI",
   "detailUrl": "https://www.hsi.com.hk/chi/indexes/all-indexes/hshylv",
   "weightExtra": "个股权重上限5%",
@@ -76112,10 +76200,14 @@
    {
     "date": "2026-10-08",
     "yield": 6.1011
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 6.0721
    }
   ],
-  "dailyChange": 0.0052,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.012,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "SPAHLVCP.SPI",
@@ -76128,8 +76220,8 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 8,
-  "yield": "5.45%",
-  "yieldNum": 5.4526,
+  "yield": "5.55%",
+  "yieldNum": 5.5501,
   "yrChange": -0.0449,
   "fullReturn": "SPAHLVHT.SPI;SPAHLVCT.SPI",
   "detailUrl": "https://www.spglobal.com/spdji/zh/indices/dividends-factors/sp-access-hong-kong-low-volatility-high-dividend-index/",
@@ -76802,10 +76894,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.4526
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.5501
    }
   ],
-  "dailyChange": -0.0095,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0104,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "930917.CSI",
@@ -76819,8 +76915,8 @@
   "weight": "股息率",
   "fundCount": 2,
   "yield": "5.22%",
-  "yieldNum": 5.221,
-  "yrChange": -0.017,
+  "yieldNum": 5.2207,
+  "yrChange": -0.0072,
   "fullReturn": "h20917.CSI;h20918.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=930917",
   "weightExtra": "未约定",
@@ -80427,11 +80523,15 @@
    },
    {
     "date": "2026-10-08",
-    "yield": 5.221
+    "yield": 5.2207
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.2207
    }
   ],
-  "dailyChange": 0.0056,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0099,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "930914.CSI",
@@ -80444,9 +80544,9 @@
   "currency": "HKD",
   "weight": "股息率",
   "fundCount": 28,
-  "yield": "5.20%",
-  "yieldNum": 5.203,
-  "yrChange": 0.0306,
+  "yield": "5.33%",
+  "yieldNum": 5.334,
+  "yrChange": 0.0412,
   "fullReturn": "h20915.CSI;h20914.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=930914",
   "weightExtra": "未约定",
@@ -83258,10 +83358,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.203
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.334
    }
   ],
-  "dailyChange": 0.0044,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0103,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "930839.CSI",
@@ -83274,9 +83378,9 @@
   "currency": "HKD",
   "weight": "经股息率调整的自由流通市值",
   "fundCount": 5,
-  "yield": "6.23%",
-  "yieldNum": 6.2327,
-  "yrChange": -0.0771,
+  "yield": "6.19%",
+  "yieldNum": 6.1941,
+  "yrChange": -0.0688,
   "fullReturn": "h20840.CSI;h20839.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=930839",
   "weightExtra": "个股权重上限15%，前五大持仓上限60%，一级行业上限25%",
@@ -86920,10 +87024,14 @@
    {
     "date": "2026-10-08",
     "yield": 6.2327
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 6.1941
    }
   ],
-  "dailyChange": 0.0032,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.009,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "930792.CSI",
@@ -86936,9 +87044,9 @@
   "currency": "HKD",
   "weight": "调整市值",
   "fundCount": 2,
-  "yield": "4.33%",
-  "yieldNum": 4.332,
-  "yrChange": 0.1801,
+  "yield": "4.53%",
+  "yieldNum": 4.5307,
+  "yrChange": 0.1887,
   "fullReturn": "h20793.CSI;h20792.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=930792",
   "weightExtra": "个股权重上限15%，前五大持仓上限60%",
@@ -90582,10 +90690,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.332
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.5307
    }
   ],
-  "dailyChange": -0.0116,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0073,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "H30366.CSI",
@@ -90600,7 +90712,7 @@
   "fundCount": 3,
   "yield": "4.62%",
   "yieldNum": 4.6185,
-  "yrChange": -0.0123,
+  "yrChange": -0.0045,
   "fullReturn": "h20366.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=h30366",
   "weightExtra": "个股权重上限8%",
@@ -93408,10 +93520,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.6185
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.6185
    }
   ],
-  "dailyChange": 0.0117,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0079,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "H50040.CSI",
@@ -93426,7 +93542,7 @@
   "fundCount": 3,
   "yield": "4.19%",
   "yieldNum": 4.1864,
-  "yrChange": -0.0035,
+  "yrChange": -0.0061,
   "fullReturn": "h40040.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=h50040",
   "weightExtra": "个股权重上限15%",
@@ -97070,10 +97186,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.1864
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.1864
    }
   ],
-  "dailyChange": 0.0109,
-  "dailyDate": "2026-10-08"
+  "dailyChange": -0.0027,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "H30270.CSI",
@@ -97088,7 +97208,7 @@
   "fundCount": 3,
   "yield": "4.27%",
   "yieldNum": 4.2727,
-  "yrChange": 0.0143,
+  "yrChange": 0.0122,
   "fullReturn": "h20270.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=h30270",
   "weightExtra": "个股权重上限15%",
@@ -100732,10 +100852,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.2727
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.2727
    }
   ],
-  "dailyChange": 0.0119,
-  "dailyDate": "2026-10-08"
+  "dailyChange": -0.0021,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "H30269.CSI",
@@ -100750,7 +100874,7 @@
   "fundCount": 31,
   "yield": "4.34%",
   "yieldNum": 4.3426,
-  "yrChange": -0.0124,
+  "yrChange": -0.0149,
   "fullReturn": "h20269.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=h30269",
   "weightExtra": "个股权重上限15%",
@@ -104394,10 +104518,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.3426
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.3426
    }
   ],
-  "dailyChange": 0.0117,
-  "dailyDate": "2026-10-08"
+  "dailyChange": -0.0025,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "399986.SZ",
@@ -104412,7 +104540,7 @@
   "fundCount": 41,
   "yield": "4.10%",
   "yieldNum": 4.0967,
-  "yrChange": 0.0098,
+  "yrChange": -0.0011,
   "fullReturn": "h20180.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=399986",
   "weightExtra": "个股权重上限15%",
@@ -108056,10 +108184,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.0967
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.0967
    }
   ],
-  "dailyChange": 0.0104,
-  "dailyDate": "2026-10-08"
+  "dailyChange": -0.0108,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "H30089.CSI",
@@ -108074,7 +108206,7 @@
   "fundCount": 2,
   "yield": "4.03%",
   "yieldNum": 4.029,
-  "yrChange": -0.0992,
+  "yrChange": -0.0898,
   "fullReturn": "h20089.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=h30089",
   "weightExtra": "个股权重上限15%",
@@ -110882,10 +111014,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.029
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.029
    }
   ],
-  "dailyChange": -0.0034,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0105,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "H30094.CSI",
@@ -110900,7 +111036,7 @@
   "fundCount": 4,
   "yield": "4.56%",
   "yieldNum": 4.5566,
-  "yrChange": -0.1683,
+  "yrChange": -0.1549,
   "fullReturn": "h20094.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=h30094",
   "weightExtra": "个股权重上限10%",
@@ -114544,10 +114680,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.5566
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.5566
    }
   ],
-  "dailyChange": 0.0036,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0162,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "000151.SH",
@@ -114562,7 +114702,7 @@
   "fundCount": 6,
   "yield": "4.13%",
   "yieldNum": 4.1299,
-  "yrChange": 0.1016,
+  "yrChange": 0.1067,
   "fullReturn": "h00151.SH",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=000151",
   "weightExtra": "个股权重上限10%",
@@ -118206,10 +118346,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.1299
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.1299
    }
   ],
-  "dailyChange": 0.0153,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0047,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "000824.CSI",
@@ -118224,7 +118368,7 @@
   "fundCount": 9,
   "yield": "4.15%",
   "yieldNum": 4.1487,
-  "yrChange": 0.0243,
+  "yrChange": 0.0297,
   "fullReturn": "h00824.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=000824",
   "weightExtra": "个股权重上限10%",
@@ -121868,10 +122012,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.1487
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.1487
    }
   ],
-  "dailyChange": 0.01,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0053,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "000821.CSI",
@@ -121886,7 +122034,7 @@
   "fundCount": 3,
   "yield": "4.35%",
   "yieldNum": 4.3463,
-  "yrChange": 0.0164,
+  "yrChange": 0.013,
   "fullReturn": "h00821.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=000821",
   "weightExtra": "个股权重上限10%",
@@ -124694,10 +124842,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.3463
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.3463
    }
   ],
-  "dailyChange": 0.0118,
-  "dailyDate": "2026-10-08"
+  "dailyChange": -0.0033,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "000825.CSI",
@@ -124712,7 +124864,7 @@
   "fundCount": 6,
   "yield": "3.94%",
   "yieldNum": 3.9428,
-  "yrChange": 0.0311,
+  "yrChange": 0.0322,
   "fullReturn": "h00825.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=000825",
   "weightExtra": "个股权重上限10%",
@@ -128356,10 +128508,14 @@
    {
     "date": "2026-10-08",
     "yield": 3.9428
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.9428
    }
   ],
-  "dailyChange": 0.0167,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0011,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "H11140.CSI",
@@ -128372,9 +128528,9 @@
   "currency": "HKD",
   "weight": "调整市值",
   "fundCount": 2,
-  "yield": "5.55%",
-  "yieldNum": 5.5469,
-  "yrChange": 0.1064,
+  "yield": "5.74%",
+  "yieldNum": 5.7378,
+  "yrChange": 0.1119,
   "fullReturn": "h01140.CSI;h01141.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=h11140",
   "weightExtra": "个股权重上限10%",
@@ -132018,10 +132174,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.5469
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.7378
    }
   ],
-  "dailyChange": 0.0088,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.005,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "CSPSADRP.CI",
@@ -132036,7 +132196,7 @@
   "fundCount": 3,
   "yield": "5.15%",
   "yieldNum": 5.1526,
-  "yrChange": -0.0322,
+  "yrChange": -0.0199,
   "fullReturn": "CSPSADRT.CI",
   "detailUrl": "https://www.spglobal.com/spdji/zh/indices/dividends-factors/sp-china-a-share-dividend-opportunities-index/",
   "weightExtra": "个股权重上限3%，\nGICS行业上限33%",
@@ -135680,10 +135840,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.1526
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.1526
    }
   ],
-  "dailyChange": 0.0058,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0127,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "000922.CSI",
@@ -135696,9 +135860,9 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 35,
-  "yield": "4.23%",
-  "yieldNum": 4.2292,
-  "yrChange": 0.0095,
+  "yield": "4.24%",
+  "yieldNum": 4.2401,
+  "yrChange": 0.0177,
   "fullReturn": "h00922.CSI;932022.CSI",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=000922",
   "weightExtra": "个股权重上限10%，总市值100亿元以下个股权重不超过0.5%",
@@ -139342,10 +139506,14 @@
    {
     "date": "2026-10-08",
     "yield": 4.2292
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.2401
    }
   ],
-  "dailyChange": 0.0114,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0082,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "399324.SZ",
@@ -139358,9 +139526,9 @@
   "currency": "CNY",
   "weight": "经调整的自由流通市值",
   "fundCount": 4,
-  "yield": "3.92%",
-  "yieldNum": 3.9228,
-  "yrChange": -0.1686,
+  "yield": "3.88%",
+  "yieldNum": 3.8792,
+  "yrChange": -0.1608,
   "fullReturn": "CN2324.CNI",
   "detailUrl": "https://www.cnindex.com.cn/module/index-detail.html?act_menu=1&indexCode=399324",
   "weightExtra": "个股权重上限15%，前五大持仓上限60%",
@@ -142168,10 +142336,14 @@
    {
     "date": "2026-10-08",
     "yield": 3.9228
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.8792
    }
   ],
-  "dailyChange": -0.005,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0093,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "000015.SH",
@@ -142184,9 +142356,9 @@
   "currency": "CNY",
   "weight": "股息率",
   "fundCount": 4,
-  "yield": "4.00%",
-  "yieldNum": 3.9973,
-  "yrChange": 0.0924,
+  "yield": "4.01%",
+  "yieldNum": 4.0109,
+  "yrChange": 0.0987,
   "fullReturn": "h00015.SH",
   "detailUrl": "https://www.csindex.com.cn/#/indices/family/detail?indexCode=000015",
   "weightExtra": "个股权重上限10%，总市值100亿元以下个股权重不超过1%",
@@ -145830,10 +146002,14 @@
    {
     "date": "2026-10-08",
     "yield": 3.9973
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 4.0109
    }
   ],
-  "dailyChange": 0.0142,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0057,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "HSHDYI.HI",
@@ -145846,9 +146022,9 @@
   "currency": "HKD",
   "weight": "净股息率加权",
   "fundCount": 0,
-  "yield": "5.60%",
-  "yieldNum": 5.6028,
-  "yrChange": -0.0267,
+  "yield": "5.83%",
+  "yieldNum": 5.8309,
+  "yrChange": -0.0155,
   "fullReturn": "",
   "taxRate": 0.8,
   "investMonthly": 27.42,
@@ -149548,10 +149724,14 @@
    {
     "date": "2026-10-08",
     "yield": 5.6028
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.8309
    }
   ],
-  "dailyChange": 0.0019,
-  "dailyDate": "2026-10-08"
+  "dailyChange": 0.0115,
+  "dailyDate": "2026-10-09"
  },
  {
   "code": "932309.CSI",
@@ -152458,6 +152638,10 @@
    {
     "date": "2026-10-08",
     "yield": 3.6747
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.6747
    }
   ],
   "dailyChange": 0.0003,
@@ -152477,7 +152661,7 @@
   "fundCount": 0,
   "yield": "5.47%",
   "yieldNum": 5.4658,
-  "yrChange": 0.0441,
+  "yrChange": 0.0528,
   "fullReturn": "",
   "detailUrl": "",
   "adjustCycle": "",
@@ -154519,8 +154703,8 @@
     "yield": 5.4658
    }
   ],
-  "dailyDate": "2026-10-08",
-  "dailyChange": 0.0063
+  "dailyDate": "2026-10-09",
+  "dailyChange": 0.0083
  },
  {
   "code": "930782.CSI",
@@ -157398,11 +157582,15 @@
    {
     "date": "2026-10-08",
     "yield": 2.4429
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 2.4429
    }
   ],
-  "dailyDate": "2026-10-08",
-  "dailyChange": -0.0092,
-  "yrChange": -0.0284,
+  "dailyDate": "2026-10-09",
+  "dailyChange": 0.0108,
+  "yrChange": -0.0179,
   "yieldNum": 2.4429,
   "yield": "2.44%"
  },
@@ -160282,13 +160470,17 @@
    {
     "date": "2026-10-08",
     "yield": 5.203
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 5.334
    }
   ],
-  "dailyDate": "2026-10-08",
-  "dailyChange": 0.0041,
-  "yrChange": -0.0197,
-  "yieldNum": 5.203,
-  "yield": "5.20%"
+  "dailyDate": "2026-10-09",
+  "dailyChange": 0.009,
+  "yrChange": -0.0109,
+  "yieldNum": 5.334,
+  "yield": "5.33%"
  },
  {
   "code": "399433.SZ",
@@ -163166,11 +163358,15 @@
    {
     "date": "2026-10-08",
     "yield": 2.8493
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 2.8493
    }
   ],
-  "dailyDate": "2026-10-08",
-  "dailyChange": 0.013,
-  "yrChange": -0.087,
+  "dailyDate": "2026-10-09",
+  "dailyChange": 0.0062,
+  "yrChange": -0.0813,
   "yieldNum": 2.8493,
   "yield": "2.85%"
  },
@@ -166050,13 +166246,17 @@
    {
     "date": "2026-10-08",
     "yield": 2.4555
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 2.454
    }
   ],
-  "dailyDate": "2026-10-08",
-  "dailyChange": -0.015,
-  "yrChange": -0.0626,
-  "yieldNum": 2.4555,
-  "yield": "2.46%"
+  "dailyDate": "2026-10-09",
+  "dailyChange": 0.0017,
+  "yrChange": -0.061,
+  "yieldNum": 2.454,
+  "yield": "2.45%"
  },
  {
   "code": "888888.FI",
@@ -167537,14 +167737,18 @@
    },
    {
     "date": "2026-10-08",
-    "yield": 4.015
+    "yield": 3.7587
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.7587
    }
   ],
-  "dailyDate": "2026-10-08",
-  "dailyChange": 0.0056,
+  "dailyDate": "2026-10-09",
+  "dailyChange": 0.0033,
   "yrChange": -0.1456,
-  "yieldNum": 4.015,
-  "yield": "4.01%"
+  "yieldNum": 3.7587,
+  "yield": "3.76%"
  },
  {
   "code": "932365.CSI",
@@ -169310,11 +169514,15 @@
    {
     "date": "2026-10-08",
     "yield": 3.8112
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.8112
    }
   ],
-  "dailyDate": "2026-10-08",
-  "dailyChange": 0.0064,
-  "yrChange": -0.1127,
+  "dailyDate": "2026-10-09",
+  "dailyChange": 0.0067,
+  "yrChange": -0.1068,
   "yieldNum": 3.8112,
   "yield": "3.81%"
  },
@@ -171082,11 +171290,15 @@
    {
     "date": "2026-10-08",
     "yield": 3.8475
+   },
+   {
+    "date": "2026-10-09",
+    "yield": 3.8475
    }
   ],
-  "dailyDate": "2026-10-08",
-  "dailyChange": 0.0065,
-  "yrChange": -0.0895,
+  "dailyDate": "2026-10-09",
+  "dailyChange": 0.0051,
+  "yrChange": -0.0849,
   "yieldNum": 3.8475,
   "yield": "3.85%"
  }

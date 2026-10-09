@@ -281,6 +281,24 @@ def main():
                 merged[p['date']] = p['yield']
             series = sorted([{'date': d, 'yield': v} for d, v in merged.items()],
                             key=lambda x: x['date'])
+            # 合理性护栏（2026-10-09）：新追加的尾部点若相对「前一个有效值」暴涨/暴跌
+            # （>3x 或 <0.33x），视为 Wind 脏值丢弃；只作用于新增尾部、历史一律不动。
+            # 阈值取 3x 而非 2x：实测 930792.CSI 历史存在 2.11x 的真实跳变，2x 会误伤。
+            # 实例：HSSSCHD.HI 2026-10-09 = 41.3689%（前日 5.4658%，7.6 倍尖峰）→ 丢弃。
+            if old_hist:
+                last_old_date = old_hist[-1]['date']
+                kept, prev = [], None
+                for p in series:
+                    if p['date'] <= last_old_date:
+                        kept.append(p); prev = p['yield']; continue
+                    v = p['yield']
+                    if isinstance(v, (int, float)) and isinstance(prev, (int, float)) and prev > 0 \
+                            and (v / prev > 3.0 or v / prev < 0.33):
+                        print('  [GUARD] {} {} 值 {} 相对前值 {} 异常 → 丢弃'.format(
+                            code, p['date'], v, prev), flush=True)
+                        continue
+                    kept.append(p); prev = v
+                series = kept
             item['divHistory'] = series
             updated += 1
         elif code in hist and not hist[code] and old_hist:

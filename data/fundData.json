@@ -19,7 +19,7 @@
   "yieldNum": 2.4429,
   "taxRate": 1.0,
   "investMonthly": 23.13,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "004597.OF",
@@ -41,7 +41,7 @@
   "yieldNum": 4.0967,
   "taxRate": 1.0,
   "investMonthly": 5.74,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "007466.OF",
@@ -63,7 +63,7 @@
   "yieldNum": 4.3426,
   "taxRate": 1.0,
   "investMonthly": 33.15,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "008114.OF",
@@ -85,7 +85,7 @@
   "yieldNum": 4.3656,
   "taxRate": 1.0,
   "investMonthly": 24.15,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "008163.OF",
@@ -103,11 +103,11 @@
   "trackName": "标普中国A股大盘红利低波50",
   "fundSize": 147.52,
   "divTotalAmt": 5.49,
-  "yield": "4.26%",
-  "yieldNum": 4.2618,
+  "yield": "4.28%",
+  "yieldNum": 4.2795,
   "taxRate": 1.0,
   "investMonthly": 12.56,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "012761.OF",
@@ -125,11 +125,11 @@
   "trackName": "红利指数",
   "fundSize": 6.84,
   "divTotalAmt": 0.06,
-  "yield": "4.00%",
-  "yieldNum": 3.9973,
+  "yield": "4.01%",
+  "yieldNum": 4.0109,
   "taxRate": 1.0,
   "investMonthly": 22.54,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "016128.OF",
@@ -151,7 +151,7 @@
   "yieldNum": 4.3656,
   "taxRate": 1.0,
   "investMonthly": 30.24,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "018387.OF",
@@ -169,11 +169,11 @@
   "trackName": "港股通高股息CNY",
   "fundSize": 9.61,
   "divTotalAmt": 0.07,
-  "yield": "5.20%",
-  "yieldNum": 5.203,
+  "yield": "5.33%",
+  "yieldNum": 5.334,
   "taxRate": 0.8,
   "investMonthly": 27.62,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "019260.OF",
@@ -191,11 +191,11 @@
   "trackName": "恒生港股通红利低波动",
   "fundSize": 17.39,
   "divTotalAmt": 0.23,
-  "yield": "6.10%",
-  "yieldNum": 6.1011,
+  "yield": "6.07%",
+  "yieldNum": 6.0721,
   "taxRate": 0.8,
   "investMonthly": 22.18,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "019886.OF",
@@ -217,7 +217,7 @@
   "yieldNum": 2.8493,
   "taxRate": 1.0,
   "investMonthly": 43.64,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "020466.OF",
@@ -239,7 +239,7 @@
   "yieldNum": 3.9428,
   "taxRate": 1.0,
   "investMonthly": 19.58,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "020195.OF",
@@ -257,11 +257,11 @@
   "trackName": "中证红利",
   "fundSize": 0.91,
   "divTotalAmt": 0.01,
-  "yield": "4.23%",
-  "yieldNum": 4.2292,
+  "yield": "4.24%",
+  "yieldNum": 4.2401,
   "taxRate": 1.0,
   "investMonthly": 91.95,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "020156.OF",
@@ -283,7 +283,7 @@
   "yieldNum": 4.3656,
   "taxRate": 1.0,
   "investMonthly": 31.87,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "020456.OF",
@@ -305,7 +305,7 @@
   "yieldNum": 4.1864,
   "taxRate": 1.0,
   "investMonthly": 55.53,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "021701.OF",
@@ -327,7 +327,7 @@
   "yieldNum": 4.1299,
   "taxRate": 1.0,
   "investMonthly": 34.99,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "021561.OF",
@@ -345,11 +345,11 @@
   "trackName": "央企红利50",
   "fundSize": 1.22,
   "divTotalAmt": 0.0,
-  "yield": "3.84%",
-  "yieldNum": 3.8425,
+  "yield": "3.83%",
+  "yieldNum": 3.8284,
   "taxRate": 1.0,
   "investMonthly": 17.68,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "021399.OF",
@@ -367,11 +367,11 @@
   "trackName": "中证红利",
   "fundSize": 0.83,
   "divTotalAmt": 0.02,
-  "yield": "4.23%",
-  "yieldNum": 4.2292,
+  "yield": "4.24%",
+  "yieldNum": 4.2401,
   "taxRate": 1.0,
   "investMonthly": 50.57,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "021971.OF",
@@ -389,11 +389,11 @@
   "trackName": "国新港股通央企红利",
   "fundSize": 1.68,
   "divTotalAmt": 0.01,
-  "yield": "5.88%",
-  "yieldNum": 5.8808,
+  "yield": "5.84%",
+  "yieldNum": 5.8428,
   "taxRate": 0.8,
   "investMonthly": 22.64,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "021961.OF",
@@ -411,11 +411,11 @@
   "trackName": "国新港股通央企红利",
   "fundSize": 3.54,
   "divTotalAmt": 0.06,
-  "yield": "5.88%",
-  "yieldNum": 5.8808,
+  "yield": "5.84%",
+  "yieldNum": 5.8428,
   "taxRate": 0.8,
   "investMonthly": 18.32,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "022274.OF",
@@ -433,11 +433,11 @@
   "trackName": "港股通高股息(HKD)",
   "fundSize": 0.3,
   "divTotalAmt": 0.0,
-  "yield": "5.20%",
-  "yieldNum": 5.203,
+  "yield": "5.33%",
+  "yieldNum": 5.334,
   "taxRate": 0.8,
   "investMonthly": 50.57,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "022448.OF",
@@ -455,11 +455,11 @@
   "trackName": "中证A500",
   "fundSize": 16.24,
   "divTotalAmt": 0.13,
-  "yield": "2.46%",
-  "yieldNum": 2.4555,
+  "yield": "2.45%",
+  "yieldNum": 2.454,
   "taxRate": 1.0,
   "investMonthly": 47.93,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "023389.OF",
@@ -477,11 +477,11 @@
   "trackName": "港股通高股息(HKD)",
   "fundSize": 2.06,
   "divTotalAmt": 0.01,
-  "yield": "5.20%",
-  "yieldNum": 5.203,
+  "yield": "5.33%",
+  "yieldNum": 5.334,
   "taxRate": 0.8,
   "investMonthly": 50.15,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "023919.OF",
@@ -499,11 +499,11 @@
   "trackName": "富时中国A股自由现金流聚焦指数",
   "fundSize": 6.53,
   "divTotalAmt": 0.02,
-  "yield": "4.01%",
-  "yieldNum": 4.015,
+  "yield": "3.76%",
+  "yieldNum": 3.7587,
   "taxRate": 1.0,
   "investMonthly": 52.42,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "024227.OF",
@@ -521,11 +521,11 @@
   "trackName": "港股通高股息(HKD)",
   "fundSize": 4.58,
   "divTotalAmt": 0.02,
-  "yield": "5.20%",
-  "yieldNum": 5.203,
+  "yield": "5.33%",
+  "yieldNum": 5.334,
   "taxRate": 0.8,
   "investMonthly": 101.89,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "025958.OF",
@@ -547,7 +547,7 @@
   "yieldNum": 3.8112,
   "taxRate": 1.0,
   "investMonthly": 97.35,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "021583.OF",
@@ -565,11 +565,11 @@
   "trackName": "港股通央企红利",
   "fundSize": 3.06,
   "divTotalAmt": 0.04,
-  "yield": "5.34%",
-  "yieldNum": 5.3409,
+  "yield": "5.51%",
+  "yieldNum": 5.5055,
   "taxRate": 0.8,
   "investMonthly": 0.0,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "022325.OF",
@@ -587,11 +587,11 @@
   "trackName": "港股通高股息CNY",
   "fundSize": 1.33,
   "divTotalAmt": 0.03,
-  "yield": "5.20%",
-  "yieldNum": 5.203,
+  "yield": "5.33%",
+  "yieldNum": 5.334,
   "taxRate": 0.8,
   "investMonthly": 0.0,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  },
  {
   "code": "021375.OF",
@@ -613,6 +613,6 @@
   "yieldNum": 4.3656,
   "taxRate": 1.0,
   "investMonthly": 0.0,
-  "sizeDate": "2026-10-08"
+  "sizeDate": "2026-10-09"
  }
 ]
