@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="v0.1.174">
+<meta name="app-version" content="v0.1.175">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>食息指南 - 低利率时代的理财之道</title>
 <!-- 网站图标 favicon（2026-10-03 首次：小猫照片；2026-10-04 用户要求换为 red-blue.svg 红蓝双圆）— 资源在仓库根目录，随部署上线 -->
@@ -790,23 +790,26 @@
   #subOpportunity .reminder { position: relative; overflow: hidden; background: #FBFCFE; border: 1px solid #E3EBFC; border-radius: var(--r-ctl); padding: 18px 20px; margin-bottom: 0; }   /* 2026-10-08 用户要求：padding 对齐全站 .reminder（18px 20px）；margin-bottom:0 交给 .opp-root gap 统一控制 */
   #subOpportunity .reminder::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 12% 0%, rgba(70,128,253,0.11), rgba(70,128,253,0) 42%), radial-gradient(circle at 88% 100%, rgba(70,128,253,0.09), rgba(70,128,253,0) 46%), linear-gradient(135deg, #FBFCFE 0%, #F0F5FF 100%); }
   #subOpportunity .reminder > * { position: relative; }
-  #subOpportunity .hero { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0; align-items: stretch; }   /* 2026-10-08 用户要求：蓝框内 4 项（机会值 / 当前建议 / 适用周期 / 历史对比）等宽 4 等分 */
+  /* ===== 蓝框（结论面板）排版 · 2026-10-09 回到最初设计（Claude）=====
+     四列不等宽：机会值按内容宽度（auto）｜当前建议 1fr｜适用周期 1fr｜历史对比 1.2fr；列间品牌蓝细竖线。
+     机会值格：大数字在上、档位文字在下；历史对比：4 个时点一行排开（时点在上、数值在下）。
+     ≤900px 两列两行；≤520px 单列堆叠、改用横向细线分隔。只改排版，文字与元素不变。 */
+  #subOpportunity .hero { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: 0; align-items: stretch; }
   #subOpportunity .hero > div { padding: 0 24px; border-left: 1px solid rgba(70,128,253,0.16); min-width: 0; }
   #subOpportunity .hero > div:first-child { padding-left: 0; border-left: 0; }
   #subOpportunity .hero > div:last-child { padding-right: 0; }
-  @media (max-width:900px) { #subOpportunity .hero { grid-template-columns: 1fr 1fr; row-gap: 18px; } #subOpportunity .hero > div:nth-child(3) { padding-left: 0; border-left: 0; } #subOpportunity .hero > div { padding: 0 0 0 18px; } }
-  @media (max-width:520px) { #subOpportunity .hero { grid-template-columns: 1fr; } #subOpportunity .hero > div { padding: 0 !important; border-left: 0 !important; border-top: 1px solid rgba(70,128,253,0.16); padding-top: 14px !important; } #subOpportunity .hero > div:first-child { border-top: 0; padding-top: 0 !important; } }
+  @media (max-width:900px) { #subOpportunity .hero { grid-template-columns: 1fr 1fr; row-gap: 18px; } #subOpportunity .hero > div { padding: 0 0 0 18px; } #subOpportunity .hero > div:nth-child(3) { padding-left: 0; border-left: 0; } }
+  @media (max-width:520px) { #subOpportunity .hero { grid-template-columns: 1fr; } #subOpportunity .hero > div { padding: 14px 0 0 !important; border-left: 0 !important; border-top: 1px solid rgba(70,128,253,0.16); } #subOpportunity .hero > div:first-child { border-top: 0; padding-top: 0 !important; } }
   #subOpportunity .k { font-size: var(--fs-2xs); color: var(--muted); display: block; margin-bottom: 6px; }
-  #subOpportunity .big { font-size: 56px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; }
+  #subOpportunity .big-wrap { display: block; }
+  #subOpportunity .big { display: block; font-size: 56px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; white-space: nowrap; }
   #subOpportunity .big small { font-size: var(--fs-base); color: var(--muted); font-weight: 400; margin-left: 4px; letter-spacing: 0; }
-  #subOpportunity .band-chip { display: inline-block; margin-top: 10px; font-size: var(--fs-2xs); font-weight: 700; padding: 0; }   /* 2026-10-08 用户要求：去掉浅蓝底色（padding 归零，纯彩色文字，左沿与上方 label 对齐）*/
+  #subOpportunity .band-chip { display: block; margin-top: 10px; font-size: var(--fs-2xs); font-weight: 700; padding: 0; white-space: nowrap; }
   #subOpportunity .v { font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; }
   #subOpportunity .note { font-size: var(--fs-base); color: var(--body); margin: 8px 0 0; line-height: 1.6; }
-  #subOpportunity .cmp { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-top: 2px; }
+  #subOpportunity .cmp { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 2px; }
   #subOpportunity .cmp b { display: block; font-size: var(--fs-lg); font-weight: 700; margin-top: 2px; }
   #subOpportunity .cmp small { font-size: var(--fs-2xs); color: var(--muted); white-space: nowrap; }
-  /* ≥768px：历史对比的小标签与数值放同一行 → 四个数值与同排其他列主数值垂直对齐（2026-10-08 用户反馈） */
-  @media (min-width:768px) { #subOpportunity .cmp b { display: inline; margin-top: 0; margin-left: 6px; } }
 
   /* 图卡 */
   #subOpportunity .chart-card { padding: 0; }
@@ -1064,8 +1067,10 @@
             <div class="hero">
               <div>
                 <span class="k">红利机会值</span>
-                <div class="big num" id="oppScore"></div>
-                <span class="band-chip" id="oppBand"></span>
+                <div class="big-wrap">
+                  <span class="big num" id="oppScore"></span>
+                  <span class="band-chip" id="oppBand"></span>
+                </div>
               </div>
               <div>
                 <span class="k">当前建议</span>
