@@ -154,7 +154,7 @@ def build_payload(df, C, cfg):
         "index": "中证红利000922.CSI",
         "score": round(float(last.opp), 1),
         "horizon": "未来6–12个月",
-        "horizonNote": "按半年到一年的持有期判断方向，不预测涨跌幅度。建议每周查看一次。",
+        "horizonNote": "按半年到一年的持有期判断方向，不预测涨跌幅度。",
         "summary": summary(last, w),
         "compare": compare,
         "core": core,
