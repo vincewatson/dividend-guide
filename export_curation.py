@@ -20,6 +20,8 @@ import openpyxl
 BASE = os.path.dirname(os.path.abspath(__file__))
 USER_DIR = os.path.join(BASE, 'data', 'user')
 OUT_DIR = os.path.join(BASE, 'data', 'curation')
+# 2026-10-10 用户固定：博客文章标注表常驻此目录，不再移动/复制到别处，直接读它。
+BLOG_XLSX_DIR = os.path.join(BASE, 'blog', 'mp-bullettrain')
 
 
 def _xlsx_dirs():
@@ -220,84 +222,78 @@ def _bsplit(v):
 
 
 def export_blog():
-    """导出 ① 文章清单（公众号历史文章*.xlsx）② 标注（博客文章标注表*.xlsx）。"""
-    # ① 文章清单
-    srcs = []
-    for d in _xlsx_dirs():
-        srcs += glob.glob(os.path.join(d, '公众号历史文章*.xlsx'))
-    srcs = [f for f in srcs if not os.path.basename(f).startswith('~$')]
-    if srcs:
-        src = max(srcs, key=os.path.getmtime)
-        wb = openpyxl.load_workbook(src, data_only=True)
-        ws = wb.active
-        rows = []
-        for i in range(2, ws.max_row + 1):
-            d = ws.cell(i, 1).value
-            title = ws.cell(i, 2).value or ''
-            url = ws.cell(i, 3).value or ''
-            col = ws.cell(i, 4).value
-            title = title.strip() if isinstance(title, str) else str(title)
-            url = url.strip() if isinstance(url, str) else str(url)
-            col = (col.strip() if isinstance(col, str) else (str(col) if col else ''))
-            if not title and not url and not d:
-                continue
-            rows.append({
-                'date': d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else (str(d).strip() if d else ''),
-                'title': _bnorm(title),
-                'url': url,
-                'column': _bnorm(col),
-            })
-        obj = {
-            'domain': 'blog_articles',
-            'source': os.path.basename(src),
-            'sourceMtime': datetime.datetime.fromtimestamp(os.path.getmtime(src)).strftime('%Y-%m-%d %H:%M'),
-            'exportedAt': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'note': '子弹列车公众号文章清单（date/title/url/column）。由 export_curation.py 从用户导出的 Excel 冻结；'
-                    '此后手工维护，sync_blog.py 只读不写。',
-            'columns': ['date', 'title', 'url', 'column'],
-            'rows': rows,
-        }
-        with io.open(os.path.join(OUT_DIR, 'blog_articles.json'), 'w', encoding='utf-8') as f:
-            json.dump(obj, f, ensure_ascii=False, indent=1)
-        print('  %-28s %-22s rows=%d' % ('blog_articles.json', '公众号历史文章', len(rows)))
-    else:
-        print('[WARN] 未找到 user_upload/公众号历史文章*.xlsx，跳过博客清单导出')
+    """导出 ① 文章清单 ② 标注 —— 同一份《博客文章标注表*.xlsx》同时含两类信息。
 
-    # ② 标注表 → url -> {direction, indexes}
-    annts = []
-    for d in _xlsx_dirs():
-        annts += glob.glob(os.path.join(d, '博客文章标注表*.xlsx'))
-    annts = [f for f in annts if not os.path.basename(f).startswith('~$')]
-    if annts:
-        ax = max(annts, key=os.path.getmtime)
-        wb = openpyxl.load_workbook(ax, data_only=True)
-        ws = wb[wb.sheetnames[0]]
-        annotations = {}
-        for i in range(2, ws.max_row + 1):
-            u = ws.cell(i, 3).value
-            u = u.strip() if isinstance(u, str) else (str(u).strip() if u else '')
-            if not u:
-                continue
-            d = ws.cell(i, 5).value
-            d = _bnorm(str(d).strip()) if d else ''
-            ix = _bsplit(ws.cell(i, 6).value)
-            if d or ix:
-                annotations[u] = {'direction': d, 'indexes': ix}
-        obj = {
-            'domain': 'blog_annotations',
-            'source': os.path.basename(ax),
-            'sourceMtime': datetime.datetime.fromtimestamp(os.path.getmtime(ax)).strftime('%Y-%m-%d %H:%M'),
-            'exportedAt': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'schema': 'url -> {direction, indexes}',
-            'note': '博客文章标注（内容标签 direction / 相关指数 indexes）。由 export_curation.py 从用户维护的标注表冻结；'
-                    '此后手工维护，sync_blog.py 只读不写。',
-            'annotations': annotations,
-        }
-        with io.open(os.path.join(OUT_DIR, 'blog_annotations.json'), 'w', encoding='utf-8') as f:
-            json.dump(obj, f, ensure_ascii=False, indent=1)
-        print('  %-28s %-22s entries=%d' % ('blog_annotations.json', '博客文章标注表', len(annotations)))
-    else:
-        print('[WARN] 未找到 user_upload/博客文章标注表*.xlsx，跳过博客标注导出')
+    2026-10-10 用户固定：该 Excel 常驻 `blog/mp-bullettrain/`，不再移动/复制到别处，
+    本脚本直接从该目录读取。表头列：
+      发表日期 / 标题 / 文章链接 / 所属栏目 / 内容标签（投资观点相关）/
+      相关指数（Wind指数简称）/ 付费文章。
+      - 文章清单（date/title/url/column）取第 1/2/3/4 列；
+      - 标注（url -> {direction, indexes}）取第 3/5/6 列。
+    """
+    srcs = [f for f in glob.glob(os.path.join(BLOG_XLSX_DIR, '博客文章标注表*.xlsx'))
+            if not os.path.basename(f).startswith('~$')]
+    if not srcs:
+        print('[WARN] 未找到 %s/博客文章标注表*.xlsx，跳过博客导出' % BLOG_XLSX_DIR)
+        return
+    src = max(srcs, key=os.path.getmtime)
+    wb = openpyxl.load_workbook(src, data_only=True)
+    ws = wb[wb.sheetnames[0]]
+
+    rows, annotations = [], {}
+    for i in range(2, ws.max_row + 1):
+        d = ws.cell(i, 1).value
+        title = ws.cell(i, 2).value or ''
+        url = ws.cell(i, 3).value or ''
+        col = ws.cell(i, 4).value
+        title = title.strip() if isinstance(title, str) else str(title)
+        url = url.strip() if isinstance(url, str) else str(url)
+        col = (col.strip() if isinstance(col, str) else (str(col) if col else ''))
+        if not title and not url and not d:
+            continue
+        rows.append({
+            'date': d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else (str(d).strip() if d else ''),
+            'title': _bnorm(title),
+            'url': url,
+            'column': _bnorm(col),
+        })
+        dg = ws.cell(i, 5).value
+        dg = _bnorm(str(dg).strip()) if dg else ''
+        ix = _bsplit(ws.cell(i, 6).value)
+        if url and (dg or ix):
+            annotations[url] = {'direction': dg, 'indexes': ix}
+
+    mt = datetime.datetime.fromtimestamp(os.path.getmtime(src)).strftime('%Y-%m-%d %H:%M')
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    srcname = os.path.basename(src)
+
+    obj_a = {
+        'domain': 'blog_articles',
+        'source': srcname,
+        'sourceMtime': mt,
+        'exportedAt': now,
+        'note': '子弹列车公众号文章清单（date/title/url/column）。由 export_curation.py 从用户维护的'
+                '《博客文章标注表》（常驻 blog/mp-bullettrain/）冻结；此后手工维护，sync_blog.py 只读不写。',
+        'columns': ['date', 'title', 'url', 'column'],
+        'rows': rows,
+    }
+    with io.open(os.path.join(OUT_DIR, 'blog_articles.json'), 'w', encoding='utf-8') as f:
+        json.dump(obj_a, f, ensure_ascii=False, indent=1)
+    print('  %-28s %-22s rows=%d' % ('blog_articles.json', '博客文章标注表', len(rows)))
+
+    obj_n = {
+        'domain': 'blog_annotations',
+        'source': srcname,
+        'sourceMtime': mt,
+        'exportedAt': now,
+        'schema': 'url -> {direction, indexes}',
+        'note': '博客文章标注（内容标签 direction / 相关指数 indexes）。由 export_curation.py 从用户维护的'
+                '《博客文章标注表》（常驻 blog/mp-bullettrain/）冻结；此后手工维护，sync_blog.py 只读不写。',
+        'annotations': annotations,
+    }
+    with io.open(os.path.join(OUT_DIR, 'blog_annotations.json'), 'w', encoding='utf-8') as f:
+        json.dump(obj_n, f, ensure_ascii=False, indent=1)
+    print('  %-28s %-22s entries=%d' % ('blog_annotations.json', '博客文章标注表', len(annotations)))
 
 
 if __name__ == '__main__':
