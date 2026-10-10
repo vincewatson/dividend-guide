@@ -1,5 +1,11 @@
 # Agent 规则
 
+## 数据更新前必读（2026-10-10）
+
+跑日更/周更前先读 `docs/data-governance/update-mechanism.md` 开头的「开跑前必读：2026-10-10 中央复盘要点」（不手写 SKIP_STEPS、一次运行只部署一次、先过 digest-db 告警、Wind 列名/单位漂移按“未知不写”处理）。
+
+**跑完更新后必做（2026-10-10 用户确立）**：写一份复盘笔记到 `Codes/all_coding_projects/website-updates-review/divlab-update-report-<YYYYMMDD>.md`（Windows：`D:\Codes\all_coding_projects\website-updates-review\`；同名同日只保留一份，含补跑）。结构见 `update-mechanism.md`「跑完之后必做：更新复盘」。
+
 ## 工作目录约定（2026-10-04 确立）
 
 **本站（食息指南 dividend-guide）的所有网站改动，只能写入本目录：**

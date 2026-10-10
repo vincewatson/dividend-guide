@@ -19,6 +19,9 @@
 # ============================================================
 set -e
 cd "$(dirname "$0")"
+# 2026-10-10：Agent 终端常不带 UTF-8 locale ⇒ Python 输出的中文（星期等）在报告里变成 ??。统一指定
+export PYTHONIOENCODING=utf-8 PYTHONUTF8=1
+export LANG="${LANG:-zh_CN.UTF-8}"
 
 # Cloudflare Pages 部署凭据（2026-10-03 由 Vercel 迁移）
 CF_DIR="$HOME/.config/dividend-guide"
@@ -494,3 +497,13 @@ python3 make_run_report.py --mode "$MODE_LABEL" --reason "$MODE_REASON" --deploy
 
 echo ""
 echo "✅ 同步完成！请访问 https://divlab.net"
+
+# ------------------------------------------------------------
+# [复盘提醒] 跑完必做（2026-10-10 用户确立）
+#   每次跑完（含当天补跑）写一份更新复盘，落到跨项目复盘目录；同日只保留一份。
+#   结构见 docs/data-governance/update-mechanism.md「跑完之后必做：更新复盘」。
+# ------------------------------------------------------------
+echo ""
+echo "📝 [复盘提醒] 请写更新复盘："
+echo "   Codes/all_coding_projects/website-updates-review/divlab-update-report-$(date +%Y%m%d).md"
+echo "   （Windows 为 D:\\\\Codes\\\\all_coding_projects\\\\website-updates-review\\\\；同一天多次运行/补跑写同一份）"
