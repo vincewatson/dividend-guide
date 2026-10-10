@@ -254,6 +254,8 @@ def build(today, mode="daily"):
     def add(name, step, cur, exp, kind, note=""):
         if kind == "daily":
             st = "fresh" if (cur and cur >= exp) else "stale"
+        elif kind == "strict":          # 单一市场口径（货基/余额宝/宏观/REITs）：必须到期望日，不给跨市场容差
+            st = "unknown" if (cur is None or exp is None) else ("fresh" if cur >= exp else "stale")
         elif kind == "market":
             if cur is None or exp is None:
                 st = "unknown"
@@ -272,6 +274,24 @@ def build(today, mode="daily"):
 
     # --- 资讯 ---
     add("食息资讯 dailyData", 16, r_daily(), today, "daily", "自然日每日更新")
+    # 上游日报库（Windows 生成，经坚果云同步到本机）：落后于昨天 ⇒ 多半是坚果云没开/没同步完（2026-10-10 实例）
+    try:
+        import glob as _g
+        _cands = [os.path.expanduser(x) for x in (
+            "~/Library/CloudStorage/坚果云-vincent.watson@live.com/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json",
+            "~/Nutstore Files/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json",
+            "D:/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json")]
+        _cands += _g.glob(os.path.expanduser("~/Library/CloudStorage/*/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json"))
+        _db = next((x for x in _cands if os.path.exists(x)), None)
+        if _db:
+            _up = (_load(_db) or {}).get("meta", {}).get("updatedAt") if isinstance(_load(_db), dict) else None
+            _upd = _d(str(_up)[:10]) if _up else None
+            if _upd and _upd < today - datetime.timedelta(days=1):
+                warn.append("食息资讯上游 digest-db.json 最后更新 %s，落后于昨天：多半是坚果云未开启或未同步完，先打开坚果云等同步，再跑步骤 16" % _upd)
+        else:
+            warn.append("未找到上游 digest-db.json（坚果云同步目录），食息资讯无法更新")
+    except Exception as _e:
+        warn.append("检查上游 digest-db.json 失败：%s" % _e)
 
     # --- 指数（A股+港股）---
     dh, dh_n, dh_tot = r_divhistory()
@@ -280,15 +300,17 @@ def build(today, mode="daily"):
     add("指数涨跌幅 dailyChange", 6, dc, both, "market", "%d/%d 只" % (dc_n, dc_tot))
 
     # --- 货基 / 余额宝（A股口径）---
-    add("货基7日年化 moneyFund", 7, r_moneyfund(), cn_last, "market", "天弘余额宝")
-    add("余额宝历史 yuebaoHistory", 8, r_yuebao(), cn_last, "market", "")
+    # 2026-10-10 修正：这些是单一市场数据，原先套用 2 天跨市场容差 ⇒ 落后 1 个交易日也判“最新”、被建议跳过
+    #   （10-10 周六实例：货基/余额宝停在 10-08，10-09 的值漏更）。改为 strict：必须到 A 股最近交易日
+    add("货基7日年化 moneyFund", 7, r_moneyfund(), cn_last, "strict", "天弘余额宝")
+    add("余额宝历史 yuebaoHistory", 8, r_yuebao(), cn_last, "strict", "")
 
     # --- 宏观（REITs 两类 + 余额宝日频 + 国债周频）---
-    add("REITs日频 reitsDaily", 10, r_reitsdaily()[0], cn_last, "market",
+    add("REITs日频 reitsDaily", 10, r_reitsdaily()[0], cn_last, "strict",
         "%d 只有序列" % r_reitsdaily()[1])
     add("宏观·储蓄国债(周频)", 9, r_asset("3年期储蓄国债"), last_friday(today), "market", "每周五采样")
-    add("宏观·余额宝(日频)", 9, r_asset("天弘余额宝"), cn_last, "market", "")
-    add("宏观·REITs两类(日频)", 10, r_asset("REITs产权类"), cn_last, "market", "")
+    add("宏观·余额宝(日频)", 9, r_asset("天弘余额宝"), cn_last, "strict", "")
+    add("宏观·REITs两类(日频)", 10, r_asset("REITs产权类"), cn_last, "strict", "")
     add("宏观·低频(存单/LPR/存款/预定利率)", 9, None, None, "exempt", "周/月/不定期")
     add("重点50城租金率", "B2", r_asset("重点50城租金率"), None, "exempt", "季度")
 
