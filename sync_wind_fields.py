@@ -143,6 +143,27 @@ def _alias(code):
     return (code.replace('.OF', '.SH'), code.replace('.OF', '.SZ'))
 
 
+# 单位换算 + 规模列名候选（2026-10-10 · backlog B-6）
+#   ① 列名：Wind 对「基金规模」在不同批次返回不同列名（实测同一天：`基金规模合计` /
+#      `最新基金规模合计` / `上市基金规模_WIND计算`），原实现只认 `基金规模合计` → 其它批次取空、规模漏更新。
+#   ② 单位：同名列的 unit 在不同批次还不一致（`亿元` / `百万元`）→ 原实现硬编码按亿元写，百万元批次会放大 100 倍。
+#   现：多候选列名取第一个命中的，并按该列返回的 unit 归一到亿元；**unit 缺失/未知 → 不写**（宁可保留旧值）。
+_SIZE_CANDS = ('基金规模合计', '最新基金规模合计', '上市基金规模_WIND计算')
+_SIZE_TO_YI = {'亿元': 1.0, '亿': 1.0, '百万元': 0.01, '千万元': 0.1, '万元': 1e-4, '千元': 1e-5, '元': 1e-8}
+
+
+def _units_of(tbs):
+    """聚合各表「列名 → unit」（2026-10-10 · B-6）。"""
+    m = {}
+    for tb in tbs:
+        for c in tb.get('columns', []):
+            u = c.get('unit')
+            if u:
+                m.setdefault(str(c.get('name', '')), str(u).strip())
+    return m
+
+
+
 def _index_yield_map():
     """indexData → {code: yieldNum}（跟踪指数股息率，2026-08-16 用户确认口径）"""
     m = {}
@@ -247,6 +268,7 @@ def update_cn_etf():
     results = _prefetch(queries)
     for bi, (batch, tbs) in enumerate(zip(batches, results)):
         by_code = _rows_by_code(tbs)
+        u_by = _units_of(tbs)           # 列名 → unit（2026-10-10 · B-6 单位归一）
         for x in batch:
             hit = by_code.get(x['code'])
             if not hit:
@@ -277,13 +299,24 @@ def update_cn_etf():
             if v is not None and v > 0:   # 费率 ≤0 视为 Wind 缺值/异常，不写入（防 0.00% 覆盖真实费率，2026-10-05）
                 upd('feeNum', round(v / 100.0, 4))
                 upd('fee', '{:.2f}%'.format(v))
-            v = num(gv('基金规模合计'))
+            _sz = next((n for n in _SIZE_CANDS if n in cm), None)   # 规模列名候选（2026-10-10 · B-6）
+            v = num(gv(_sz)) if _sz else None
             if v is not None:
-                upd('size', round(v, 2))
-                x['sizeDate'] = datetime.date.today().isoformat()   # 规模取数日期（供中央数据库 data_center 区分新旧，2026-09-25 新增）
+                sc = _SIZE_TO_YI.get(u_by.get(_sz) or '')
+                if sc is None:      # 单位未知 → 不写（防单位错放大数据，2026-10-10 · B-6）
+                    print('  [!] %s 规模单位未知(%r) → 跳过' % (x['code'], u_by.get(_sz)))
+                else:
+                    upd('size', round(v * sc, 2))
+                    x['sizeDate'] = datetime.date.today().isoformat()   # 规模取数日期（供中央数据库 data_center 区分新旧，2026-09-25 新增）
             v = num(gv('基金份额'))
             if v is not None:
-                upd('shares', round(v / 1e4, 2))   # 万份 → 亿份
+                # 份额：Wind 的 unit 不可靠（都标「份」但数值多为「万份」），沿用 ÷1e4 → 亿份；
+                # 再加写前护栏：结果 >1000 亿份视为异常（单位漂移）→ 跳过，防放大 1 万倍（2026-10-10 · B-6）
+                _sh = round(v / 1e4, 2)
+                if 0 < _sh <= 1000:
+                    upd('shares', _sh)
+                else:
+                    print('  [!] %s 份额异常(%s → %s 亿份) → 跳过' % (x['code'], v, _sh))
             v = num(gv('开放式基金认购户数'))
             if v is not None:
                 upd('holders', round(v / 1e4, 2))  # 户 → 万户
