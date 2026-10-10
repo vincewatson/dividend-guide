@@ -13,6 +13,10 @@
 - **✅ P2 已完成（2026-10-06）**：`build_lists.py` **不再读任何 xlsx** —— 8 个 builder 全部改读本目录，
   按【列名】取值；Excel 快照文件**已无脚本引用**。`sync_blog.py` 亦已完全脱离 Excel。
 - **✅ P3 已完成（2026-10-06）**：`build_lists.py`（由 `sync_excel.py` 更名）、`backup_db.py`、`preflight.py` **全部去 Excel**；原 xlsx 归档至 `archive/excel-baseline-20261006/`。**至此全站无任何 Excel 依赖**。
+- **2026-10-10 更新（博客 Excel 位置固定）**：用户把《博客文章标注表*.xlsx》（现已合并「文章清单 + 标注」于同一 sheet）
+  **固定放在 `blog/mp-bullettrain/`**，不再放 `user_upload/`、**不要移动/复制**；`export_curation.py:export_blog()`
+  直接从该目录读，一次导出 `blog_articles.json` + `blog_annotations.json`。更新博客流程：
+  用户改 Excel → `python3 -c "import export_curation as e; e.export_blog()"` → `python3 sync_blog.py` → `python3 embed_data.py` → 部署。
 
 ## 文件
 
@@ -29,8 +33,8 @@
 | `money_fund.json` | money_fund | 主表·货币基金 | moneyFundData | build_lists（**清单**）|
 | `reits_equity.json` / `reits_concession.json` | reits | 主表·REITs 产权/经营权类 | reitsData | build_lists（**清单**）|
 | `assets.json` | assets | 主表·总表 | assetData | build_lists（**清单**）|
-| `blog_articles.json` | blog_articles | 公众号历史文章 | blogData | sync_blog（**清单**）|
-| `blog_annotations.json` | blog_annotations | 博客文章标注表 | blogData | sync_blog（**标注**）|
+| `blog_articles.json` | blog_articles | 博客文章标注表（第 1–4 列）| blogData | sync_blog（**清单**）|
+| `blog_annotations.json` | blog_annotations | 博客文章标注表（第 3/5/6 列）| blogData | sync_blog（**标注**）|
 | `_retired.json` | retired | （停用名单 · 非导出项）| cnEtf/hkEtf/reits/moneyFund | sync_lifecycle 维护；build_lists 读取跳过 |
 | `_hk_etf_universe.json` | hk_etf_universe | （中央数据库导出的港交所上市 ETF 全量名单 · 非导出项）| hkEtfData | sync_lifecycle 读取（港ETF「出」比对）|
 | `_manifest.json` | — | 导出清单（来源文件 / mtime / 行数）| — | 参考 |

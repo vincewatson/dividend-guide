@@ -26,7 +26,8 @@
    - `红利指数信息表`：指数代码/名称/**详情页**/全称/发布机构/发布日期/成分个数/目标市场/加权方式/**加权方式(附加条件)**/**样本调整周期**/**样本调整生效日**/股息率
    - `红利指数股息率`：港股红利税系数、每月千元分红需总投入
    - `港交所红利ETF`：**详情页**/互联互通ETF/跟踪指数/管理人/费率/规模/最近分红日
-2. **博客标注表 `user_upload/博客文章标注表*.xlsx`**（2026-10-05，**仍在用**）—— 内容标签 / 相关指数；由 `sync_blog.py` 合并、并**回写** `data/blogAnnotations.json`。 → **✅ P1 已迁移**：清单/标注冻结为 `data/curation/blog_articles.json` + `blog_annotations.json`，`sync_blog.py` 只读它们、**不再读写任何 xlsx**；旧镜像 `data/blogAnnotations.json` 已删除。
+2. **博客标注表 `博客文章标注表*.xlsx`** —— 内容标签 / 相关指数。 → **✅ P1 已迁移**：清单/标注冻结为 `data/curation/blog_articles.json` + `blog_annotations.json`，`sync_blog.py` 只读它们、**不再读写任何 xlsx**；旧镜像 `data/blogAnnotations.json` 已删除。
+   - **2026-10-10 更新**：用户已把该表（并已把「文章清单 + 标注」合并到同一 sheet）**固定放在 `blog/mp-bullettrain/`**，不再放 `user_upload/`、不要移动；`export_curation.py:export_blog()` 直接从该目录读，一次导出上面两个 JSON。
 3. **代码常量（`sync_excel.py`）**：`MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / `NOTE_OVERRIDE` / `BOND_OVERRIDE` / `EXTRA_ASSETS` / `ASSET_DESC` / `smart_tax_rate`。
 4. **对话落地通道**：用户在对话里告知的修正 → AI 落到 `data/*.json` + 登记 `docs/data-governance/manual-overrides.md`（**本身就是「无 Excel」通道**）。
 
