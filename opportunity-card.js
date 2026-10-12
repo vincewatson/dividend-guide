@@ -206,11 +206,15 @@
   }
 
   /* ---------- 图标（内联 SVG） ---------- */
+  /* 图标取自 IconPark（https://iconpark.oceanengine.com/official），
+     原始文件：source/Brand/wechat.svg · source/Brand/friends-circle.svg · source/Edit/copy-link.svg ·
+     source/Arrows/download.svg · source/Base/share.svg；已改为 currentColor 以适配任意底色。 */
   var ICO = {
-    wx: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.7 3.2C4.9 3.2 1.8 5.8 1.8 9c0 1.9 1 3.5 2.7 4.6l-.7 2.1 2.4-1.2c.8.2 1.6.3 2.5.3h.5c-.1-.4-.2-.8-.2-1.2 0-3.2 3.1-5.7 6.9-5.7h.6C15.8 5.2 12.6 3.2 8.7 3.2zm-2.3 3.1a.9.9 0 110 1.8.9.9 0 010-1.8zm4.6 0a.9.9 0 110 1.8.9.9 0 010-1.8z"/><path d="M22.2 13.6c0-2.7-2.7-4.8-5.9-4.8s-5.9 2.1-5.9 4.8 2.7 4.8 5.9 4.8c.7 0 1.3-.1 1.9-.3l2 1-.6-1.7c1.6-.9 2.6-2.3 2.6-3.8zm-7.8-1.4a.8.8 0 110 1.6.8.8 0 010-1.6zm3.8 0a.8.8 0 110 1.6.8.8 0 010-1.6z"/></svg>',
-    moments: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v16.2M12 21.5a9.5 9.5 0 100-19 9.5 9.5 0 000 19z"/><path d="M4.2 15.5l12.8-7M19.8 15.5L7 8.5"/></svg>',
-    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M10 13a4 4 0 006 .5l2-2a4 4 0 10-5.7-5.7l-1 1"/><path d="M14 11a4 4 0 00-6-.5l-2 2A4 4 0 109.7 18l1-1"/></svg>',
-    save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11m0 0l-4-4m4 4l4-4M5 16v3a2 2 0 002 2h10a2 2 0 002-2v-3"/></svg>'
+    wx: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" clip-rule="evenodd" d="M36.9974 21.7112C36.8434 13.0079 29.7401 6 21 6C12.1634 6 5 13.1634 5 22C5 26.1701 6.59531 29.9676 9.20892 32.8154L8.01043 40.0257L15.125 36.9699C18.2597 38.0122 21.218 38.2728 24 37.7516" fill="currentColor" fill-opacity=".22"/> <path d="M36.9974 21.7112C36.8434 13.0079 29.7401 6 21 6C12.1634 6 5 13.1634 5 22C5 26.1701 6.59531 29.9676 9.20892 32.8154L8.01043 40.0257L15.125 36.9699C18.2597 38.0122 21.218 38.2728 24 37.7516" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M15.125 20.4667C16.3676 20.4667 17.375 19.4519 17.375 18.2C17.375 16.9482 16.3676 15.9333 15.125 15.9333C13.8824 15.9333 12.875 16.9482 12.875 18.2C12.875 19.4519 13.8824 20.4667 15.125 20.4667Z" fill="currentColor"/> <path d="M24.125 20.4667C25.3676 20.4667 26.375 19.4519 26.375 18.2C26.375 16.9482 25.3676 15.9333 24.125 15.9333C22.8824 15.9333 21.875 16.9482 21.875 18.2C21.875 19.4519 22.8824 20.4667 24.125 20.4667Z" fill="currentColor"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M38.7618 39.9293C37.0135 41.2302 34.8467 42 32.5 42C26.701 42 22 37.299 22 31.5C22 25.701 26.701 21 32.5 21C38.299 21 43 25.701 43 31.5C43 33.0997 42.6423 34.6159 42.0024 35.9728" fill="currentColor" fill-opacity=".22"/> <path d="M38.7618 39.9293C37.0135 41.2302 34.8467 42 32.5 42C26.701 42 22 37.299 22 31.5C22 25.701 26.701 21 32.5 21C38.299 21 43 25.701 43 31.5C43 33.0997 42.6423 34.6159 42.0024 35.9728" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M42.0024 35.9728L43 42L38.7618 39.9293" fill="currentColor" fill-opacity=".22"/> <path d="M42.0024 35.9728L43 42L38.7618 39.9293" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M35.6875 30.7999C34.7555 30.7999 34 30.0388 34 29.0999C34 28.161 34.7555 27.3999 35.6875 27.3999C36.6195 27.3999 37.375 28.161 37.375 29.0999C37.375 30.0388 36.6195 30.7999 35.6875 30.7999Z" fill="currentColor"/> <path d="M28.9375 30.7999C28.0055 30.7999 27.25 30.0388 27.25 29.0999C27.25 28.161 28.0055 27.3999 28.9375 27.3999C29.8695 27.3999 30.625 28.161 30.625 29.0999C30.625 30.0388 29.8695 30.7999 28.9375 30.7999Z" fill="currentColor"/> </svg>',
+    moments: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M31 7V24V7Z" fill="currentColor" fill-opacity=".22"/> <path d="M31 7V24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M16.6357 6.63599L30.7779 20.7781L16.6357 6.63599Z" fill="currentColor" fill-opacity=".22"/> <path d="M16.6357 6.63599L30.7779 20.7781" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M7 17H24H7Z" fill="currentColor" fill-opacity=".22"/> <path d="M7 17H24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M20.3643 17.636L6.22212 31.7781L20.3643 17.636Z" fill="currentColor" fill-opacity=".22"/> <path d="M20.3643 17.636L6.22212 31.7781" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M17 25V42V25Z" fill="currentColor" fill-opacity=".22"/> <path d="M17 25V42" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M17.6357 27.636L31.7779 41.7781L17.6357 27.636Z" fill="currentColor" fill-opacity=".22"/> <path d="M17.6357 27.636L31.7779 41.7781" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M24 31L42 31L24 31Z" fill="currentColor" fill-opacity=".22"/> <path d="M24 31L42 31" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path fill-rule="evenodd" clip-rule="evenodd" d="M42.3643 16.636L28.2221 30.7781L42.3643 16.636Z" fill="currentColor" fill-opacity=".22"/> <path d="M42.3643 16.636L28.2221 30.7781" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M24 31C27.866 31 31 27.866 31 24C31 20.134 27.866 17 24 17C20.134 17 17 20.134 17 24C17 27.866 20.134 31 24 31Z" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+    link: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M12 9.92704V7C12 5.34315 13.3431 4 15 4H41C42.6569 4 44 5.34315 44 7V33C44 34.6569 42.6569 36 41 36H38.0174" stroke="currentColor" stroke-width="4"/> <rect x="4" y="10" width="34" height="34" rx="3" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/> <path d="M18.4394 23.1101L23.7319 17.6006C25.1835 16.1489 27.5691 16.1809 29.0602 17.672C30.5513 19.1631 30.5833 21.5487 29.1316 23.0003L27.2215 25.0231" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M13.4661 28.7472C12.9558 29.2575 11.9006 30.2765 11.9006 30.2765C10.4489 31.7281 10.4095 34.3155 11.9006 35.8066C13.3917 37.2977 15.7772 37.3296 17.2289 35.878L22.3931 31.1896" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18.6626 28.3284C17.97 27.6358 17.5922 26.7502 17.5317 25.8548C17.4619 24.8226 17.8138 23.7774 18.5912 23.0001" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22.3213 25.8613C23.8124 27.3524 23.8444 29.738 22.3927 31.1896" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+    save: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M6 24.0083V42H42V24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M33 23L24 32L15 23" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M23.9917 6V32" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+    share: '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M28 6H42V20" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M42 29.4737V39C42 40.6569 40.6569 42 39 42H9C7.34315 42 6 40.6569 6 39V9C6 7.34315 7.34315 6 9 6L18 6" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <path d="M25.7998 22.1999L41.0998 6.8999" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
   };
 
   /* ---------- 样式 ---------- */
@@ -221,35 +225,32 @@
     '.opp-share-btn{font:inherit;font-size:12px;line-height:1;cursor:pointer;padding:7px 12px;border-radius:999px;',
     'border:1px solid rgba(70,128,253,.38);background:#fff;color:#2E5BFF;font-weight:700;display:inline-flex;align-items:center;gap:6px}',
     '.opp-share-btn:hover{background:#F0F5FF}',
-    '.opp-share-btn svg{width:13px;height:13px;display:block}',
+    '.opp-share-btn svg{width:14px;height:14px;display:block}',
     /* 弹层：卡面居中；✕ 在卡面右上角；下载/分享在卡面**右下方、图外** */
     '.oppCardMask{position:fixed;inset:0;background:rgba(15,23,42,.56);display:flex;align-items:center;justify-content:center;z-index:1000;padding:18px}',
     '.oppCardMask[hidden]{display:none}',
-    '.oppCardWrap{display:flex;flex-direction:column;align-items:center;max-height:100%}',
+    /* 外层宽度 = 卡面宽度（width:min-content 由卡图决定），按钮行因此在卡宽内自动折行、右对齐 */
+    '.oppCardWrap{position:relative;display:flex;flex-direction:column;align-items:center;max-height:100%;width:min-content;max-width:100%}',
     '.oppCardStage{position:relative;display:flex;justify-content:center;min-height:0}',
-    '.oppCardBox img{display:block;max-width:min(94vw,470px);max-height:calc(100vh - 168px);width:auto;height:auto;border-radius:18px;box-shadow:0 18px 44px rgba(8,20,48,.34)}',
+    '.oppCardBox img{display:block;max-width:min(94vw,470px);max-height:calc(100vh - 172px);width:auto;height:auto;border-radius:18px;box-shadow:0 18px 44px rgba(8,20,48,.34)}',
     '.oppCardClose{position:absolute;top:10px;right:10px;z-index:3;width:30px;height:30px;border-radius:50%;cursor:pointer;',
     'border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.94);color:#525252;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}',
     '.oppCardClose:hover{background:#fff;color:#111}',
-    '.oppCardActions{display:flex;justify-content:flex-end;gap:10px;width:100%;padding:12px 2px 0}',
-    '.oppCardBtn{font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:9px 16px;border-radius:999px;',
-    'border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.14);color:#fff}',
-    '.oppCardBtn:hover{background:rgba(255,255,255,.24)}',
+    '.oppCardActions{position:relative;width:100%;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:14px 0 0}',
+    /* 圆形图标按钮（无文字；顺序：微信 / 朋友圈 / 复制链接 / 下载到本地） */
+    '.oppCardBtn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;padding:0;border-radius:50%;',
+    'cursor:pointer;border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.14);color:#fff}',
+    '.oppCardBtn:hover{background:rgba(255,255,255,.26)}',
+    '.oppCardBtn svg{width:20px;height:20px;display:block;flex:none}',
     '.oppCardBtn.primary{background:#4680FD;border-color:#4680FD}',
     '.oppCardBtn.primary:hover{background:#2E5BFF}',
-    /* 分享选项浮层（在按钮上方浮出，避免出屏） */
-    '.oppShareWrap{position:relative}',
-    '.oppShareMenu{position:absolute;right:0;bottom:calc(100% + 8px);background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;',
-    'box-shadow:0 10px 30px rgba(8,20,48,.24);padding:6px;min-width:150px;z-index:4}',
-    '.oppShareMenu[hidden]{display:none}',
-    '.oppShareItem{display:flex;align-items:center;gap:10px;width:100%;font:inherit;font-size:13px;color:#1a1a1a;cursor:pointer;',
-    'padding:9px 10px;border:0;background:transparent;border-radius:8px;text-align:left;white-space:nowrap}',
-    '.oppShareItem:hover{background:#F2F5FF;color:#2E5BFF}',
-    '.oppShareItem svg{width:17px;height:17px;color:#4680FD}',
-    '.oppWxPanel{padding:14px 14px 12px;text-align:center;max-width:230px}',
-    '.oppWxPanel img{width:170px;height:170px;display:block;margin:0 auto 10px}',
-    '.oppWxPanel b{display:block;font-size:13px;color:#111;margin-bottom:4px}',
-    '.oppWxPanel p{font-size:12px;color:#767676;line-height:1.6;margin:0}',
+    /* 微信 / 朋友圈：在按钮行上方浮出二维码面板 */
+    '.oppWxPanel{position:absolute;right:0;bottom:calc(100% + 10px);background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;',
+    'box-shadow:0 12px 34px rgba(8,20,48,.28);padding:14px;text-align:center;width:214px;z-index:4}',
+    '.oppWxPanel[hidden]{display:none}',
+    '.oppWxPanel img{width:166px;height:166px;display:block;margin:0 auto 10px}',
+    '.oppWxPanel b{display:block;font-size:13px;color:#111;margin-bottom:8px}',
+    '.oppWxPanel p{font-size:12px;color:#767676;line-height:1.7;margin:0}',
     '.oppToast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%);background:rgba(17,24,39,.92);color:#fff;',
     'font-size:13px;padding:9px 16px;border-radius:999px;z-index:1001;opacity:0;transition:opacity .2s}',
     '.oppToast.on{opacity:1}',
@@ -285,16 +286,13 @@
       + '<div class="oppCardBox" id="oppCardBox"></div>'
       + '<button type="button" class="oppCardClose" id="oppCardClose" aria-label="关闭">✕</button>'
       + '</div>'
-      + '<div class="oppCardActions">'
-      + '<button type="button" class="oppCardBtn primary" id="oppCardDownload">下载图片</button>'
-      + '<div class="oppShareWrap">'
-      + '<button type="button" class="oppCardBtn" id="oppCardShare" aria-haspopup="true" aria-expanded="false">分享</button>'
-      + '<div class="oppShareMenu" id="oppShareMenu" hidden>'
-      + '<button type="button" class="oppShareItem" data-act="wx">' + ICO.wx + '微信</button>'
-      + '<button type="button" class="oppShareItem" data-act="moments">' + ICO.moments + '朋友圈</button>'
-      + '<button type="button" class="oppShareItem" data-act="copy">' + ICO.link + '复制链接</button>'
-      + '<button type="button" class="oppShareItem" data-act="save">' + ICO.save + '保存图片</button>'
-      + '</div></div></div></div>';
+      + '<div class="oppCardActions" id="oppCardActions">'
+      + '<button type="button" class="oppCardBtn" data-act="wx" title="分享到微信" aria-label="分享到微信">' + ICO.wx + '</button>'
+      + '<button type="button" class="oppCardBtn" data-act="moments" title="分享到朋友圈" aria-label="分享到朋友圈">' + ICO.moments + '</button>'
+      + '<button type="button" class="oppCardBtn" data-act="copy" title="复制链接" aria-label="复制链接">' + ICO.link + '</button>'
+      + '<button type="button" class="oppCardBtn primary" data-act="save" title="下载到本地" aria-label="下载到本地">' + ICO.save + '</button>'
+      + '<div class="oppWxPanel" id="oppWxPanel" hidden></div>'
+      + '</div></div>';
     document.body.appendChild(mask);
 
     var guide = document.createElement('div');
@@ -305,55 +303,42 @@
 
     mask.addEventListener('click', function (e) { if (e.target === mask) close(); });
     document.getElementById('oppCardClose').addEventListener('click', close);
-    document.getElementById('oppCardDownload').addEventListener('click', function () { doDownload(); });
-    document.getElementById('oppCardShare').addEventListener('click', function (e) {
-      e.stopPropagation(); toggleShareMenu();
-    });
-    document.getElementById('oppShareMenu').addEventListener('click', function (e) {
-      var it = e.target.closest ? e.target.closest('.oppShareItem') : null;
-      if (!it) return;
-      /* 关键：showWxPanel 会重写菜单内容，原点击目标随即脱离 DOM，
-         若不拦截，文档级的「点外部关闭」会把刚打开的面板立刻关掉。 */
+    document.getElementById('oppCardActions').addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.oppCardBtn') : null;
+      if (!btn) return;
+      /* 面板内容会被重写、原点击目标随即脱离 DOM；拦截以免被文档级「点外部关闭」误关 */
       e.stopPropagation();
-      shareAct(it.getAttribute('data-act'));
+      shareAct(btn.getAttribute('data-act'));
     });
     document.addEventListener('click', function (e) {
-      var m = document.getElementById('oppShareMenu');
-      if (!m || m.hidden) return;
-      var w = document.getElementById('oppCardShare');
-      if (e.target === w || (w && w.contains(e.target)) || m.contains(e.target)) return;
-      m.hidden = true; setExpanded(false);
+      var p = document.getElementById('oppWxPanel');
+      if (!p || p.hidden) return;
+      var a = document.getElementById('oppCardActions');
+      if (a && a.contains(e.target)) return;
+      p.hidden = true;
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !mask.hidden) close(); });
   }
 
-  function setExpanded(v) {
-    var b = document.getElementById('oppCardShare');
-    if (b) b.setAttribute('aria-expanded', v ? 'true' : 'false');
+  function hideWxPanel() {
+    var p = document.getElementById('oppWxPanel'); if (p) p.hidden = true;
   }
-  function toggleShareMenu() {
-    var m = document.getElementById('oppShareMenu');
-    if (!m) return;
-    m.hidden = !m.hidden;
-    setExpanded(!m.hidden);
-  }
+
   function showWxPanel(which) {
-    var m = document.getElementById('oppShareMenu');
-    if (!m) return;
-    var title = which === 'moments' ? '分享到朋友圈' : '分享给微信好友';
-    m.innerHTML = '<div class="oppWxPanel"><b>' + title + '</b>'
-      + '<img alt="微信扫码" src="' + qrDataURL() + '">'
-      + '<p>用微信「扫一扫」打开本页<br>即可转发给好友或朋友圈</p></div>';
-    m.hidden = false; setExpanded(true);
+    var p = document.getElementById('oppWxPanel');
+    if (!p) return;
+    var title = which === 'moments' ? '分享到朋友圈' : '分享到微信';
+    p.innerHTML = '<b>' + title + '</b><img alt="微信扫码" src="' + qrDataURL() + '">'
+      + '<p>用微信「扫一扫」打开本页<br>即可转发给好友或朋友圈</p>';
+    p.hidden = false;
   }
   function shareAct(act) {
     if (act === 'wx' || act === 'moments') {
-      if (IS_WX) {
-        document.getElementById('oppShareMenu').hidden = true; setExpanded(false);
-        document.getElementById('oppWxGuide').hidden = false;
-      } else { showWxPanel(act); }
+      if (IS_WX) { hideWxPanel(); document.getElementById('oppWxGuide').hidden = false; }
+      else { showWxPanel(act); }
       return;
     }
+    hideWxPanel();
     if (act === 'copy') {
       var done = function () { toast('已复制页面链接，可粘贴到微信/朋友圈'); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(TARGET_URL).then(done, function () { fallbackCopy(done); });
@@ -376,7 +361,7 @@
     box.classList.add('opp-has-share');
     var btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'opp-share-btn'; btn.id = 'oppShareBtn';
-    btn.innerHTML = ICO.save.replace(/^<svg/, '<svg style="transform:rotate(180deg)"') + '分享机会卡';
+    btn.innerHTML = ICO.share + '分享机会卡';
     box.appendChild(btn);
     btn.addEventListener('click', function () { open(); });
   }
@@ -386,13 +371,14 @@
     inject();
     lastSVG = build(d);
     document.getElementById('oppCardBox').innerHTML = '<img alt="A股红利机会卡" src="' + svgURL(lastSVG) + '">';
-    document.getElementById('oppShareMenu').hidden = true; setExpanded(false);
+    hideWxPanel();
     document.getElementById('oppWxGuide').hidden = true;
     document.getElementById('oppCardMask').hidden = false;
   }
   function close() {
     var m = document.getElementById('oppCardMask'); if (m) m.hidden = true;
     var g = document.getElementById('oppWxGuide'); if (g) g.hidden = true;
+    hideWxPanel();
   }
 
   function fileName() {
