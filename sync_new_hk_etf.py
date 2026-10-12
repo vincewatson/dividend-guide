@@ -255,6 +255,9 @@ def build_row(fund, detail, size, today):
         'feeNum': round(fee / 100.0, 4) if fee else 0.0,
         'size': size,
         'divDate': None,
+        # 官方详情页（前端「ETF官方详情页」那一行）：Wind 不返回该字段，只能人工补
+        #   —— 显式留空并在下方告警（2026-10-12：此前直接不写这个 key，新港ETF 详情页静默缺失，如 03590.HK）。
+        'detailUrl': '',
         'sizeDate': today if size else None,
     }
 
@@ -311,6 +314,9 @@ def main():
                 print('    [i] 自动补入登记失败（不影响补入）：%s' % e, flush=True)
             if not row['trackCode']:
                 print('    [i] 跟踪指数代码 Wind 缺（须人工补：详情页「跟踪指数」与股息率曲线依赖它）',
+                      flush=True)
+            if not row.get('detailUrl'):
+                print('    [i] 官方详情页 Wind 缺（须人工补：否则前端「ETF官方详情页」一行不显示）',
                       flush=True)
         time.sleep(SLEEP)
     print('[完成] [%s] 港ETF 补入结束' % ts(), flush=True)
