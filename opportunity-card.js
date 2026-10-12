@@ -122,16 +122,16 @@
     var score = Math.round(d.score), b = bandOf(score), bandText = b[0] + '~' + b[1] + ' · ' + b[2];
     var pad = 40, iw0 = CW - pad * 2, parts = [], y = 0;
 
-    /* 头部（行距放宽，避免挤在一起） */
-    y = 66;
+    /* 头部（主标题缩小、上下留白拉开，避免与相邻文字挤在一起） */
+    y = 64;
     parts.push(T(pad, y, '食息指南', 26, C.brand, { weight: 700 }));
-    y += 54;
-    parts.push(T(pad, y, 'A股红利机会值', 50, C.ink, { weight: 700 }));
-    y += 46;
+    y += 58;
+    parts.push(T(pad, y, 'A股红利机会值', 42, C.ink, { weight: 700 }));
+    y += 60;
     parts.push(T(pad, y, '参照指数：' + idxText(d.index), 25, C.muted));
-    y += 36;
+    y += 38;
     parts.push(T(pad, y, '数据截至 ' + (d.asof || '—'), 23, C.faint));
-    y += 30;
+    y += 32;
 
     /* 蓝框 */
     var boxTop = y, ip = 32, cellX = pad + ip, cellW = iw0 - ip * 2;
@@ -202,6 +202,8 @@
       + '<defs><linearGradient id="oppBlueGrad" x1="0" y1="0" x2="1" y2="1">'
       + '<stop offset="0" stop-color="#FBFCFE"/><stop offset="1" stop-color="#F0F5FF"/></linearGradient></defs>'
       + '<rect x="0" y="0" width="' + CW + '" height="' + H.toFixed(0) + '" fill="#ffffff"/>'
+      /* 整图四周浅灰细线（与主站 Header 下边线同色 rgba(0,0,0,0.06)）；下载到纯白背景也能看出边界 */
+      + '<rect x="0.75" y="0.75" width="' + (CW - 1.5) + '" height="' + (H - 1.5) + '" fill="none" stroke="' + C.line + '" stroke-width="1.5"/>'
       + parts.join('') + '</svg>';
   }
 
@@ -232,7 +234,7 @@
     /* 外层宽度 = 卡面宽度（width:min-content 由卡图决定），按钮行因此在卡宽内自动折行、右对齐 */
     '.oppCardWrap{position:relative;display:flex;flex-direction:column;align-items:center;max-height:100%;width:min-content;max-width:100%}',
     '.oppCardStage{position:relative;display:flex;justify-content:center;min-height:0}',
-    '.oppCardBox img{display:block;max-width:min(94vw,470px);max-height:calc(100vh - 172px);width:auto;height:auto;border-radius:18px;box-shadow:0 18px 44px rgba(8,20,48,.34)}',
+    '.oppCardBox img{display:block;max-width:min(94vw,470px);max-height:calc(100vh - 172px);width:auto;height:auto;box-shadow:0 18px 44px rgba(8,20,48,.34)}',
     '.oppCardClose{position:absolute;top:10px;right:10px;z-index:3;width:30px;height:30px;border-radius:50%;cursor:pointer;',
     'border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.94);color:#525252;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}',
     '.oppCardClose:hover{background:#fff;color:#111}',
@@ -242,8 +244,6 @@
     'cursor:pointer;border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.14);color:#fff}',
     '.oppCardBtn:hover{background:rgba(255,255,255,.26)}',
     '.oppCardBtn svg{width:20px;height:20px;display:block;flex:none}',
-    '.oppCardBtn.primary{background:#4680FD;border-color:#4680FD}',
-    '.oppCardBtn.primary:hover{background:#2E5BFF}',
     /* 微信 / 朋友圈：在按钮行上方浮出二维码面板 */
     '.oppWxPanel{position:absolute;right:0;bottom:calc(100% + 10px);background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:14px;',
     'box-shadow:0 12px 34px rgba(8,20,48,.28);padding:14px;text-align:center;width:214px;z-index:4}',
@@ -290,7 +290,7 @@
       + '<button type="button" class="oppCardBtn" data-act="wx" title="分享到微信" aria-label="分享到微信">' + ICO.wx + '</button>'
       + '<button type="button" class="oppCardBtn" data-act="moments" title="分享到朋友圈" aria-label="分享到朋友圈">' + ICO.moments + '</button>'
       + '<button type="button" class="oppCardBtn" data-act="copy" title="复制链接" aria-label="复制链接">' + ICO.link + '</button>'
-      + '<button type="button" class="oppCardBtn primary" data-act="save" title="下载到本地" aria-label="下载到本地">' + ICO.save + '</button>'
+      + '<button type="button" class="oppCardBtn" data-act="save" title="下载到本地" aria-label="下载到本地">' + ICO.save + '</button>'
       + '<div class="oppWxPanel" id="oppWxPanel" hidden></div>'
       + '</div></div>';
     document.body.appendChild(mask);
