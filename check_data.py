@@ -494,9 +494,19 @@ try:
         _ok, _e = _js_syntax_ok(_code)
         if not _ok:
             _js_errs.append('index.html inline #%d: %s' % (_i, (_e.splitlines()[0] if _e else '')))
+    # 2026-10-12：新增 opportunity-card.js 后，把「index.html 引用的本地 .js」一并做语法校验
+    for _m2 in _re.finditer(r'<script[^>]*\bsrc="([^"?#]+\.js)(?:\?[^"]*)?"', _html, _re.I):
+        _rel = _m2.group(1).lstrip('/')
+        _p2 = os.path.join(BASE, _rel)
+        if not os.path.exists(_p2):
+            continue
+        with io.open(_p2, encoding='utf-8') as _f2:
+            _ok, _e = _js_syntax_ok(_f2.read())
+        if not _ok:
+            _js_errs.append('%s: %s' % (_rel, (_e.splitlines()[0] if _e else '')))
 except Exception as _e:
     _js_errs.append('index.html 读取失败: %s' % _e)
-check('前端 JS 语法(mobile.js + index.html 内联)', not _js_errs,
+check('前端 JS 语法(mobile.js + index.html 内联 + 引用的本地 js)', not _js_errs,
       ' | '.join(_js_errs[:3]) if _js_errs else '全部通过 ✅')
 
 # 19. 红利机会值（A股）数据（2026-10-08 模块并入主站）：页面由 #subOpportunity + opportunity-page.js 渲染，

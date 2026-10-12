@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>红利机会卡 · 蓝框 + 分享按钮（本地试跑）</title>
+<style>
+/* 全站令牌（摘自 index.html，仅为本地试跑提供） */
+:root{--fs-2xs:12px;--fs-base:14px;--fs-lg:20px;--brand:#4680FD;--ink:#000000;--body:#404040;--muted:#767676;
+--fill:#f2f3f8;--grid:#e5e5e5;--axis:#737373;--line-soft:rgba(0,0,0,.06);--r-ctl:6px;--brand-wash:rgba(70,128,253,.08);
+--up:#dc2626;--down:#059661;--up-tint:#fee2e2;--down-tint:#d1fae3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,-apple-system,'PingFang SC','Helvetica Neue',sans-serif;background:#f5f7fb;color:var(--ink);padding:26px 18px 70px}
+h1{font-size:20px;margin-bottom:6px}
+.lede{font-size:13px;color:#5b6472;line-height:1.7;margin-bottom:20px}
+.lede code{background:#fff;border:1px solid #e2e6ee;border-radius:4px;padding:1px 5px;font-size:12px}
+.wrap{max-width:760px;margin:0 auto;background:#fff;border:1px solid var(--line-soft);border-radius:14px;padding:22px 20px}
+/* 下面这些选择器与 index.html 中 #subOpportunity 段保持一致，便于本地对照 */
+#subOpportunity .opp-root{display:grid;gap:20px}
+#subOpportunity .section-title{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0}
+#subOpportunity .section-sub{margin:0;font-size:var(--fs-base);color:var(--muted);margin-top:6px}
+#subOpportunity .reminder{position:relative;overflow:hidden;background:#FBFCFE;border:1px solid #E3EBFC;border-radius:var(--r-ctl);padding:18px 20px;margin-bottom:0}
+#subOpportunity .reminder::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 0%,rgba(70,128,253,.11),rgba(70,128,253,0) 42%),radial-gradient(circle at 88% 100%,rgba(70,128,253,.09),rgba(70,128,253,0) 46%),linear-gradient(135deg,#FBFCFE 0%,#F0F5FF 100%)}
+#subOpportunity .reminder>*{position:relative}
+#subOpportunity .hero{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr);gap:0;align-items:stretch}
+#subOpportunity .hero>div{padding:0 24px;border-left:1px solid rgba(70,128,253,.16);min-width:0}
+#subOpportunity .hero>div:first-child{padding-left:0;border-left:0}
+#subOpportunity .hero>div:last-child{padding-right:0}
+#subOpportunity .k{font-size:var(--fs-2xs);color:var(--muted);display:block;margin-bottom:6px}
+#subOpportunity .big-wrap{display:block}
+#subOpportunity .big{display:block;font-size:56px;line-height:1;font-weight:700;letter-spacing:-.03em;white-space:nowrap}
+#subOpportunity .big small{font-size:var(--fs-base);color:var(--muted);font-weight:400;margin-left:4px;letter-spacing:0}
+#subOpportunity .band-chip{display:block;margin-top:10px;font-size:var(--fs-2xs);font-weight:700;padding:0;white-space:nowrap}
+#subOpportunity .v{font-size:var(--fs-lg);font-weight:700;line-height:1.2}
+#subOpportunity .note{font-size:var(--fs-base);color:var(--body);margin:8px 0 0;line-height:1.6}
+#subOpportunity .cmp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:2px}
+#subOpportunity .cmp b{display:block;font-size:var(--fs-lg);font-weight:700;margin-top:2px}
+#subOpportunity .cmp small{font-size:var(--fs-2xs);color:var(--muted);white-space:nowrap}
+#subOpportunity .num{font-variant-numeric:tabular-nums}
+@media (max-width:900px){#subOpportunity .hero{grid-template-columns:1fr 1fr;row-gap:18px}
+#subOpportunity .hero>div{padding:0 0 0 18px}#subOpportunity .hero>div:nth-child(3){padding-left:0;border-left:0}}
+@media (max-width:520px){#subOpportunity .hero{grid-template-columns:1fr}
+#subOpportunity .hero>div{padding:14px 0 0!important;border-left:0!important;border-top:1px solid rgba(70,128,253,.16)}
+#subOpportunity .hero>div:first-child{border-top:0;padding-top:0!important}}
+</style>
+</head>
+<body>
+<h1>红利机会卡 · 蓝框试跑（本地）</h1>
+<p class="lede">
+  这就是「A股红利机会值」页的蓝框，右上角多了一个 <b>分享机会卡</b> 按钮（由 <code>opportunity-card.js</code> 自动注入）。
+  点它 → 居中弹出卡片 → 卡片右上角有「下载图片 / 分享 / ✕」。数据实时读取 <code>/data/opportunity.json</code>。
+</p>
+<div class="wrap">
+  <div id="subOpportunity">
+    <div class="opp-root">
+      <div>
+        <h1 class="section-title">A股红利机会值</h1>
+        <p class="section-sub" id="oppSub"></p>
+      </div>
+      <section class="reminder" aria-label="当前结论">
+        <div class="hero">
+          <div><span class="k">红利机会值</span>
+            <div class="big-wrap"><span class="big num" id="oppScore"></span><span class="band-chip" id="oppBand"></span></div>
+          </div>
+          <div><span class="k">当前建议</span><div class="v" id="oppAdvice"></div><p class="note" id="oppSummary"></p></div>
+          <div><span class="k">适用周期</span><div class="v" id="oppHorizon"></div><p class="note" id="oppHorizonNote"></p></div>
+          <div><span class="k">历史对比</span><div class="cmp num" id="oppCmp"></div></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="/opportunity-card.js?v=1"></script>
+<script>
+/* 最小渲染：把数据填进蓝框（与 opportunity-page.js 的 hero 部分同口径） */
+(function () {
+  var BANDS = [[80,100,'机会很多','积极加仓'],[60,80,'机会较多','加仓'],[40,60,'中性区间','持有'],[20,40,'机会偏少','暂停加仓'],[0,20,'机会很少','减仓']];
+  var colorOf = function (v) { return v >= 60 ? '#dc2626' : (v >= 40 ? '#000000' : '#059661'); };
+  function bandOf(v){ for (var i=0;i<BANDS.length;i++){ if (v>=BANDS[i][0] && (v<BANDS[i][1]||BANDS[i][1]===100)) return BANDS[i]; } return BANDS[2]; }
+  function render(d) {
+    var s = Math.round(d.score), b = bandOf(s);
+    document.getElementById('oppSub').textContent = '参照指数：' + d.index.replace(/([\u4e00-\u9fa5])(\d)/, '$1 $2') + ' · 本页信息仅供交流学习之用，不作为投资建议';
+    var sc = document.getElementById('oppScore');
+    sc.innerHTML = s + '<small>/100</small>'; sc.style.color = colorOf(s);
+    var chip = document.getElementById('oppBand');
+    chip.textContent = b[0] + '~' + b[1] + ' · ' + b[2]; chip.style.background = 'none'; chip.style.color = colorOf(s);
+    document.getElementById('oppAdvice').textContent = b[3];
+    document.getElementById('oppSummary').textContent = d.summary;
+    document.getElementById('oppHorizon').textContent = d.horizon;
+    document.getElementById('oppHorizonNote').textContent = d.horizonNote;
+    document.getElementById('oppCmp').innerHTML = Object.keys(d.compare).map(function (k) {
+      var v = Math.round(d.compare[k]);
+      return '<div><small>' + k + '</small><b style="color:' + colorOf(v) + '">' + v + '</b></div>';
+    }).join('');
+    window.opportunityData = d;
+  }
+  fetch('/data/opportunity.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
+    render(d);
+  }).catch(function (e) { document.getElementById('oppSub').textContent = '数据加载失败：' + e.message; });
+})();
+</script>
+</body>
+</html>
