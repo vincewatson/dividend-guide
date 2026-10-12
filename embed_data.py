@@ -13,7 +13,7 @@
 安全机制:
     - 括号平衡定位数组边界（不用正则非贪婪，避免误匹配嵌套数组）
     - 替换后自动用 node 做 JS 语法验证，失败则自动回滚并报错
-    - 替换前自动备份 index.html → index.html.bak-<日期>
+    - 替换前自动备份 index.html → backup/index.html.bak-<日期>（2026-10-12 起：不再堆在根目录）
 """
 import datetime
 import io
@@ -197,8 +197,10 @@ def main():
         print('无变化，未写入')
         return
 
-    # 备份原文件
-    bak = HTML_PATH + '.bak-' + datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    # 备份原文件（2026-10-12 起写到 backup/，不再堆在根目录）
+    bak_dir = os.path.join(BASE, 'backup')
+    os.makedirs(bak_dir, exist_ok=True)
+    bak = os.path.join(bak_dir, 'index.html.bak-' + datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
     shutil.copy2(HTML_PATH, bak)
     print('已备份原文件: {}'.format(bak))
 
