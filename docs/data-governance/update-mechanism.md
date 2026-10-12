@@ -28,7 +28,12 @@
 4. **不要手写 `SKIP_STEPS`**：让流水线按 preflight 自动判断（`PREFLIGHT_AUTO=1`）。周末不等于“没有新数据”：货基、余额宝是自然日口径，周五晚上就有新值。
 5. **一次运行只部署一次**：开跑前先过 preflight 的告警（尤其是 digest-db 和 Wind 探活）。如需补跑单项，用 `SX_NO_DEPLOY=1` 补完所有项，最后统一部署一次。
 6. **Wind 返回的列名和单位会漂移**：凡是从 `get_fund_financials` 这类自然语言查询取数的脚本，一律“多候选列名 + 按 unit 归一 + unit 不明就不写”；命中 0 条或覆盖率比上次明显下降时，要当作失败处理，不能当成“无变化”。
-7. **`index.html.bak-*` 别堆在根目录**：根目录已有 10 份；以后备份请写到 `backup/`（部署已排除，但堆积会干扰查找）。
+7. **`index.html.bak-*` 别堆在根目录**：根目录已有 10 份；以后备份请写到 `backup/`（部署已排除，但堆积会干扰查找）。**已修（2026-10-12）**：`embed_data.py` 的内嵌备份改写到 `backup/index.html.bak-<时间>`，并把根目录已堆积的 12 份移入 `backup/`。
+8. **整跑不要用「后台 + 免审批」方式启动（2026-10-12 新增）**：部署脚本的组装目录在项目目录之外
+   （`$HOME/.trae/work/.../deploy-cf`），沙箱会拒绝其 `rm/mkdir`，导致 `deploy_cloudflare.sh` 在组装处中止、
+   **wrangler 根本没跑**（且旧版脚本仍打印「✅ 已部署」造成假成功）。整跑须**带审批**（或在非沙箱环境）启动；
+   `deploy_cloudflare.sh` 已加 `set -o pipefail`，部署失败会正确返回非 0。Cloudflare 偶发
+   `Failed to publish your Function / Unknown internal error` 属瞬时错误，**重试 1–2 次**即可。
 
 ## 跑完之后必做：更新复盘（update-review，2026-10-10 用户确立）
 

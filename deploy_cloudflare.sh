@@ -12,6 +12,9 @@
 # 用法：bash deploy_cloudflare.sh
 # ============================================================
 set -e
+set -o pipefail   # 2026-10-12：wrangler 输出经 `| tail` 时，若 wrangler 失败仍会被吞掉退出码 →
+                  #   旧行为会在部署失败时仍打印「✅ 已部署」。开启 pipefail 后失败即中止并返回非 0，
+                  #   调用方（auto_sync_deploy.sh 步骤 20）才能正确记为 fail。
 cd "$(dirname "$0")"
 
 PROJECT="${CF_PAGES_PROJECT:-dividend-guide}"
