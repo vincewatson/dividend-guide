@@ -17,7 +17,7 @@
    10年期国债到期收益率     → 中央库 exports/dividend/rates.json（Wind EDB「中国:国债到期收益率:10年」，
                               由 fetch_opportunity_inputs.py 按日写回 rates.value；缺失时回退 Wind）
    人身保险产品预定利率研究值 → EDB: 中国:预定利率研究值:普通型人身保险
-   中证同业存单AAA指数      → index: 931059.CSI 每月年化收益率（2026-08-15 用户确认标的）
+   中证同业存单AAA指数      → index: 931059.CSI 日收盘近30日滚动复利年化（2026-10-17 起；原月度年化停用）
    重点50城租金率           → 用户/季度报告维护（中指研究院季度口径，2026-08-16 起）；中原口径→重点城市租金率(中原6城均值) 备用
    天弘余额宝              → 复用 data/yuebaoHistory.json
 
@@ -255,36 +255,57 @@ def fetch_bond_yield_10y():
 
 
 def fetch_ncd():
-    """同业存单AAA指数月度年化收益率"""
+    """同业存单AAA指数「近30日年化收益率」（日频，2026-10-17 用户确认改为此口径）。
+
+    原口径 = Wind 月度年化（每月一个点，且月内临时点按几天涨幅年化）→ 10-10 曾出现 4.66% 的假高值。
+    现改为：用 931059.CSI 日收盘价，按 30 个自然日滚动计算年化收益（复利），逐交易日一个点，
+    与「余额宝 7 日年化」同属滚动年化口径，既避免短窗口噪声，也能日更。
+    """
     import datetime
-    inner = call_wind('index_data', 'get_index_fundamentals',
-                      {'question': '931059.CSI 中证同业存单AAA指数 近36个月每月的年化收益率'})
-    tables = inner.get('data', {}).get('data', [])
-    series = []
-    for tb in tables:
-        rows = tb.get('rows', [])
-        for r in rows:
-            if len(r) < 5:
-                continue
-            code = str(r[0])
-            if '931059' not in code:
-                continue
-            try:
-                rate = float(r[2])
-            except (ValueError, TypeError):
-                continue
-            end_date = str(r[4])[:10] if r[4] else None
-            if end_date and rate:
-                # 未来日期修正（2026-08-15）：Wind 返回月末日期（如 08-31），当月未结束时改为实际截至日
-                try:
-                    _ed = datetime.date.fromisoformat(end_date)
-                    if _ed > datetime.date.today():
-                        end_date = datetime.date.today().isoformat()
-                except ValueError:
-                    pass
-                series.append({'date': end_date, 'yield': round(rate, 4)})
-    series.sort(key=lambda x: x['date'])
-    return series
+    inner = call_wind('index_data', 'get_index_kline',
+                      {'windcode': '931059.CSI', 'begin_date': BEGIN, 'end_date': END, 'period': '1d'})
+    data = inner.get('data') or {}
+    cols = [c.get('name', '') for c in (data.get('columns') or [])]
+    rows = data.get('rows') or []
+    if 'TIME' not in cols or 'MATCH' not in cols:
+        return []
+    ti, mi = cols.index('TIME'), cols.index('MATCH')
+    pts = []
+    for r in rows:
+        try:
+            d = str(r[ti])[:10]
+            c = float(r[mi])
+            if d and c > 0:
+                pts.append((d, c))
+        except (ValueError, TypeError, IndexError):
+            continue
+    pts.sort()
+    # 同一日期去重（保留最后一条）
+    dedup = {}
+    for d, c in pts:
+        dedup[d] = c
+    pts = sorted(dedup.items())
+    out = []
+    j = 0
+    for i, (d, c) in enumerate(pts):
+        try:
+            target = (datetime.date.fromisoformat(d) - datetime.timedelta(days=30)).isoformat()
+        except ValueError:
+            continue
+        # 取「30 天前或之前最近的一个收盘点」；节假日会让实际间隔略大于 30 天
+        while j + 1 < i and pts[j + 1][0] <= target:
+            j += 1
+        if pts[j][0] > target or j >= i:
+            continue
+        try:
+            days = (datetime.date.fromisoformat(d) - datetime.date.fromisoformat(pts[j][0])).days
+        except ValueError:
+            continue
+        if days < 25 or days > 45:
+            continue
+        ann = (c / pts[j][1]) ** (365.0 / days) - 1
+        out.append({'date': d, 'yield': round(ann * 100, 4)})
+    return out
 
 
 # REITs 分类（2026-08-11 用户确认：按现金流属性口径，非 Wind 物权口径）

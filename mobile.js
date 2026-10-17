@@ -443,7 +443,7 @@ function renderAssetTableMobile() {
     var tc = (typeColors && typeColors[item.type]) || { color: '#737373' };
     var fav = (favorites || []).indexOf(item.name) > -1;
     // listNote 是主脚本 renderAssetTable 的嵌套函数（非全局），移动层内联同款逻辑（2026-08-17）
-    var note = item.name === '中证同业存单AAA指数' ? '同业存单指数年化收益率' : (item.note || '');
+    var note = item.name === '中证同业存单AAA指数' ? '同业存单指数近30日年化' : (item.note || '');
     var nm = _esc(item.name);
     /* 2026-09-27 Tier1-④：食息率移到右上角放大，指标名（note）作其下小标签；
        数字沿用类型色，保留原「颜色跟随类型标签」的意图。 */
