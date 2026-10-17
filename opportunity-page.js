@@ -38,7 +38,7 @@
     /* 2026-10-17：历史对比 4 个时点已移入机会卡，页面蓝框第 4 格改为分享入口，此处不再渲染 oppCmp */
     $('oppCore').innerHTML = DATA.core.map(function (c) {
       return '<tr><td><b>' + c.name + '</b></td><td class="num">' + c.value + '</td>' +
-        '<td><div class="scorebar"><div class="track"><i style="width:' + c.score + '%;background:' + (c.score >= 50 ? C.red : C.green) + '"></i></div><b class="num">' + r0(c.score) + '</b></div></td>' +
+        '<td><div class="scorebar"><div class="track"><i style="width:' + c.score + '%;background:' + (c.score >= 50 ? C.red : C.green) + '"></i></div><b class="num">' + Number(c.score).toFixed(1) + '</b></div></td>' +   /* 2026-10-17 用户要求：核心指标「机会分」显示一位小数（0.2 不再四舍五入成 0） */
         '<td class="col-num num">' + c.weight + '%</td>' +
         '<td>' + c.judge.map(function (j) { return '<span class="tag ' + JUDGE[j][0] + '">' + JUDGE[j][1] + '</span>'; }).join('') + '</td></tr>';
     }).join('');
