@@ -801,11 +801,11 @@
   #subOpportunity .reminder { position: relative; overflow: hidden; background: #FBFCFE; border: 1px solid #E3EBFC; border-radius: var(--r-ctl); padding: 18px 20px; margin-bottom: 0; }   /* 2026-10-08 用户要求：padding 对齐全站 .reminder（18px 20px）；margin-bottom:0 交给 .opp-root gap 统一控制 */
   #subOpportunity .reminder::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 12% 0%, rgba(70,128,253,0.11), rgba(70,128,253,0) 42%), radial-gradient(circle at 88% 100%, rgba(70,128,253,0.09), rgba(70,128,253,0) 46%), linear-gradient(135deg, #FBFCFE 0%, #F0F5FF 100%); }
   #subOpportunity .reminder > * { position: relative; }
-  /* ===== 蓝框（结论面板）排版 · 2026-10-09 回到最初设计（Claude）=====
-     四列不等宽：机会值按内容宽度（auto）｜当前建议 1fr｜适用周期 1fr｜历史对比 1.2fr；列间品牌蓝细竖线。
-     机会值格：大数字在上、档位文字在下；历史对比：4 个时点一行排开（时点在上、数值在下）。
-     ≤900px 两列两行；≤520px 单列堆叠、改用横向细线分隔。只改排版，文字与元素不变。 */
-  #subOpportunity .hero { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: 0; align-items: stretch; }
+  /* ===== 蓝框（结论面板）排版 · 2026-10-17 四块等分 =====
+     机会值 / 当前建议 / 适用周期 / 红利机会卡（分享入口）四列等宽，列间品牌蓝细竖线。
+     原第 4 列的「历史对比」4 个时点不在页面单独占宽，已移入机会卡内（卡面本来就有）。
+     ≤900px 两列两行；≤520px 单列堆叠、改用横向细线分隔。 */
+  #subOpportunity .hero { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; align-items: stretch; }
   #subOpportunity .hero > div { padding: 0 24px; border-left: 1px solid rgba(70,128,253,0.16); min-width: 0; }
   #subOpportunity .hero > div:first-child { padding-left: 0; border-left: 0; }
   #subOpportunity .hero > div:last-child { padding-right: 0; }
@@ -814,13 +814,18 @@
   #subOpportunity .k { font-size: var(--fs-2xs); color: var(--muted); display: block; margin-bottom: 6px; }
   #subOpportunity .big-wrap { display: block; }
   #subOpportunity .big { display: block; font-size: 56px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; white-space: nowrap; }
-  #subOpportunity .big small { font-size: var(--fs-base); color: var(--muted); font-weight: 400; margin-left: 4px; letter-spacing: 0; }
+  #subOpportunity .big small { font-size: 20px; color: var(--muted); font-weight: 400; margin-left: 6px; letter-spacing: 0; }   /* 2026-10-17 用户要求：/100 放大，第一块更充盈 */
   #subOpportunity .band-chip { display: block; margin-top: 10px; font-size: var(--fs-2xs); font-weight: 700; padding: 0; white-space: nowrap; }
   #subOpportunity .v { font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; }
   #subOpportunity .note { font-size: var(--fs-base); color: var(--body); margin: 8px 0 0; line-height: 1.6; }
-  #subOpportunity .cmp { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 2px; }
-  #subOpportunity .cmp b { display: block; font-size: var(--fs-lg); font-weight: 700; margin-top: 2px; }
-  #subOpportunity .cmp small { font-size: var(--fs-2xs); color: var(--muted); white-space: nowrap; }
+  /* 第 4 格：红利机会卡（分享入口，2026-10-17 替换原「历史对比」；历史 4 个时点已移入卡内） */
+  #subOpportunity .opp-share-entry { display: flex; align-items: center; gap: 10px; }
+  #subOpportunity .opp-share-circle { width: 40px; height: 40px; flex: none; padding: 0; border-radius: 50%; cursor: pointer;
+    border: 1px solid rgba(70,128,253,0.42); background: #fff; color: #2E5BFF; display: inline-flex; align-items: center; justify-content: center; }
+  #subOpportunity .opp-share-circle:hover { background: #F0F5FF; }
+  #subOpportunity .opp-share-circle svg { width: 18px; height: 18px; display: block; }
+  #subOpportunity .opp-share-t { display: block; font-size: 13px; font-weight: 700; line-height: 1.35; }
+  #subOpportunity .opp-share-s { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
 
   /* 图卡 */
   #subOpportunity .chart-card { padding: 0; }
@@ -1094,8 +1099,17 @@
                 <p class="note" id="oppHorizonNote"></p>
               </div>
               <div>
-                <span class="k">历史对比</span>
-                <div class="cmp num" id="oppCmp"></div>
+                <span class="k">红利机会卡</span>
+                <div class="opp-share-entry">
+                  <button type="button" class="opp-share-circle" id="oppShareBtn" aria-label="生成红利机会卡" title="生成红利机会卡">
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                      <path d="M28 6H42V20" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M42 29.4737V39C42 40.6569 40.6569 42 39 42H9C7.34315 42 6 40.6569 6 39V9C6 7.34315 7.34315 6 9 6L18 6" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M25.7998 22.1999L41.0998 6.8999" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                  <span><span class="opp-share-t">生成机会卡</span><span class="opp-share-s">含 4 次历史对比</span></span>
+                </div>
               </div>
             </div>
           </section>
@@ -5134,8 +5148,8 @@ window.__mainReady = true;   // 主脚本完整执行标志（interaction-fix �
   <!-- 移动端排序下拉框（2026-08-17）：视口 ≤767px 时注入 -->
   <script src="mobile.js?v=51"></script>
   <!-- A股红利机会值 · 渲染/图表（2026-10-08 由独立页面并入主站）-->
-  <script src="opportunity-page.js?v=6"></script>
+  <script src="opportunity-page.js?v=7"></script>
   <!-- 红利机会卡 · 生成/下载/分享（2026-10-12）：在 #subOpportunity 蓝框右上角注入「分享机会卡」按钮 -->
-  <script src="opportunity-card.js?v=3"></script>
+  <script src="opportunity-card.js?v=4"></script>
 </body>
 </html>

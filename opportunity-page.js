@@ -35,9 +35,7 @@
     $('oppSummary').textContent = DATA.summary;
     $('oppHorizon').textContent = DATA.horizon;
     $('oppHorizonNote').textContent = DATA.horizonNote;
-    $('oppCmp').innerHTML = Object.entries(DATA.compare).map(function (kv) {
-      return '<div><small>' + kv[0] + '</small><b style="color:' + colorOf(r0(kv[1])) + '">' + r0(kv[1]) + '</b></div>';
-    }).join('');
+    /* 2026-10-17：历史对比 4 个时点已移入机会卡，页面蓝框第 4 格改为分享入口，此处不再渲染 oppCmp */
     $('oppCore').innerHTML = DATA.core.map(function (c) {
       return '<tr><td><b>' + c.name + '</b></td><td class="num">' + c.value + '</td>' +
         '<td><div class="scorebar"><div class="track"><i style="width:' + c.score + '%;background:' + (c.score >= 50 ? C.red : C.green) + '"></i></div><b class="num">' + r0(c.score) + '</b></div></td>' +

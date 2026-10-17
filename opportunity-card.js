@@ -140,7 +140,7 @@
     var cTop = boxTop + ip;
     parts.push(T(cellX, cTop + 24, '红利机会值', 23, C.faint));
     parts.push(T(cellX, cTop + 128, score, 88, colorOf(score), { weight: 700, tabular: true }));
-    parts.push(T(cellX + measure(score, 88) + 10, cTop + 128, '/100', 24, C.faint));
+    parts.push(T(cellX + measure(score, 88) + 12, cTop + 128, '/100', 30, C.faint));   /* 2026-10-17 用户要求：/100 放大，避免第一块显得空 */
     parts.push(T(cellX, cTop + 172, bandText, 23, colorOf(score), { weight: 700 }));
     var r = cTop + 24;
     parts.push(T(rightX, r, '当前建议', 23, C.faint));
@@ -222,13 +222,7 @@
 
   /* ---------- 样式 ---------- */
   var CSS = [
-    /* 页面蓝框：按钮贴到「蓝框右上角」，并给蓝框留出上边距（PC 与移动一致） */
-    '#subOpportunity .reminder.opp-has-share{padding-top:46px}',
-    '#subOpportunity .reminder > .opp-share-btn{position:absolute;top:12px;right:14px;z-index:3}',
-    '.opp-share-btn{font:inherit;font-size:12px;line-height:1;cursor:pointer;padding:7px 12px;border-radius:999px;',
-    'border:1px solid rgba(70,128,253,.38);background:#fff;color:#2E5BFF;font-weight:700;display:inline-flex;align-items:center;gap:6px}',
-    '.opp-share-btn:hover{background:#F0F5FF}',
-    '.opp-share-btn svg{width:14px;height:14px;display:block}',
+    /* 页面入口：2026-10-17 起改为蓝框第 4 格（静态按钮 #oppShareBtn），不再绝对定位注入 */
     /* 弹层：卡面居中；✕ 在卡面右上角；下载/分享在卡面**右下方、图外** */
     '.oppCardMask{position:fixed;inset:0;background:rgba(15,23,42,.56);display:flex;align-items:center;justify-content:center;z-index:1000;padding:18px}',
     '.oppCardMask[hidden]{display:none}',
@@ -363,17 +357,14 @@
     ta.remove();
   }
 
-  function injectPageButton() {
-    var box = document.querySelector('#subOpportunity .reminder');
-    if (!box || document.getElementById('oppShareBtn')) return;
-    box.classList.add('opp-has-share');
-    var btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'opp-share-btn'; btn.id = 'oppShareBtn';
-    btn.innerHTML = ICO.share + '分享机会卡';
-    box.appendChild(btn);
+  /* 页面入口改为蓝框第 4 格的静态按钮（index.html #oppShareBtn），这里只负责绑定点击 */
+  function bindPageButton() {
+    var btn = document.getElementById('oppShareBtn');
+    if (!btn || btn._oppBound) return;
+    btn._oppBound = true;
     btn.addEventListener('click', function () { open(); });
   }
-  function inject() { injectStyle(); injectModal(); injectPageButton(); }
+  function inject() { injectStyle(); injectModal(); bindPageButton(); }
 
   function open(d) {
     inject();
