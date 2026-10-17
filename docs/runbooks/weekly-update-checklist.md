@@ -58,7 +58,8 @@
 | 13 | sync_new_reits | 新 REITs 自动发现（全部已上市公募 REITs：508xxx.SH / 180xxx.SZ）|
 | — | **sync_new_monthly** | **【编号外】月月名单自动补入**：全市场检索「近 1 年分红次数 ≥ 11」的指数产品（A 类去重），自动补入 etfData/fundData（位于 step 13 后、step 14 前；2026-10-06 起；`--dry-run` 可先只读核对）|
 | 14 | sync_fund_divdate | 恢复最近分红日期（fund/etf/cnEtf）+ **月月名单剔除超期成员**（最近分红早于「上一个月」者移出 etfData/fundData；2026-10-06）|
-| **15** | **sync_wind_fields** | **字段级 Wind 化：fundCount / ETF 成立·上市·费率·规模·份额·持有人·分红次数 / 月月分红全字段 / 股息率=指数股息率 / N 前缀摘除** |
+| **15** | **sync_wind_fields `all`** | **字段级 Wind 化（**属性·规模层，2026-10-17 起挂周更**）：fundCount / ETF 成立·上市·费率·规模·份额·持有人·分红次数 / 月月分红全字段 / 股息率=指数股息率 / N 前缀摘除。境内红利ETF 取数前先读中央库导出 `exports/dividend/dividend-etf.json`：`fund_size_date` 比本地 `sizeDate` 新 → 沿用中央库值、跳过对应 Wind 调用** |
+| — | **sync_wind_fields `quotes`** | **【编号外·仅日更】A 行情层字段补更**：`etfData.price`（月月分红 ETF 最新收盘价）、`fundData.nav`（场外基金最新单位净值）、`divYieldNum` —— 属性层改周更后仍须每天更新，单拆成 quotes 档（2026-10-17；十数次 Wind）|
 | 16 | sync_daily | 食息资讯日报（只读 digest-db.json → data/dailyData.json + dailyTagColors.json；原 sync_weekly 已归档 archive/weekly-feed-2026-09/）|
 | 17 | backup_db | 离线备份 |
 | 18 | check_data（硬门槛）| 验证含附录 A 问题点抽查，全部 ✅ 才可部署 |

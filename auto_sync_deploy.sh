@@ -172,12 +172,13 @@ fi
 MODE_LABEL="$MODE"
 export MODE MODE_LABEL MODE_REASON RUN_DAILY RUN_WEEKLY
 
-WEEKLY_NUMS="12 13 14"                                   # 周更「编号」步骤：new_etf / new_reits / fund_divdate
+WEEKLY_NUMS="12 13 14 15"                                # 周更「编号」步骤：new_etf / new_reits / fund_divdate / wind_fields（属性·规模层，2026-10-17 起）
 is_weekly_num() { case " $WEEKLY_NUMS " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 is_weekly_step() {   # 按 label 判定是否周更档步骤
   case "$1" in
     *sync_fund_divdate.py*--monthly-empty*) return 1 ;;   # 月月空日期补查：日更步骤（须排在下方 fund_divdate 分支之前）
-    *sync_new_etf.py*|*sync_new_reits.py*|*sync_fund_divdate.py*|*sync_lifecycle.py*|*sync_new_hk_etf.py*|*sync_new_monthly.py*)
+    *sync_wind_fields.py*quotes*) return 1 ;;             # 行情层字段补更（ETF 收盘价/场外净值）：日更步骤（须排在下方 wind_fields 分支之前）
+    *sync_new_etf.py*|*sync_new_reits.py*|*sync_fund_divdate.py*|*sync_lifecycle.py*|*sync_new_hk_etf.py*|*sync_new_monthly.py*|*sync_wind_fields.py*)
       return 0 ;;
     *) return 1 ;;
   esac
@@ -209,6 +210,25 @@ label_on() {  # 编号外步骤是否执行：$1=代表 label 关键字
   fi
 }
 echo "===== 本次档位：$MODE_LABEL（$MODE_REASON）====="
+
+# [自检] SX_GATE_ONLY=1：只打印本次档位下各步骤的「跑 / 跳过」判定后退出（不跑步骤、不部署）。
+#   用途：改动档位逻辑后做无副作用的验证（2026-10-17）。例：SX_GATE_ONLY=1 bash auto_sync_deploy.sh --daily
+if [ "$SX_GATE_ONLY" = "1" ]; then
+  echo "===== 档位自检（SX_GATE_ONLY=1，不执行任何步骤）====="
+  for _s in 5:sync_div_history.py 6:sync_daily_change.py 7:sync_money_fund.py 8:sync_yuebao_history.py \
+            9:sync_asset_macro.py 10:sync_reits_daily.py 12:sync_new_etf.py 13:sync_new_reits.py \
+            14:sync_fund_divdate.py 15:sync_wind_fields.py 16:sync_daily.py; do
+    _n="${_s%%:*}"; _l="${_s#*:}"
+    if step_on "$_n" "$_l"; then _r="跑"; else _r="跳过"; fi
+    printf '  编号步骤 %-3s %-26s → %s\n' "$_n" "$_l" "$_r"
+  done
+  for _l in sync_lifecycle.py sync_new_hk_etf.py sync_new_monthly.py sync_product_quotes.py \
+            "sync_fund_divdate.py --monthly-empty" "sync_wind_fields.py quotes"; do
+    if label_on "$_l"; then _r="跑"; else _r="跳过"; fi
+    printf '  编号外   %-40s → %s\n' "$_l" "$_r"
+  done
+  exit 0
+fi
 
 # ------------------------------------------------------------
 # [预检] 更新前体检（2026-10-04 新增）。日更下可按建议跳过已是最新步骤（PREFLIGHT_AUTO=1）。
@@ -365,11 +385,24 @@ fi
 
 echo ""
 if step_on 15 "sync_wind_fields.py"; then
-echo "===== [15/21] 字段级 Wind 化（fundCount/ETF字段/月月分红字段）====="
+echo "===== [15/21] 字段级 Wind 化（属性·规模层：fundCount/ETF字段/月月分红字段）====="
 run_py "sync_wind_fields.py all" sync_wind_fields.py all
 else
 echo "===== [15/21] 字段级 Wind 化 — ⏭ 跳过 ====="
-report_event "sync_wind_fields.py all" skip "日更步骤（本次周更不跑）"
+report_event "sync_wind_fields.py all" skip "周更步骤（本次日更不跑；属性/规模层按周更取，2026-10-17 起）"
+fi
+
+echo ""
+# 编号外·日更：A 行情层字段（2026-10-17 · backlog B-4）——属性/规模层改挂周更后，
+#   「月月分红 ETF 最新收盘价」「场外基金最新单位净值」属 A 行情层、须每天更新，
+#   单拆为 quotes 档（label 含 sync_wind_fields.py + quotes → is_weekly_step 判为非周更，走日更额度）；
+#   失败不阻断（保留原值）。跟踪指数股息率不在此重复（build_lists 每日已镜像 indexData）。
+if [ "$RUN_DAILY" = "1" ]; then
+echo "===== [编号外] 行情层字段补更（ETF 收盘价 / 场外净值，仅日更）====="
+run_py "sync_wind_fields.py quotes" sync_wind_fields.py quotes || echo "  ⚠ 行情层字段补更失败（Wind 抖动），保留原值，下次重试"
+else
+echo "===== [编号外] 行情层字段补更 — ⏭ 跳过 ====="
+report_event "sync_wind_fields.py quotes" skip "行情层字段补更：仅日更"
 fi
 
 echo ""

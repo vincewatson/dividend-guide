@@ -1,5 +1,9 @@
 # Agent 规则
 
+## 周期更新总规则（2026-10-14）
+
+跑日更/周更/月更前，先看跨站总规则 `D:\Codes\all_coding_projects\periodic-update-items\periodic-update-rule.md`（档位时点、字段分层、只追加不覆盖、变化面闸门）；本项目文档与它冲突时以它为准。
+
 ## 数据更新前必读（2026-10-10）
 
 跑日更/周更前先读 `docs/data-governance/update-mechanism.md` 开头的「开跑前必读：2026-10-10 中央复盘要点」（不手写 SKIP_STEPS、一次运行只部署一次、先过 digest-db 告警、Wind 列名/单位漂移按“未知不写”处理）。
@@ -52,7 +56,7 @@
 
 ## 治理档案（供 project-governance-review 使用）
 
-- **项目名 / 复盘目录名**：`dividend-guide`（复盘报告写 `Codes/all_coding_projects/_复盘/dividend-guide/<日期>.md`）
+- **项目名 / 复盘目录名**：`dividend-guide`（复盘报告写 `Codes/all_coding_projects/governance-review/dividend-guide/<日期>.md`）
 - **主力 Agent 与电脑**：TRAE · Mac；⚠️ Windows 侧 Claude / WorkBuddy 会经坚果云同步同一目录，易产生冲突副本（已在 `.gitignore` 忽略 `*冲突*`）
 - **规则文档**：`.trae/rules/project_rules.md`（Agent 规则）+ `docs/reference/*`（格式 / 口径 / 样式）
 - **误操作记录**：`docs/known-issues.md`（`## N. 标题（日期）` 体例）

@@ -144,6 +144,19 @@ _SIZE_ASOF = {
     'moneyFundData': 'money_fund.json',
 }
 
+# Wind 属性层 / 行情层字段（由 sync_wind_fields.py 写入，2026-10-17 起 `all` 挂周更、`quotes` 走日更）：
+#   重建时「旧值非空则保留」——curation 里这些列是 Excel 旧快照，若不保留，日更重建会把 Wind 值冲回快照
+#   （违反「取不到就保留旧值」），周末再被 Wind 覆盖，每周反复（backlog B-4 的配套护栏）。
+#   注：`size/sizeDate` 另有上方更精确的「比快照新才保留」护栏；`price/nav/divYieldNum` 同时由日更 quotes 档刷新。
+_WIND_ATTR_FIELDS = {
+    'cnEtfData': ['fee', 'feeNum', 'holders', 'divCount', 'listedDate', 'listedMarketDate', 'trackName', 'shares'],
+    'hkEtfData': ['fee', 'feeNum', 'listedDate', 'trackName'],
+    'etfData': ['fee', 'feeNum', 'listedDate', 'fundCompany', 'trackName', 'annualDiv', 'totalDiv',
+                'annualDivAmt', 'monthlyDivAmt', 'divTotalAmt', 'cumDiv', 'divYieldNum', 'price'],
+    'fundData': ['fee', 'feeNum', 'establishDate', 'fundCompany', 'trackName', 'annualDiv',
+                 'annualDivAmt', 'monthlyDivAmt', 'divTotalAmt', 'divYieldNum', 'nav'],
+}
+
 
 def load_user_index_info():
     """加载用户标注「红利指数信息表 / 红利指数股息率」：以指数代码为键，用户标注优先。
@@ -1147,6 +1160,19 @@ def main():
                         _n += 1
                 if _n:
                     print('  [合并] {} 保留比 curation 清单更新的 Wind 规模 {} 条'.format(key, _n))
+            # Wind 属性层字段保留（2026-10-17，配合 sync_wind_fields 改周更 · backlog B-4）：
+            #   这些字段由 sync_wind_fields 写入；日更重建时旧值非空则沿用（详见 _WIND_ATTR_FIELDS 注释）。
+            _attr = _WIND_ATTR_FIELDS.get(key) or []
+            if _attr and _prev:
+                _an = 0
+                for _it in data:
+                    _o = _prev.get(_it.get('code')) or {}
+                    for _k in _attr:
+                        if _o.get(_k) not in (None, '', []):
+                            _it[_k] = _o[_k]
+                            _an += 1
+                if _an:
+                    print('  [合并] {} 保留旧的 Wind 属性字段 {} 处'.format(key, _an))
             # divDate（2026-10-07，重构阶段2）：curation 清单无「最近分红日期」列，
             #   重建会把该字段清空（旧流程靠紧随其后的 sync_fund_divdate 恢复）。改为在重建时
             #   直接保留旧文件里（sync_fund_divdate / Wind 取到）的分红日期——旧不覆盖新，取较晚者。

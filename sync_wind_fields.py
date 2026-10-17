@@ -16,7 +16,16 @@
 - fundData 每份分红金额类（annualDivAmt/monthlyDivAmt/divTotalAmt/cumDiv）
 - etfData 的 cumDiv/divTotalAmt 若 Wind 无匹配列则保留
 
-用法: python3 sync_wind_fields.py [all|cn|etf|fund|hk|fc]
+档位（2026-10-17 · backlog B-4 / 跨站总规则 §三 字段分层）：
+- `all`（属性/规模层 B+C 层）→ 挂**周更**档；日更不跑。
+- `quotes`（A 行情层：月月分红 ETF 最新收盘价、场外基金最新单位净值、近 12 月分红收益率）→ **日更**跑。
+
+境内红利ETF 只取一遍（2026-10-17 · 跨站总规则 §六/§七）：
+- `cn` 段先读中央库导出 `exports/dividend/dividend-etf.json`；若中央库 `fund_size_date` 比本地 `sizeDate`
+  新，说明资管棱镜本周已取过 → 沿用中央库值、**跳过对应 Wind 调用**；否则本站自取（结果经快照同步回中央库）。
+
+用法: python3 sync_wind_fields.py [all|cn|etf|fund|hk|fc|quotes]
+      python3 sync_wind_fields.py cn --dry-run    # 只打印「沿用中央库 / 需自取」的判定，不调 Wind、不写文件
 """
 import datetime, io, json, os, subprocess, sys, time, tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -143,6 +152,72 @@ def _alias(code):
     return (code.replace('.OF', '.SH'), code.replace('.OF', '.SZ'))
 
 
+# ---------- 中央库（data_center）· 境内红利ETF 只取一遍（2026-10-17）----------
+#   资管棱镜的「红利ETF列表及字段」与本项目「境内红利ETF」是同一份数据：周末谁先跑谁从 Wind 取数并写入中央库，
+#   后跑的站从中央库读（跨站总规则 §六「只认一个来源」、§七 第 3 条）。站点环境不装 duckdb → 只读中央库导出。
+CENTRAL_DIR = os.environ.get('SX_DATA_CENTER') or os.path.normpath(os.path.join(BASE, '..', '..', 'data_center'))
+
+
+def _central_dividend_etf():
+    """读中央库导出 exports/dividend/dividend-etf.json → {security_id: {列名: 值}}；缺失/损坏 → {}。"""
+    p = os.path.join(CENTRAL_DIR, 'exports', 'dividend', 'dividend-etf.json')
+    o = None
+    for i in range(6):                      # 坚果云同步中文件会被短暂锁住（Errno 35），稍等重试
+        try:
+            with io.open(p, encoding='utf-8') as f:
+                o = json.load(f)
+            break
+        except OSError:
+            if i == 5:
+                raise
+            time.sleep(5)
+        except Exception as e:
+            print('  [中央库] 读取 dividend-etf.json 失败（%s）→ 本次全部自取' % e)
+            return {}
+    keys = [str(c.get('key', '')) for c in (o or {}).get('columns', [])]
+    if 'security_id' not in keys:
+        print('  [中央库] dividend-etf.json 结构异常（无 security_id 列）→ 本次全部自取')
+        return {}
+    out = {}
+    for r in (o.get('rows') or []):
+        if len(r) != len(keys):
+            continue
+        d = dict(zip(keys, r))
+        if d.get('security_id'):
+            out[str(d['security_id'])] = d
+    return out
+
+
+def _apply_central_cn(x, c):
+    """用中央库导出值更新一只境内红利ETF（沿用资管棱镜本周的取数结果）。返回变更字段名列表。"""
+    chg = []
+
+    def put(k, v):
+        if v is not None and x.get(k) != v:
+            x[k] = v
+            chg.append(k)
+
+    _sz = num(c.get('fund_size'))
+    if _sz is not None:
+        put('size', round(_sz, 2))
+        _d = str(c.get('fund_size_date') or '')[:10]
+        if _d:
+            x['sizeDate'] = _d
+    _fee = num(c.get('mgmt_fee'))            # 中央库为小数（0.005 = 0.50%）
+    if _fee is not None and _fee > 0:
+        put('feeNum', round(_fee, 4))
+        put('fee', '{:.2f}%'.format(_fee * 100))
+    put('listedDate', str(c.get('inception_date') or '')[:10] or None)
+    put('listedMarketDate', str(c.get('list_date') or '')[:10] or None)
+    _fs = num(c.get('floor_shares'))         # 场内份额（亿份）：中央库导出补齐该列后才会写入
+    if _fs is not None and 0 < _fs <= 1000:
+        put('shares', round(_fs, 2))
+    # 管理人：中央库 company 多为简称，本地已是全称 → 只在本地为空时补（避免把全称降级成简称）
+    if not (x.get('manager') or '').strip() and c.get('company'):
+        put('manager', str(c['company']).strip())
+    return chg
+
+
 # 单位换算 + 规模列名候选（2026-10-10 · backlog B-6）
 #   ① 列名：Wind 对「基金规模」在不同批次返回不同列名（实测同一天：`基金规模合计` /
 #      `最新基金规模合计` / `上市基金规模_WIND计算`），原实现只认 `基金规模合计` → 其它批次取空、规模漏更新。
@@ -256,11 +331,41 @@ def update_fund_count():
 
 
 # ============ 2. cnEtfData ============
-def update_cn_etf():
+def update_cn_etf(dry_run=False):
     d = load_json('cnEtfData.json')
-    todo = [x for x in d if x.get('code')]
+    todo0 = [x for x in d if x.get('code')]
     updated = 0
     _iname = _index_name_map()   # trackCode → 站内指数规范名（ETF.trackName 须与之对齐，2026-10-05）
+
+    # ① 先查中央库（2026-10-17）：资管棱镜本周已取过（fund_size_date 比本地 sizeDate 新）→ 沿用其值、跳过 Wind；
+    #    中央库不够新（或个别代码缺，如新上市 ETF）→ 本站自取，取到后经快照同步回中央库。
+    central = _central_dividend_etf()
+    todo, from_central = [], []
+    for x in todo0:
+        c = central.get(x['code'])
+        cdate = str((c or {}).get('fund_size_date') or '')[:10]
+        if c and num(c.get('fund_size')) is not None and cdate > str(x.get('sizeDate') or '')[:10]:
+            from_central.append(x)
+        else:
+            todo.append(x)
+    n_calls_all = -(-len(todo0) // BATCH) if todo0 else 0
+    n_calls_wind = -(-len(todo) // BATCH) if todo else 0
+    if from_central:
+        print('  [中央库] 沿用资管棱镜本周取数 %d 只（省 %d 次 Wind 调用）；本站自取 %d 只'
+              % (len(from_central), n_calls_all - n_calls_wind, len(todo)))
+    else:
+        print('  [中央库] 无可用更新（中央库未覆盖 / 不如本地新）→ 本站自取全部 %d 只' % len(todo))
+    for x in from_central:
+        chg = _apply_central_cn(x, central.get(x['code']) or {})
+        if chg:
+            updated += 1
+            print('  [中央库] %s 沿用（%s）' % (x['code'], ','.join(chg)))
+
+    if dry_run:
+        print('[dry-run] cnEtfData：沿用中央库 %d 只 / 需自取 %d 只（本站将发起 %d 次 Wind）；未写入'
+              % (len(from_central), len(todo), n_calls_wind))
+        return len(from_central)
+
     batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
     queries = [' '.join('%s %s' % (x['code'], x['name']) for x in b) +
                ' 这些基金的成立日期 上市日期 管理费率 基金规模合计 基金份额 开放式基金认购户数 2026年分红次数'
@@ -593,15 +698,77 @@ def update_hk_etf():
     return updated
 
 
+# ============ 6. quotes：日更档 · A 行情层（2026-10-17 · backlog B-4）============
+#   背景：本脚本的属性/规模字段（B/C 层）自 2026-10-17 起改挂**周更**档；
+#   但「月月分红 ETF 最新收盘价」「场外基金最新单位净值」属 A 行情层（跨站总规则 §三），须每天更新，
+#   故单独拆成 quotes 档（日更跑）。跟踪指数股息率不必在此重复——build_lists 每日已镜像 indexData。
+def _update_quotes(name, fields):
+    """按 fields=[(站内字段, Wind 列名, 小数位, 是否百分数→小数)] 刷新行情层字段。"""
+    d = load_json(name)
+    todo = [x for x in d if x.get('code')]
+    if not todo:
+        print('%s 完成: 0 只更新' % name)
+        return 0
+    updated = 0
+    batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
+    qs = [' '.join('%s %s' % (x['code'], x.get('name') or '') for x in b) +
+          ' 这些基金的' + ' '.join(w for _, w, _, _ in fields) for b in batches]
+    for bi, (batch, tbs) in enumerate(zip(batches, _prefetch(qs))):
+        by_code = _rows_by_code(tbs)
+        for x in batch:
+            hit = by_code.get(x['code'])
+            if not hit:
+                for a in _alias(x['code']):
+                    if a in by_code:
+                        hit = by_code[a]
+                        break
+            if not hit:
+                continue
+            row, cm = hit
+            chg = 0
+            for site_k, wind_col, nd, pct in fields:
+                if wind_col not in cm or len(row) <= cm[wind_col]:
+                    continue
+                v = num(row[cm[wind_col]])
+                if v is None:
+                    continue
+                v = round(v / 100.0, nd) if pct else round(v, nd)
+                if x.get(site_k) != v:
+                    x[site_k] = v
+                    chg += 1
+            if chg:
+                updated += 1
+                print('  [OK] %s (%d 字段)' % (x['code'], chg))
+        print('  [%s] %s 批次 %d/%d（已更新 %d）' % (ts(), name, bi + 1, len(batches), updated), flush=True)
+    save_json(name, d)
+    print('%s 完成: %d 只更新' % (name, updated))
+    return updated
+
+
+def update_etf_quotes():
+    """月月分红 ETF：最新收盘价 + 近 12 月分红收益率（A 行情层）。"""
+    return _update_quotes('etfData.json', [('price', '最新收盘价', 3, False),
+                                           ('divYieldNum', '近12月分红收益率', 4, True)])
+
+
+def update_fund_quotes():
+    """场外基金：最新单位净值 + 近 12 月分红收益率（A 行情层）。"""
+    return _update_quotes('fundData.json', [('nav', '最新单位净值', 4, False),
+                                            ('divYieldNum', '近12月分红收益率', 4, True)])
+
+
 def main():
-    which = sys.argv[1] if len(sys.argv) > 1 else 'all'
+    args = sys.argv[1:]
+    dry_run = '--dry-run' in args
+    pos = [a for a in args if not a.startswith('--')]
+    which = pos[0] if pos else 'all'
     t0 = time.time()
     if which in ('all', 'fc'):
         print('===== [%s] 1/5 indexData.fundCount =====' % ts(), flush=True)
         update_fund_count()
     if which in ('all', 'cn'):
         print('===== [%s] 2/5 cnEtfData =====' % ts(), flush=True)
-        update_cn_etf()
+        update_cn_etf(dry_run=dry_run)
     if which in ('all', 'etf'):
         print('===== [%s] 3/5 etfData =====' % ts(), flush=True)
         update_etf_data()
@@ -611,6 +778,10 @@ def main():
     if which in ('all', 'hk'):
         print('===== [%s] 5/5 hkEtfData =====' % ts(), flush=True)
         update_hk_etf()
+    if which == 'quotes':
+        print('===== [%s] quotes：行情层字段（A 层 · 日更）=====' % ts(), flush=True)
+        update_etf_quotes()
+        update_fund_quotes()
     print('耗时 %.1f 分' % ((time.time() - t0) / 60), flush=True)
 
 
