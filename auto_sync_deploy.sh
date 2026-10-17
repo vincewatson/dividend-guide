@@ -137,7 +137,7 @@ except Exception:
 today = now.date()
 wd = today.weekday()                                 # 周一=0 … 周日=6
 days = (today - lastd).days
-cn = "周" + "一二三四五六日"[wd]
+cn = str(wd)                                         # 只输出星期序号，中文由下方 bash 映射（2026-10-17：跨进程编码仍会把中文变 ??）
 is_weekend = 1 if wd >= 5 else 0
 if wd >= 5:
     sat = today - datetime.timedelta(days=(wd - 5))  # 本周六（周六=当天、周日=昨天）
@@ -146,7 +146,9 @@ else:
 ran_weekend = 1 if lastd >= sat else 0
 print(last, days, cn, is_weekend, ran_weekend)
 ')"
-read -r LAST_WEEKLY DAYS_SINCE_WEEKLY WD_CN IS_WEEKEND RAN_WEEKEND <<< "$_TIER"
+read -r LAST_WEEKLY DAYS_SINCE_WEEKLY WD_IDX IS_WEEKEND RAN_WEEKEND <<< "$_TIER"
+_WD_NAMES=(周一 周二 周三 周四 周五 周六 周日)
+WD_CN="${_WD_NAMES[${WD_IDX:-0}]:-周?}"
 
 if [ "$MANUAL_WEEKLY" = "1" ]; then
   RUN_DAILY=0; RUN_WEEKLY=1; MODE="weekly"
@@ -551,5 +553,5 @@ echo "✅ 同步完成！请访问 https://divlab.net"
 # ------------------------------------------------------------
 echo ""
 echo "📝 [复盘提醒] 请写更新复盘："
-echo "   Codes/all_coding_projects/website-updates-review/divlab-update-report-$(date +%Y%m%d).md"
+echo "   Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-$(date +%Y%m%d).md"
 echo "   （Windows 为 D:\\\\Codes\\\\all_coding_projects\\\\website-updates-review\\\\；同一天多次运行/补跑写同一份）"

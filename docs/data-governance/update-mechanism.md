@@ -20,7 +20,7 @@
 
 ## 开跑前必读：2026-10-10 中央复盘要点
 
-> 来源：`D:\Codes\all_coding_projects\website-updates-review\divlab-update-report-20261010.md`（当天 3 次部署、4 轮返工）。下列①–③已由中央维护直接改好，④–⑦是执行时要遵守的做法。
+> 来源：`D:\Codes\all_coding_projects\website-updates-review\dividend-guide-update-report-20261010.md`（当天 3 次部署、4 轮返工）。下列①–③已由中央维护直接改好，④–⑦是执行时要遵守的做法。
 
 1. ✅ **已修 · preflight 误判“最新”**：货基/余额宝/宏观/REITs 原先套用 2 天跨市场容差，落后 1 个交易日也显示 ✅，被建议跳过（10-10 漏更 10-09 余额宝的真正根因）。现在这些单一市场数据必须到 A 股最近交易日才算最新（`preflight.py` 的 `strict`）。
 2. ✅ **已修 · 食息资讯上游检查**：preflight 会检查坚果云目录里的 `digest-db.json`，`meta.updatedAt` 早于昨天就告警“坚果云未开启或未同步完”。看到这条先请用户打开坚果云，等同步完再整跑。
@@ -44,10 +44,10 @@
 
 **每次跑完数据更新（日更 / 周更，含当天所有补跑），都要写一份复盘笔记并落到跨项目复盘目录：**
 
-- **路径**：`Codes/all_coding_projects/website-updates-review/divlab-update-report-<YYYYMMDD>.md`
+- **路径**：`Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-<YYYYMMDD>.md`
   （Windows：`D:\Codes\all_coding_projects\website-updates-review\`；MacBook：坚果云同步目录下同名路径）
-- **命名**：`divlab-update-report-YYYYMMDD.md`（用运行日）。**同一天只保留一份**——当天多次运行/补跑就更新同一份，不要另起名字。
-- **参考样例**：`divlab-update-report-20261010.md`（当天 3 次部署、4 轮返工）。
+- **命名**：`dividend-guide-update-report-YYYYMMDD.md`（用运行日）。**同一天只保留一份**——当天多次运行/补跑就更新同一份，不要另起名字。
+- **参考样例**：`dividend-guide-update-report-20261010.md`（当天 3 次部署、4 轮返工）。
 - **固定结构（9 节，保持口径一致）**：
   1. 一句话结论
   2. 时间线（表）
