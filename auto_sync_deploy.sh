@@ -498,10 +498,20 @@ if [ "$SX_NO_DEPLOY" = "1" ]; then
   echo "===== [21/21] 线上验证 — ⏭ 跳过（SX_NO_DEPLOY=1）====="
   report_event "线上验证" skip "SX_NO_DEPLOY=1"
 else
-  echo "===== [21/21] 线上验证（最多等待 20 秒）====="
-  env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u NODE_USE_ENV_PROXY \
-    curl -s --connect-timeout 10 --max-time 20 "https://divlab.net/?cmp=$(date +%s)" | grep -o '数据更新于[^<]*' | head -1 || echo "（线上验证被网络拦截或页面文案已改版，请手动确认）"
-  report_event "线上验证" ran ""
+  # 2026-10-17：原实现抓页面文案「数据更新于」，但该文案早已改成运行时拼的「数据截至」，永远抓不到 →
+  #   改为结构化核对：线上 data/opportunity.json 的 asof 是否与本地一致（取不到/不一致都明确告警，不再假绿）。
+  echo "===== [21/21] 线上验证（结构化核对 opportunity.asof）====="
+  _LOCAL_ASOF="$(python3 -c 'import json;print((json.load(open("data/opportunity.json",encoding="utf-8")) or {}).get("asof") or "")' 2>/dev/null)"
+  _ONLINE_ASOF="$(env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u NODE_USE_ENV_PROXY \
+    curl -s --compressed --connect-timeout 10 --max-time 40 "https://divlab.net/data/opportunity.json?cmp=$(date +%s)" \
+    | python3 -c 'import json,sys;print((json.load(sys.stdin) or {}).get("asof") or "")' 2>/dev/null)"
+  if [ -n "$_ONLINE_ASOF" ] && [ "$_ONLINE_ASOF" = "$_LOCAL_ASOF" ]; then
+    echo "✅ 线上 opportunity asof = $_ONLINE_ASOF（与本地一致）"
+    report_event "线上验证" ran ""
+  else
+    echo "⚠️ 线上核对未通过：线上 asof=${_ONLINE_ASOF:-取不到} / 本地 asof=${_LOCAL_ASOF:-—}，请手动确认 https://divlab.net"
+    report_event "线上验证" fail "线上 asof=${_ONLINE_ASOF:-取不到} ≠ 本地 ${_LOCAL_ASOF:-—}"
+  fi
 fi
 
 echo ""
