@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>红利机会卡 · 4 版按钮方案（本地对比）</title>
+<style>
+:root{--fs-2xs:12px;--fs-base:14px;--fs-lg:20px;--brand:#4680FD;--ink:#000;--body:#404040;--muted:#767676;
+--grid:#e5e5e5;--line-soft:rgba(0,0,0,.06);--r-ctl:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,-apple-system,'PingFang SC','Helvetica Neue',sans-serif;background:#f5f7fb;color:var(--ink);padding:26px 18px 80px}
+.top{max-width:920px;margin:0 auto 26px}
+.top h1{font-size:21px;margin-bottom:8px}
+.top p{font-size:13px;line-height:1.75;color:#5b6472}
+.top b{color:#2E5BFF}
+.vwrap{max-width:920px;margin:0 auto 30px;background:#fff;border:1px solid var(--line-soft);border-radius:12px;padding:22px 22px 24px}
+.vhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.vbadge{background:var(--brand);color:#fff;font-weight:700;font-size:12px;line-height:1;padding:5px 9px;border-radius:4px;letter-spacing:.02em}
+.vhead h2{font-size:17px}
+.vdesc{font-size:13px;color:#5b6472;line-height:1.7;margin:6px 0 16px}
+.vsub{font-size:12px;color:var(--muted);margin:0 0 8px;letter-spacing:.02em}
+
+/* ===== 蓝框（四块等分） ===== */
+.box{position:relative;overflow:hidden;background:#FBFCFE;border:1px solid #E3EBFC;border-radius:var(--r-ctl);padding:18px 20px}
+.box::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 0%,rgba(70,128,253,.11),rgba(70,128,253,0) 42%),radial-gradient(circle at 88% 100%,rgba(70,128,253,.09),rgba(70,128,253,0) 46%),linear-gradient(135deg,#FBFCFE 0%,#F0F5FF 100%)}
+.box>*{position:relative}
+.hero{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;align-items:stretch}
+.hero>div{padding:0 20px;border-left:1px solid rgba(70,128,253,.16);min-width:0}
+.hero>div:first-child{padding-left:0;border-left:0}
+.hero>div:last-child{padding-right:0}
+.k{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+.big{display:block;font-size:52px;line-height:1;font-weight:700;letter-spacing:-.03em}
+.big small{font-size:14px;color:var(--muted);font-weight:400;margin-left:4px;letter-spacing:0}
+.band{display:block;margin-top:9px;font-size:12px;font-weight:700;white-space:nowrap}
+.v{font-size:18px;font-weight:700;line-height:1.25}
+.note{font-size:13px;color:var(--body);margin:7px 0 0;line-height:1.6}
+.num{font-variant-numeric:tabular-nums}
+@media (max-width:900px){.hero{grid-template-columns:1fr 1fr;row-gap:16px}.hero>div{padding:0 0 0 16px}.hero>div:nth-child(3){padding-left:0;border-left:0}}
+@media (max-width:560px){.hero{grid-template-columns:1fr}.hero>div{padding:14px 0 0!important;border-left:0!important;border-top:1px solid rgba(70,128,253,.16)}.hero>div:first-child{border-top:0;padding-top:0!important}}
+
+/* ===== 第 4 格：4 种分享入口 ===== */
+.x4{display:flex;flex-direction:column;justify-content:flex-start}
+.sh-row{display:flex;align-items:center;gap:10px;min-height:42px}
+.sh-t{font-size:13px;font-weight:700;line-height:1.35}
+.sh-s{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;line-height:1.4}
+/* A 圆形描边图标 */
+.a-circle{width:40px;height:40px;flex:none;border-radius:50%;border:1px solid rgba(70,128,253,.42);background:#fff;color:#2E5BFF;
+display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.a-circle:hover{background:#F0F5FF}
+.a-circle svg{width:18px;height:18px;display:block}
+/* B 蓝色实心胶囊 */
+.b-pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 14px;border:0;border-radius:999px;
+background:var(--brand);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(70,128,253,.28)}
+.b-pill:hover{background:#3570F5}
+.b-pill svg{width:15px;height:15px;display:block}
+/* C 纯文字链接 */
+.c-link{display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:700;color:#2E5BFF;cursor:pointer;text-decoration:none}
+.c-link:hover{text-decoration:underline}
+.c-link .ch{font-size:16px;font-weight:400;transform:translateY(-1px)}
+/* D 迷你卡面 */
+.d-row{display:flex;align-items:center;gap:10px;cursor:pointer}
+.d-thumb{width:42px;height:auto;display:block;border:1px solid rgba(0,0,0,.10);box-shadow:0 3px 10px rgba(8,20,48,.16);background:#fff}
+.d-row:hover .d-thumb{box-shadow:0 5px 14px rgba(8,20,48,.26)}
+
+/* ===== 弹层按钮 4 种 ===== */
+.stage{position:relative;margin-top:14px;background:linear-gradient(135deg,#1b2537,#0f172a);border-radius:10px;padding:26px 20px 30px;
+display:flex;flex-direction:column;align-items:center}
+.stage .card{width:auto;max-width:min(86%,300px);height:auto;max-height:460px;display:block;box-shadow:0 14px 34px rgba(0,0,0,.42)}
+.act{display:flex;align-items:center;justify-content:center;margin-top:18px}
+/* A 圆形图标 + 文字 */
+.act-a{gap:16px}
+.act-a button{background:none;border:0;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;color:#fff}
+.act-a .c{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.14);
+display:flex;align-items:center;justify-content:center}
+.act-a button:hover .c{background:rgba(255,255,255,.26)}
+.act-a svg{width:20px;height:20px;display:block}
+.act-a .lb{font-size:11px;color:rgba(255,255,255,.70);letter-spacing:.02em}
+/* B 白色胶囊工具条 + 主按钮 */
+.act-b .bar{display:flex;align-items:center;gap:2px;background:#fff;border-radius:999px;padding:6px 6px 6px 10px;box-shadow:0 10px 26px rgba(0,0,0,.32)}
+.act-b .ib{width:38px;height:38px;border:0;background:none;border-radius:50%;color:#525252;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.act-b .ib:hover{background:#F2F5FC;color:#2E5BFF}
+.act-b .ib svg{width:19px;height:19px;display:block}
+.act-b .sp{width:1px;height:20px;background:rgba(0,0,0,.10);margin:0 8px}
+.act-b .main{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 16px;border:0;border-radius:999px;background:var(--brand);color:#fff;
+font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.act-b .main:hover{background:#3570F5}
+.act-b .main svg{width:16px;height:16px;display:block}
+/* C 纯文字 */
+.act-c .txt{display:flex;align-items:center;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);border-radius:8px;overflow:hidden}
+.act-c button{font:inherit;font-size:13px;color:rgba(255,255,255,.86);background:none;border:0;padding:11px 15px;cursor:pointer}
+.act-c button:hover{background:rgba(255,255,255,.10);color:#fff}
+.act-c button+button{border-left:1px solid rgba(255,255,255,.14)}
+.act-c .save{color:#fff;font-weight:700}
+/* D 分段控件（等宽四段） */
+.act-d{margin-top:18px}
+.act-d .seg{display:flex;align-items:stretch;background:rgba(255,255,255,.96);border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,.30);overflow:hidden}
+.act-d .seg button{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;font:inherit;font-size:10px;color:#525252;
+padding:8px 13px;cursor:pointer;line-height:1}
+.act-d .seg button:hover{background:#EEF3FE;color:#2E5BFF}
+.act-d .seg button+button{border-left:1px solid rgba(0,0,0,.08)}
+.act-d .seg svg{width:17px;height:17px;display:block}
+.act-d .seg .save{color:#2E5BFF;font-weight:700}
+
+/* ===== 手机端共用 ===== */
+.mobile{max-width:920px;margin:0 auto;background:#fff;border:1px solid var(--line-soft);border-radius:12px;padding:22px}
+.phone{position:relative;width:320px;margin:12px auto 6px;background:linear-gradient(135deg,#1b2537,#0f172a);border-radius:10px;padding:26px 16px 30px;display:flex;justify-content:center}
+.phone .shot{position:relative;width:76%}
+.phone .shot img{width:100%;height:auto;display:block;box-shadow:0 14px 34px rgba(0,0,0,.42)}
+.phone .ov{position:absolute;top:8px;right:8px;display:flex;gap:6px}
+.phone .ov b{width:30px;height:30px;border-radius:50%;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.94);color:#525252;
+display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:400}
+.phone .ov svg{width:15px;height:15px;display:block}
+.tips{max-width:920px;margin:0 auto 26px;font-size:12px;color:#5b6472;line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>红利机会卡 · 4 版按钮方案（本地对比）</h1>
+  <p>共同前提：<b>「历史对比」从蓝框第 4 格移入机会卡</b>（卡内本来就有这 4 个时点），蓝框四块恢复<b>等分</b>，第 4 格改成分享入口。
+     四版只在「分享入口 + 弹层按钮」的视觉语言上不同，数据与文案完全一致。</p>
+</div>
+
+<!-- A -->
+<section class="vwrap">
+  <div class="vhead"><span class="vbadge">方案 A</span><h2>线性圆形图标（与现状最接近）</h2></div>
+  <p class="vdesc">圆是主语言：蓝框里一个白底蓝描边的圆形箭头，弹层里四个同样的圆形图标，图标下补一行小字说明。</p>
+  <p class="vsub">页面 · 蓝框</p>
+  <div class="box"><div class="hero" id="heroA"></div></div>
+  <p class="vsub" style="margin-top:18px">弹层 · 按钮</p>
+  <div class="stage">
+    <img class="card" alt="机会卡" data-card>
+    <div class="act act-a" data-icons="a"></div>
+  </div>
+</section>
+
+<!-- B -->
+<section class="vwrap">
+  <div class="vhead"><span class="vbadge">方案 B</span><h2>主次分明：蓝色主按钮</h2></div>
+  <p class="vdesc">一个明确的行动点：蓝框里直接放蓝色实心胶囊「生成机会卡」；弹层底部是一条白色工具条，左边三个灰色图标，右边蓝色「保存图片」。</p>
+  <p class="vsub">页面 · 蓝框</p>
+  <div class="box"><div class="hero" id="heroB"></div></div>
+  <p class="vsub" style="margin-top:18px">弹层 · 按钮</p>
+  <div class="stage">
+    <img class="card" alt="机会卡" data-card>
+    <div class="act act-b" data-icons="b"></div>
+  </div>
+</section>
+
+<!-- C -->
+<section class="vwrap">
+  <div class="vhead"><span class="vbadge">方案 C</span><h2>去图标：纯文字按钮</h2></div>
+  <p class="vdesc">最轻的一版：蓝框里只是一个蓝色文字链接「生成机会卡 ›」；弹层里一行浅色文字按钮，只有「保存图片」加粗，没有图标干扰。</p>
+  <p class="vsub">页面 · 蓝框</p>
+  <div class="box"><div class="hero" id="heroC"></div></div>
+  <p class="vsub" style="margin-top:18px">弹层 · 按钮</p>
+  <div class="stage">
+    <img class="card" alt="机会卡" data-card>
+    <div class="act act-c" data-icons="c"></div>
+  </div>
+</section>
+
+<!-- D -->
+<section class="vwrap">
+  <div class="vhead"><span class="vbadge">方案 D</span><h2>缩略卡预览 + 等宽分段按钮</h2></div>
+  <p class="vdesc">蓝框第 4 格直接放一张迷你卡面，点它即生成；弹层按钮做成一条等宽分段控件（图标在上、文字在下），四个动作一眼看清，比散落的圆钮更整齐。</p>
+  <p class="vsub">页面 · 蓝框</p>
+  <div class="box"><div class="hero" id="heroD"></div></div>
+  <p class="vsub" style="margin-top:18px">弹层 · 按钮</p>
+  <div class="stage" style="padding-bottom:40px">
+    <img class="card" alt="机会卡" data-card>
+    <div class="act act-d" data-icons="d"></div>
+  </div>
+</section>
+
+<!-- 手机端 -->
+<section class="mobile" id="mobile">
+  <div class="vhead"><span class="vbadge">共用</span><h2>手机端弹层：只剩 ✕ 与下载</h2></div>
+  <p class="vdesc">在 ✕ 左边加一个圆形下载按钮，底部那排分享按钮整行隐藏（已按你的要求实现到 <code>opportunity-card.js</code>）。</p>
+  <div class="phone">
+    <div class="shot">
+      <img alt="机会卡移动端" data-card>
+      <div class="ov"><b title="下载" data-ico="save"></b><b>✕</b></div>
+    </div>
+  </div>
+</section>
+
+<p class="tips">※ 本页只是本地对比稿，未部署；确认方案后再改 <code>index.html</code> 与 <code>opportunity-card.js</code>。</p>
+
+<script src="/opportunity-card.js?v=3"></script>
+<script>
+(function () {
+  var BANDS = [[80,100,'机会很多','积极加仓'],[60,80,'机会较多','加仓'],[40,60,'中性区间','持有'],[20,40,'机会偏少','暂停加仓'],[0,20,'机会很少','减仓']];
+  function colorOf(v){ return v >= 60 ? '#dc2626' : (v >= 40 ? '#000000' : '#059661'); }
+  function bandOf(v){ for (var i=0;i<BANDS.length;i++){ if (v>=BANDS[i][0] && (v<BANDS[i][1]||BANDS[i][1]===100)) return BANDS[i]; } return BANDS[2]; }
+  function r0(v){ return Math.round(v); }
+
+  var ICO = {
+    share: '<svg viewBox="0 0 48 48" fill="none"><path d="M28 6H42V20" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M42 29.5V39a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3h9" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M25.8 22.2 41.1 6.9" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    save: '<svg viewBox="0 0 48 48" fill="none"><path d="M6 24v18h36V24" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M33 23 24 32l-9-9" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 6v26" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    wx: '<svg viewBox="0 0 48 48" fill="none"><path d="M37 21.7C36.8 13 29.7 6 21 6 12.2 6 5 13.2 5 22c0 4.2 1.6 8 4.2 10.8l-1.2 7.2 7.1-3.1c1.9.7 3.9 1.1 5.9 1.1" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M32.5 42C26.7 42 22 37.3 22 31.5S26.7 21 32.5 21 43 25.7 43 31.5c0 2.4-.8 4.6-2.1 6.4l.9 4.3-4.3-1.1c-1.5.6-3.2.9-5 .9Z" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15.1" cy="18.2" r="2.3" fill="currentColor"/><circle cx="24.1" cy="18.2" r="2.3" fill="currentColor"/><circle cx="29" cy="29.1" r="2" fill="currentColor"/><circle cx="35.7" cy="29.1" r="2" fill="currentColor"/></svg>',
+    moments: '<svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="4"/><path d="M24 4v14M24 30v14M4 24h14M30 24h14M10 10l10 10M28 28l10 10M10 38l10-10M28 20l10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+    link: '<svg viewBox="0 0 48 48" fill="none"><rect x="4" y="10" width="34" height="34" rx="3" stroke="currentColor" stroke-width="4"/><path d="M18.4 23.1l5.3-5.5a4 4 0 0 1 5.7 5.7l-1.9 2" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M13.5 28.7l-1.6 1.6a4 4 0 0 0 5.7 5.7l5.2-4.7" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>'
+  };
+
+  function heroHTML(v, d) {
+    var s = r0(d.score), b = bandOf(s), col = colorOf(s);
+    var base = '<div><span class="k">红利机会值</span><span class="big num" style="color:' + col + '">' + s + '<small>/100</small></span>'
+      + '<span class="band" style="color:' + col + '">' + b[0] + '~' + b[1] + ' · ' + b[2] + '</span></div>'
+      + '<div><span class="k">当前建议</span><div class="v">' + b[3] + '</div><p class="note">' + d.summary + '</p></div>'
+      + '<div><span class="k">适用周期</span><div class="v">' + d.horizon + '</div><p class="note">' + d.horizonNote + '</p></div>';
+    var x4 = {
+      a: '<div class="x4"><span class="k">分享机会卡</span><div class="sh-row">'
+        + '<span class="a-circle">' + ICO.share + '</span>'
+        + '<span><span class="sh-t">生成机会卡</span><span class="sh-s">含 4 次历史对比</span></span></div></div>',
+      b: '<div class="x4"><span class="k">分享机会卡</span>'
+        + '<button class="b-pill">' + ICO.share + '生成机会卡</button>'
+        + '<span class="sh-s" style="margin-top:8px">含 4 次历史对比</span></div>',
+      c: '<div class="x4"><span class="k">分享机会卡</span>'
+        + '<a class="c-link">生成机会卡 <span class="ch">›</span></a>'
+        + '<span class="sh-s">含 4 次历史对比</span></div>',
+      d: '<div class="x4"><span class="k">分享机会卡</span><div class="d-row">'
+        + '<img class="d-thumb" alt="" data-thumb>'
+        + '<span><span class="sh-t">查看机会卡</span><span class="sh-s">点击生成图片</span></span></div></div>'
+    };
+    return base + x4[v];
+  }
+
+  function actionsHTML(v) {
+    if (v === 'a') {
+      return '<button>' + '<span class="c">' + ICO.wx + '</span><span class="lb">微信</span></button>'
+        + '<button><span class="c">' + ICO.moments + '</span><span class="lb">朋友圈</span></button>'
+        + '<button><span class="c">' + ICO.link + '</span><span class="lb">复制链接</span></button>'
+        + '<button><span class="c">' + ICO.save + '</span><span class="lb">下载图片</span></button>';
+    }
+    if (v === 'b') {
+      return '<div class="bar"><button class="ib" title="微信">' + ICO.wx + '</button>'
+        + '<button class="ib" title="朋友圈">' + ICO.moments + '</button>'
+        + '<button class="ib" title="复制链接">' + ICO.link + '</button>'
+        + '<div class="sp"></div><button class="main">' + ICO.save + '保存图片</button></div>';
+    }
+    if (v === 'c') {
+      return '<div class="txt"><button>分享到微信</button><button>朋友圈</button><button>复制链接</button><button class="save">保存图片</button></div>';
+    }
+    return '<div class="seg"><button>' + ICO.wx + '微信</button><button>' + ICO.moments + '朋友圈</button>'
+      + '<button>' + ICO.link + '复制</button><button class="save">' + ICO.save + '下载</button></div>';
+  }
+
+  fetch('/data/opportunity.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
+    ['A','B','C','D'].forEach(function (v) {
+      document.getElementById('hero' + v).innerHTML = heroHTML(v.toLowerCase(), d);
+    });
+    document.querySelectorAll('[data-icons]').forEach(function (el) {
+      el.innerHTML = actionsHTML(el.getAttribute('data-icons'));
+    });
+    var svg = window.OpportunityCard.build(d);
+    var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    document.querySelectorAll('[data-card]').forEach(function (im) { im.src = url; });
+    document.querySelectorAll('[data-thumb]').forEach(function (im) { im.src = url; });
+    document.querySelectorAll('[data-ico="save"]').forEach(function (el) { el.innerHTML = ICO.save; });
+  }).catch(function (e) {
+    document.body.insertAdjacentHTML('afterbegin', '<p style="color:#dc2626">数据加载失败：' + e.message + '</p>');
+  });
+})();
+</script>
+</body>
+</html>

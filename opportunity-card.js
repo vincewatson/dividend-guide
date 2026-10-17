@@ -6,6 +6,7 @@
         （与渲染同字体）并做中文「禁则」处理（行首不出现 ，。、；：）》等），因此换行/断句可控。
    控件布局（2026-10-12 用户要求）：卡面右上角**只放关闭 ✕**；「下载图片 / 分享」放在卡面
         **右下方、图外**，避免与 ✕ 挤在一起。
+        （2026-10-17）移动端（≤767px）改为：✕ 左边只放「下载」，底部那排分享按钮整行隐藏。
    分享：点「分享」在按钮**下方浮出选项**（微信 / 朋友圈 / 复制链接 / 保存图片）——
         微信、朋友圈在桌面端弹二维码（用微信扫一扫打开后转发），在微信内置浏览器给出
         「点右上角 ⋯ 分享」引导。二维码为固定矢量路径，指向机会值页。
@@ -238,6 +239,8 @@
     '.oppCardClose{position:absolute;top:10px;right:10px;z-index:3;width:30px;height:30px;border-radius:50%;cursor:pointer;',
     'border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.94);color:#525252;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}',
     '.oppCardClose:hover{background:#fff;color:#111}',
+    '.oppCardClose svg{width:15px;height:15px;display:block}',
+    '.oppCardDl{display:none}',
     '.oppCardActions{position:relative;width:100%;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:14px 0 0}',
     /* 圆形图标按钮（无文字；顺序：微信 / 朋友圈 / 复制链接 / 下载到本地） */
     '.oppCardBtn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;padding:0;border-radius:50%;',
@@ -259,7 +262,10 @@
     '.oppWxGuide[hidden]{display:none}',
     '.oppWxGuide .arrow{position:absolute;top:10px;right:22px;font-size:30px;line-height:1}',
     '.oppWxGuide .tip{position:absolute;top:64px;right:22px;text-align:right;font-size:15px;line-height:1.9}',
-    '.oppWxGuide .tip b{color:#7FB2FF}'
+    '.oppWxGuide .tip b{color:#7FB2FF}',
+    /* 移动端（2026-10-17 用户要求）：只在 ✕ 左边保留「下载」，其余分享按钮整行隐藏。
+       必须放在 .oppCardActions 定义之后，否则同权重会被上面的 display:flex 覆盖。 */
+    '@media (max-width:767px){.oppCardActions{display:none}.oppCardDl{display:flex;right:48px}}'
   ].join('');
 
   /* ---------- DOM ---------- */
@@ -284,6 +290,7 @@
     mask.innerHTML = '<div class="oppCardWrap">'
       + '<div class="oppCardStage">'
       + '<div class="oppCardBox" id="oppCardBox"></div>'
+      + '<button type="button" class="oppCardClose oppCardDl" id="oppCardDl" aria-label="下载图片" title="下载图片">' + ICO.save + '</button>'
       + '<button type="button" class="oppCardClose" id="oppCardClose" aria-label="关闭">✕</button>'
       + '</div>'
       + '<div class="oppCardActions" id="oppCardActions">'
@@ -303,6 +310,7 @@
 
     mask.addEventListener('click', function (e) { if (e.target === mask) close(); });
     document.getElementById('oppCardClose').addEventListener('click', close);
+    document.getElementById('oppCardDl').addEventListener('click', function () { hideWxPanel(); doDownload(); });
     document.getElementById('oppCardActions').addEventListener('click', function (e) {
       var btn = e.target.closest ? e.target.closest('.oppCardBtn') : null;
       if (!btn) return;
