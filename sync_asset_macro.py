@@ -14,6 +14,8 @@
    5年期储蓄国债            → Wind 债券发行记录: 储蓄国债票面利率（5年期）
                              （原注释写「iFind EDB: 中债国债到期收益率」，但 Wind 账号对该 EDB 指标无权限，
                               2026-10-05 用户确认对外展示即用「储蓄国债票面利率」）
+   10年期国债到期收益率     → 中央库 exports/dividend/rates.json（Wind EDB「中国:国债到期收益率:10年」，
+                              由 fetch_opportunity_inputs.py 按日写回 rates.value；缺失时回退 Wind）
    人身保险产品预定利率研究值 → EDB: 中国:预定利率研究值:普通型人身保险
    中证同业存单AAA指数      → index: 931059.CSI 每月年化收益率（2026-08-15 用户确认标的）
    重点50城租金率           → 用户/季度报告维护（中指研究院季度口径，2026-08-16 起）；中原口径→重点城市租金率(中原6城均值) 备用
@@ -28,6 +30,8 @@ from concurrent.futures import ThreadPoolExecutor
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE, 'data')
 OUT_FILE = os.path.join(DATA_DIR, 'assetHistory.json')
+# 中央库目录（坚果云同步）；与 sync_wind_fields 同口径，可用 SX_DATA_CENTER 覆盖
+CENTRAL_DIR = os.environ.get('SX_DATA_CENTER') or os.path.normpath(os.path.join(BASE, '..', '..', 'data_center'))
 
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
@@ -220,6 +224,34 @@ def fetch_bond_savings(term):
         dedup[p['date']] = p['yield']
     out = [{'date': d, 'yield': dedup[d]} for d in sorted(dedup)]
     return out
+
+
+def fetch_bond_yield_10y():
+    """10 年期国债到期收益率（日频，百分数口径，与 assetHistory 其余序列一致）。
+    优先读中央库导出 exports/dividend/rates.json（本项目的 opportunity 取数已把 Wind EDB「中国:国债到期收益率:10年」
+    按日写回 rates.value），缺失/为空时回退 Wind EDB。回退时与本地旧序列合并，避免 EDB 近 3 年窗口截断历史。
+    2026-10-17 用户要求加入首页「主流资产食息率」列表。"""
+    try:
+        with io.open(os.path.join(CENTRAL_DIR, 'exports', 'dividend', 'rates.json'), 'r', encoding='utf-8') as f:
+            d = json.load(f)
+        out = [{'date': r[3], 'yield': round(float(r[4]) * 100, 4)}
+               for r in (d.get('rows') or [])
+               if r[1] == '10年期国债到期收益率' and r[4] is not None]
+        if out:
+            out.sort(key=lambda p: p['date'])
+            return out
+        print('  [WARN] 中央库 rates 无 10 年期国债序列，回退 Wind EDB', flush=True)
+    except Exception as e:
+        print('  [WARN] 中央库 rates 读取失败（%s），回退 Wind EDB' % e, flush=True)
+    pts = parse_edb_series(fetch_edb('中国国债到期收益率10年'), '国债到期收益率')
+    try:
+        with io.open(OUT_FILE, 'r', encoding='utf-8') as f:
+            old = json.load(f).get('10年期国债到期收益率') or []
+    except Exception:
+        old = []
+    m = {p['date']: p['yield'] for p in old}
+    m.update({p['date']: p['yield'] for p in pts})
+    return [{'date': k, 'yield': m[k]} for k in sorted(m)]
 
 
 def fetch_ncd():
@@ -426,6 +458,7 @@ def main():
         ('3年期储蓄国债', '3年期储蓄国债', lambda: expand_to_weekly(fetch_bond_savings(3))),
         ('5年期储蓄国债', '5年期储蓄国债', lambda: expand_to_weekly(fetch_bond_savings(5))),
         ('中证同业存单AAA指数', '中证同业存单AAA指数', fetch_ncd),
+        ('10年期国债到期收益率', '10年期国债到期收益率', fetch_bond_yield_10y),
         ('天弘余额宝', '天弘余额宝', load_yuebao),
     ]
     print('  [%s] 并发 %d 路拉取 %d 类资产序列 ...' % (ts(), WORKERS, len(jobs)), flush=True)

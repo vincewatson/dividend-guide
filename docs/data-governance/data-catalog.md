@@ -21,7 +21,7 @@
 | divDate | Wind 最近分红 | sync_fund_divdate.py | 全量重拉 | 无数据保留原值；**必须在 build_lists 之后**；措辞**多路兜底**（最近分红情况→最近分红发放日期→基金分红 分红发放日）|
 | moneyFundData（yield7d/yieldDate）| Wind 实时 | sync_money_fund.py | 最新交易日 | 重建时保留 yieldDate；**必须早于重建（build_lists，唯一一次）** |
 | yuebaoHistory.json | Wind 日频 | sync_yuebao_history.py | **动态：divHistory 最早日期向前 180 天** | 每段重试 3 次 + 写回前与现有文件**合并**兜底（2026-09-13 加固，防瞬时失败丢段）|
-| assetHistory.json | Wind EDB + 中指季度报告 | sync_asset_macro.py + sync_reits_daily.py | 各序列全量；REITs 两类为**日频增量**；重点50城租金率为**中指季度时点序列**（用户/季度报告更新，asset_macro 保留现有值）| safe_fetch：拉取空保留旧值；asset_macro 不覆盖 REITs 与重点50城租金率 |
+| assetHistory.json | Wind EDB + 中央库 rates 导出 + 中指季度报告 | sync_asset_macro.py + sync_reits_daily.py | 各序列全量；REITs 两类为**日频增量**；重点50城租金率为**中指季度时点序列**（用户/季度报告更新，asset_macro 保留现有值）；10年期国债收益率为**日频**（中央库 `rates` 优先）| safe_fetch：拉取空保留旧值；asset_macro 不覆盖 REITs 与重点50城租金率 |
 | reitsDaily.json | Wind REITs 日频原始缓存（89 只逐只）| sync_reits_daily.py | **增量缓存**（每只续补新段 → 汇总两类中位数 → 写 assetHistory）| 纯缓存，可从 Wind 重建；断点续传落盘处 |
 | dailyData.json | digest-db.json（坚果云同步，稳定机器接口）| sync_daily.py | 最新一期前置 | 独立 |
 | dailyTagColors.json | digest-db.json → meta.tagColors | sync_daily.py | 10 标签浅底/深字配色，前端直接复用 | 独立 |
@@ -39,9 +39,9 @@
 | fundData.json | 28 | build_lists.py + sync_new_monthly + sync_fund_divdate | ② Wind 快照 + 全市场自动补入（2026-10-06）| 流水线 |
 | moneyFundData.json | 43（**站点仅用天弘余额宝**）| build_lists.py + sync_money_fund | ② Wind 快照 | 流水线。**说明（2026-10-06）**：清单为静态对比样本；`sync_money_fund` **只实时刷新 `000198.OF 天弘余额宝`**，`build_money_fund_data()` 重建时只对带 `yieldDate` 的行（=余额宝）保留 Wind 实时值，其余 42 行沿用冻结值；**前端不展示其余货基**（`getYuebaoRate()` 只取余额宝；无「货币基金列表」页）。 |
 | reitsData.json | 89（新上市自动补入）| build_lists.py + sync_new_reits | ② Wind 快照（新 REITs 由 ③ 自动发现）| 流水线 |
-| assetData.json | 17 | build_lists.py（+ `EXTRA_ASSETS` 手工补加）| ① 用户表（总表）+ 手工补加行（「红利低波」，2026-10-06）| 流水线 |
+| assetData.json | 18 | build_lists.py（+ `EXTRA_ASSETS` 手工补加）| ① 用户表（总表）+ 手工补加行（「红利低波」，2026-10-06；「10年期国债到期收益率」，2026-10-17）| 流水线 |
 | （Wind 化字段）| — | **sync_wind_fields.py** | Wind get_fund_financials / get_index_fundamentals | 周流水线 步骤 15 |
-| assetHistory.json | 12 序列 | sync_asset_macro.py + sync_reits_daily.py | ③ Wind MCP（REITs 日频独立脚本；重点50城租金率=中指季度报告）| 流水线 |
+| assetHistory.json | 13 序列 | sync_asset_macro.py + sync_reits_daily.py | ③ Wind MCP（REITs 日频独立脚本；重点50城租金率=中指季度报告；10年期国债收益率=中央库 rates 导出）| 流水线 |
 | reitsDaily.json | 89 只日频缓存 | sync_reits_daily.py | ③ Wind MCP | 流水线（缓存，可重建）|
 | yuebaoHistory.json | 1022 条 | sync_yuebao_history.py | ③ Wind MCP | 流水线 |
 | productQuotes.json | 135 产品 / 135 条快照（逐日累积）| **sync_product_quotes.py** | ③ Wind MCP（`get_fund_price_indicators`）| 流水线（步骤 12 后·编号外；只追加不覆盖）|
@@ -91,6 +91,7 @@
 | 重点50城租金率 | ① 用户（**中指研究院 50城租金房价比**，2026-08-15 确认权威；用户手动提供列表值）| ① 中指季度报告（**季度时点序列 2023Q1 起 14 点**，08-16 接入；每季度从中指云报告更新）；中原 6 城均值→备用 key「重点城市租金率(中原6城均值)」|
 | 预定利率研究值 | ① 用户（保协）| ③ Wind EDB + 官方发布覆盖 |
 | 3/5年期储蓄国债 | ② Wind（**储蓄国债票面利率**，Wind 债券发行记录周频采样）| ③ Wind bond_data |
+| 10年期国债到期收益率 | ② 中央库 `rates`（本项目 opportunity 的 Wind EDB 取数按日写回）+ assetHistory 最新覆盖 | ③ Wind EDB（2008-07-01 起日频；经中央库 `exports/dividend/rates.json` 读取，缺失时回退 Wind）|
 | 整存整取 1/3年期 | ① 用户（工行官网核对）| ③ Wind EDB |
 | 中证同业存单AAA | ② Wind | ③ Wind EDB |
 | 天弘余额宝 | ② Wind（快照）+ ③ 实时覆盖 | ④ iFind 日频（Wind 限流）|
