@@ -413,7 +413,9 @@
     clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('on'); }, 2400);
   }
   function doDownload() {
-    var m = document.getElementById('oppShareMenu'); if (m) m.hidden = true; setExpanded(false);
+    /* 2026-10-17 修复：此处原残留旧版菜单代码 `setExpanded(false)`，该函数已随圆形按钮改版删除 →
+       点击下载会先抛 ReferenceError，导出逻辑完全没执行（表现为「点了没作用」）。改为只收面板。 */
+    hideWxPanel();
     toPNG(2).then(save).then(function () { toast('已保存图片'); })
       .catch(function (e) { toast('下载失败：' + e.message); });
   }
