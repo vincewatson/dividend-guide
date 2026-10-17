@@ -313,6 +313,16 @@ def build(today, mode="daily"):
     add("宏观·REITs两类(日频)", 10, r_asset("REITs产权类"), cn_last, "strict", "")
     add("宏观·低频(存单/LPR/存款/预定利率)", 9, None, None, "exempt", "周/月/不定期")
     add("重点50城租金率", "B2", r_asset("重点50城租金率"), None, "exempt", "季度")
+    # 2026-10-17：租金率是用户每季度手动提供（runbooks/quarterly-rent-sop.md，4/7/10/12 月下旬），到时间主动提醒
+    try:
+        _rent = r_asset("重点50城租金率")
+        _qe = max(datetime.date(y, m, d) for y in (today.year - 1, today.year)
+                  for m, d in ((3, 31), (6, 30), (9, 30), (12, 31)) if datetime.date(y, m, d) <= today)
+        _window = today.month in (4, 7, 10, 12) and today.day >= 20
+        if _rent and _rent < _qe and (_window or (today - _rent).days > 120):
+            warn.append("重点50城租金率最新为 %s，还没有 %s 这一季的值：请用户按 runbooks/quarterly-rent-sop.md 提供本季度租金率（季度手动项，不影响本次更新）" % (_rent, _qe))
+    except Exception as _e:
+        warn.append("检查租金率时间失败：%s" % _e)
 
     # --- 清单/标注类（事件驱动；excel-exit P2 起来源 = data/curation/*.json）---
     cur_name, cur_mt = r_lists_newest()

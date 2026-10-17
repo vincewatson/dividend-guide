@@ -442,8 +442,9 @@ echo ""
 echo "===== [18/21] 数据一致性验证（失败即中止部署）====="
 run_py "check_data.py" check_data.py
 
-# 周更档成功跑完 → 记录 lastWeekly（供下次判档）
-if [ "$RUN_WEEKLY" = "1" ]; then
+# 周更完成 → 记录 lastWeekly（供下次判档）。2026-10-17 起：部署成功后才记（部署失败不记，下次再点会重跑周更）；
+#   SX_NO_DEPLOY=1（只跑数据、稍后统一部署）时也记，避免同一周末补部署前重复跑周更。
+record_weekly() {
   python3 - <<'PY'
 import json, datetime
 p = ".run_state.json"
@@ -460,7 +461,7 @@ rec["lastWeekly"] = today.isoformat()
 json.dump(rec, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print("[档位] 已记录本次周更日期 lastWeekly=%s" % rec["lastWeekly"])
 PY
-fi
+}
 
 echo ""
 echo "===== [19/21] 刷新内嵌兜底数据 ====="
@@ -470,6 +471,7 @@ echo ""
 if [ "$SX_NO_DEPLOY" = "1" ]; then
   echo "===== [20/21] 部署到 Cloudflare Pages — ⏭ 跳过（SX_NO_DEPLOY=1）====="
   report_event "部署 deploy_cloudflare" skip "SX_NO_DEPLOY=1（只跑数据）"
+  if [ "$RUN_WEEKLY" = "1" ]; then record_weekly; fi
 else
   echo "===== [20/21] 部署到 Cloudflare Pages ====="
   PENDING_MD="deploy/待部署清单.md"
@@ -479,6 +481,7 @@ else
   fi
   if bash "$(pwd)/deploy_cloudflare.sh"; then
     report_event "部署 deploy_cloudflare" ran ""
+    if [ "$RUN_WEEKLY" = "1" ]; then record_weekly; fi
     if [ -f "$PENDING_MD" ]; then
       CL="docs/changelog/$(date +%Y-%m).md"
       { echo ""; echo "<!-- $(date '+%Y-%m-%d %H:%M') 随数据更新上线的本地改动（原 deploy/待部署清单.md） -->"; grep '^| 20' "$PENDING_MD" | sed 's/^| /| 已上线·/' ; } >> "$CL"
@@ -486,7 +489,7 @@ else
       report_event "待部署清单" ran "随本次部署上线，已记入 changelog 并删除"
     fi
   else
-    report_event "部署 deploy_cloudflare" fail "deploy_cloudflare.sh 失败（待部署清单保留）"
+    report_event "部署 deploy_cloudflare" fail "deploy_cloudflare.sh 失败（待部署清单保留；本次周更不记为完成）"
   fi
 fi
 

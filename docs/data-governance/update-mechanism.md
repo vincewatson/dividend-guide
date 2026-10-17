@@ -34,6 +34,8 @@
    **wrangler 根本没跑**（且旧版脚本仍打印「✅ 已部署」造成假成功）。整跑须**带审批**（或在非沙箱环境）启动；
    `deploy_cloudflare.sh` 已加 `set -o pipefail`，部署失败会正确返回非 0。Cloudflare 偶发
    `Failed to publish your Function / Unknown internal error` 属瞬时错误，**重试 1–2 次**即可。
+9. ✅ **已修（2026-10-17，中央维护）· 周更完成记录的时机**：`auto_sync_deploy.sh` 改为**部署成功后**才记 `.run_state.json:lastWeekly`（部署失败不记，同一周末再点会重跑周更）；`SX_NO_DEPLOY=1`（只跑数据、稍后统一部署）时也记。
+10. ✅ **已修（2026-10-17，中央维护）· 季度租金率提醒**：`preflight.py` 在 4/7/10/12 月 20 日之后（或租金率已超过 120 天没更新），且还缺最近一季的值时告警，提醒用户按 `runbooks/quarterly-rent-sop.md` 提供。
 
 ## 跑完之后必做：更新复盘（update-review，2026-10-10 用户确立）
 
