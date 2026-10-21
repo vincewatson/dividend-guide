@@ -26,6 +26,11 @@ CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "2000"))
 
 today = datetime.date.today().isoformat()
 
+# 档位自检（SX_GATE_ONLY=1）不执行步骤，也不应占用当日整跑次数（2026-10-21 修复）
+if os.environ.get("SX_GATE_ONLY") == "1":
+    print("[额度闸] 档位自检模式：只读，不计入今日整跑次数。")
+    sys.exit(0)
+
 rec = {}
 try:
     with open(STATE, encoding="utf-8") as f:

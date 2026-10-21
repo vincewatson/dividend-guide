@@ -228,29 +228,23 @@ def fetch_bond_savings(term):
 
 def fetch_bond_yield_10y():
     """10 年期国债到期收益率（日频，百分数口径，与 assetHistory 其余序列一致）。
-    优先读中央库导出 exports/dividend/rates.json（本项目的 opportunity 取数已把 Wind EDB「中国:国债到期收益率:10年」
-    按日写回 rates.value），缺失/为空时回退 Wind EDB。回退时与本地旧序列合并，避免 EDB 近 3 年窗口截断历史。
-    2026-10-17 用户要求加入首页「主流资产食息率」列表。"""
+    中央库导出 exports/dividend/rates.json 与 Wind EDB 合并：中央库给全历史、Wind 给最新几天；
+    任一侧缺失时用另一侧。**按日期去重**（2026-10-21：中央库导出出现同日期重复行，9126 行 = 4563 日期×2，
+    合并时保留后写入者，避免图上同一天两个点）。"""
+    m = {}
     try:
         with io.open(os.path.join(CENTRAL_DIR, 'exports', 'dividend', 'rates.json'), 'r', encoding='utf-8') as f:
             d = json.load(f)
-        out = [{'date': r[3], 'yield': round(float(r[4]) * 100, 4)}
-               for r in (d.get('rows') or [])
-               if r[1] == '10年期国债到期收益率' and r[4] is not None]
-        if out:
-            out.sort(key=lambda p: p['date'])
-            return out
-        print('  [WARN] 中央库 rates 无 10 年期国债序列，回退 Wind EDB', flush=True)
+        for r in (d.get('rows') or []):
+            if r[1] == '10年期国债到期收益率' and r[4] is not None:
+                m[str(r[3])[:10]] = round(float(r[4]) * 100, 4)
+        if not m:
+            print('  [WARN] 中央库 rates 无 10 年期国债序列', flush=True)
     except Exception as e:
-        print('  [WARN] 中央库 rates 读取失败（%s），回退 Wind EDB' % e, flush=True)
+        print('  [WARN] 中央库 rates 读取失败（%s）' % e, flush=True)
     pts = parse_edb_series(fetch_edb('中国国债到期收益率10年'), '国债到期收益率')
-    try:
-        with io.open(OUT_FILE, 'r', encoding='utf-8') as f:
-            old = json.load(f).get('10年期国债到期收益率') or []
-    except Exception:
-        old = []
-    m = {p['date']: p['yield'] for p in old}
-    m.update({p['date']: p['yield'] for p in pts})
+    for p in pts:
+        m[p['date']] = p['yield']
     return [{'date': k, 'yield': m[k]} for k in sorted(m)]
 
 

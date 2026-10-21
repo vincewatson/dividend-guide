@@ -83,7 +83,7 @@
 | productQuotes · 产品行情快照（当日涨跌幅/今年以来回报）| Wind `fund_data.get_fund_price_indicators` | sync_product_quotes | **每次**（按日期【追加】，同日仅补空值、绝不覆盖旧值）| 「月月名单自动补入」之后（**编号外**步骤）|
 | moneyFundData · 头部 7 日年化 | Wind 实时 | sync_money_fund | **每次** | 步骤 7 |
 | yuebaoHistory | Wind 日频 | sync_yuebao_history | **每次**（动态 180 天）| 步骤 8 |
-| assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单/**10年期国债收益率**）| Wind EDB（储蓄国债=Wind 债券发行记录；**10年期国债=中央库 rates 导出**，缺失时回退 Wind；**同业存单=931059.CSI 日收盘按 30 自然日滚动复利年化**，2026-10-17 起日频，原「月度年化」口径停用）| sync_asset_macro | **每次** | 步骤 9 |
+| assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单/**10年期国债收益率**）| Wind EDB（储蓄国债=Wind 债券发行记录；**10年期国债=中央库 rates 导出 ∪ Wind EDB，按日期去重**，2026-10-21 起两者合并；**同业存单=931059.CSI 日收盘按 30 自然日滚动复利年化**，2026-10-17 起日频，原「月度年化」口径停用）| sync_asset_macro | **每次** | 步骤 9 |
 | assetHistory · REITs 两类日频 | Wind 日频中位数 | sync_reits_daily | **每次**（增量；**2026-09-26 起覆盖 reitsData.json 全量**，分组由 projectType 推导）| 步骤 10 |
 | cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData / assetData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起；原用户 Excel 快照已弃用）| build_lists（**只跑一次**，2026-10-07 阶段 3 由原「两次」合并）| **每周**（`data/curation/` 变更时才变化）| 重建（唯一一次，原第 11 步位置）；「出」由编号外 `sync_lifecycle.py` → `_retired.json` 负责 |
 | cnEtfData · 新 ETF、indexData · 新指数 | Wind 自动发现 | sync_new_etf | **每周**（2026-10-07 起归周更；检索近 30 天）| 步骤 12 |
