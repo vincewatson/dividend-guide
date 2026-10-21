@@ -8,7 +8,7 @@
 阶段 1（2026-10-07）：加每日预算 + 额度用尽优雅停止 + pending 续补。
 
 预算（按「运行档位」的当日调用数）：
-    - 日更（SX_WIND_MODE=daily，默认）：SX_WIND_BUDGET 默认 300
+    - 日更（SX_WIND_MODE=daily，默认）：SX_WIND_BUDGET 默认 500
     - 周更（SX_WIND_MODE=weekly）      ：SX_WIND_BUDGET 默认 650
     - 当天合计软上限 SX_WIND_DAY_CAP（默认 1600，账号 A 规则）
     当日该档位的调用数达到预算 → **拒绝**后续调用（返回 rc=3 的合成结果），
@@ -41,7 +41,7 @@ CLI = os.path.join(BASE, "wind_guard_cli.mjs")
 # 运行档位：daily（默认）/ weekly
 _MODE_RAW = (os.environ.get("SX_WIND_MODE") or "daily").strip().lower()
 MODE = "weekly" if _MODE_RAW.startswith("w") else "daily"
-_DEFAULT_BUDGET = {"daily": 300, "weekly": 650}   # 2026-10-07：周更 800→650（规则：日更≤300 / 周更≤650）
+_DEFAULT_BUDGET = {"daily": 500, "weekly": 650}   # 2026-10-21：日更 300→500（用户要求，REITs 扩容后 300 易被打满）；周更 650 不变
 BUDGET = int(os.environ.get("SX_WIND_BUDGET", str(_DEFAULT_BUDGET[MODE])))
 # 全局每日硬上限（守卫层 2000）与「当天合计」软上限（账号 A 规则：当天合计 ≤1600）
 CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "2000"))
