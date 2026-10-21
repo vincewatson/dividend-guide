@@ -91,7 +91,7 @@
 | 重点50城租金率 | ① 用户（**中指研究院 50城租金房价比**，2026-08-15 确认权威；用户手动提供列表值）| ① 中指季度报告（**季度时点序列 2023Q1 起 14 点**，08-16 接入；每季度从中指云报告更新）；中原 6 城均值→备用 key「重点城市租金率(中原6城均值)」|
 | 预定利率研究值 | ① 用户（保协）| ③ Wind EDB + 官方发布覆盖 |
 | 3/5年期储蓄国债 | ② Wind（**储蓄国债票面利率**，Wind 债券发行记录周频采样）| ③ Wind bond_data |
-| 10年期国债到期收益率 | ② 中央库 `rates`（本项目 opportunity 的 Wind EDB 取数按日写回）+ assetHistory 最新覆盖 | ③ Wind EDB（2008-07-01 起日频；经中央库 `exports/dividend/rates.json` 读取，缺失时回退 Wind）|
+| 10年期国债到期收益率 | ② 中央库 `rates`（本项目 opportunity 的 Wind EDB 取数按日写回）+ assetHistory 最新覆盖 | ③ Wind EDB（2008-07-01 起日频；经中央库 `exports/dividend/rates.json` 读取，叠加 `inputs/opportunity/increments.csv` 的 RATES 最新点，按日期去重）|
 | 整存整取 1/3年期 | ① 用户（工行官网核对）| ③ Wind EDB |
 | 中证同业存单AAA | ② Wind（assetHistory 最新覆盖，note=近30日年化收益率）| ③ Wind 指数日线 `931059.CSI`（**近30日滚动复利年化**，2026-10-17 起日频；原「月度年化」已停用）|
 | 天弘余额宝 | ② Wind（快照）+ ③ 实时覆盖 | ④ iFind 日频（Wind 限流）|

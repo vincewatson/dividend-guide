@@ -245,6 +245,16 @@ def fetch_bond_yield_10y():
     pts = parse_edb_series(fetch_edb('中国国债到期收益率10年'), '国债到期收益率')
     for p in pts:
         m[p['date']] = p['yield']
+    # 本地增量（fetch_opportunity_inputs.py 写入）优先级最高：中央库导出与 Wind EDB 常滞后 1~3 个交易日
+    try:
+        import csv
+        with io.open(os.path.join(BASE, 'inputs', 'opportunity', 'increments.csv'), 'r', encoding='utf-8') as f:
+            for row in csv.DictReader(f):
+                if (row.get('wind_code') == 'RATES' and row.get('metric') == '10年期国债到期收益率'
+                        and row.get('value')):
+                    m[str(row['date'])[:10]] = round(float(row['value']) * 100, 4)
+    except Exception:
+        pass
     return [{'date': k, 'yield': m[k]} for k in sorted(m)]
 
 
