@@ -25,6 +25,7 @@
       "turnover": 0.1
     },
     "z_scale": 20,
-    "series_start": "2018-01-01"
+    "series_start": "2018-01-01",
+    "horizon_days": 126
   }
 }

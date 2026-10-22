@@ -27,6 +27,7 @@ SERIES = {
 }
 PCT_COLS = {"turn", "dy", "wa_dy", "y10"}
 REQUIRED = ["close", "turn", "tr", "dy", "wa_dy"]   # y10 允许前向填充
+MIN_DAYS = 1500                                      # 历史不足即视为中央库未读到，引擎报错、保留上一版
 Y10_NAME = "10年期国债到期收益率"
 
 
@@ -137,4 +138,7 @@ def to_engine_frame(long_df):
     df = pd.DataFrame(cols).sort_index()
     df["y10"] = df["y10"].ffill()
     df = df.dropna(subset=REQUIRED)            # 只保留必需序列都齐的交易日（以 000922 交易日为准）
+    # 2026-10-22 护栏：中央库路径不可读时只剩本地增量几天，绝不能拿来算（5 年分位需 ≥750 日，这里要求 ≥1500 日）
+    if len(df) < MIN_DAYS:
+        return None, f"可用交易日只有 {len(df)} 天（<{MIN_DAYS}），中央库导出可能未读到"
     return df, f"{df.index.min().date()} ~ {df.index.max().date()}，{len(df)} 个交易日"

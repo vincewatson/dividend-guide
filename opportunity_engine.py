@@ -92,11 +92,12 @@ def compute(df, cfg):
                       "p250": p250, "dev": dev, "turn20": turn20})
     return C
 
-def backtest_bands(df, opp, start):
+def backtest_bands(df, opp, start, H=126):
+    """打分参考：月末机会值分档 → 之后 H 个交易日（2026-10-22 起 126≈6 个月，原 250≈1 年）全收益指数表现。"""
     tr = df["tr"]; a = tr.values; n = len(a); dn = np.full(n, np.nan)
-    for i in range(n - 250):
-        dn[i] = a[i + 1:i + 251].min() / a[i] - 1
-    Y = pd.DataFrame({"r12": tr.shift(-250) / tr - 1, "dn": dn}, index=df.index)
+    for i in range(n - H):
+        dn[i] = a[i + 1:i + H + 1].min() / a[i] - 1
+    Y = pd.DataFrame({"r12": tr.shift(-H) / tr - 1, "dn": dn}, index=df.index)
     D = pd.DataFrame({"opp": opp}).join(Y).resample("ME").last()
     d = D[D.index >= start].dropna(subset=["opp", "r12"])
     g = d.groupby(pd.cut(d["opp"], [0, 20, 40, 60, 80, 100.01], include_lowest=True), observed=False).agg(
@@ -153,12 +154,12 @@ def build_payload(df, C, cfg):
         "asof": last_d.strftime("%Y-%m-%d"),
         "index": "中证红利000922.CSI",
         "score": round(float(last.opp), 1),
-        "horizon": "未来6–12个月",
-        "horizonNote": "按半年到一年的持有期判断方向，不预测涨跌幅度。",
+        "horizon": "未来6个月左右",   # 2026-10-22 用户确认：观察周期由 6–12 个月改为 6 个月
+        "horizonNote": "按半年左右的持有期判断方向，不预测涨跌幅度。",
         "summary": summary(last, w),
         "compare": compare,
         "core": core,
-        "bands": backtest_bands(df, C["opp"], p["series_start"]),
+        "bands": backtest_bands(df, C["opp"], p["series_start"], int(p.get("horizon_days", 126))),
         "observe": observe,
         "method": "机会值＝阶段涨跌幅55%（近一年涨跌与偏离年线各半）＋股息率溢价20%＋相对性价比15%＋换手率10%，再与自身过去5年的平均水平比较。等于平均记50分，每高（低）一个标准差加（减）20分。阶段涨跌幅用价格指数，股息率类指标已剔除年度调样跳升。",
         "series": {"d": dates, "v": [round(float(v), 1) for v in da["o"]], "p": [int(round(v)) for v in da["p"]]},
