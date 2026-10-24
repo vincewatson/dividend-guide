@@ -274,7 +274,7 @@ def merge_increments(new_rows, central_long):
     df = pd.concat([f for f in (old, new) if len(f)], ignore_index=True) if (len(old) or len(new)) else new
     df = df.drop_duplicates(["date", "wind_code", "metric"], keep="last")
     # 中央库导出已覆盖的日期 → 从本地增量中清掉（中央库为准）
-    if len(central_long):
+    if len(central_long) and len(df):
         cov = oc.last_dates(central_long)
         keep = [not (cov.get((r.wind_code, r.metric)) and r.date <= cov[(r.wind_code, r.metric)]) for r in df.itertuples()]
         df = df[keep]
