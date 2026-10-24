@@ -134,7 +134,7 @@
     parts.push(T(pad, y, '数据截至 ' + (d.asof || '—'), 23, C.faint));
     y += 32;
 
-    /* 蓝框 */
+    /* 蓝框：上半部 = 机会值（左）+ 当前建议（右）；下半部 = 适用周期（整行）+ 分隔线（2026-10-24 重排） */
     var boxTop = y, ip = 32, cellX = pad + ip, cellW = iw0 - ip * 2;
     var leftW = 190, rightX = cellX + leftW + 20, rightW = (pad + iw0 - ip) - rightX;
     var cTop = boxTop + ip;
@@ -142,25 +142,29 @@
     parts.push(T(cellX, cTop + 128, score, 88, colorOf(score), { weight: 700, tabular: true }));
     parts.push(T(cellX + measure(score, 88) + 12, cTop + 128, '/100', 30, C.faint));   /* 2026-10-17 用户要求：/100 放大，避免第一块显得空 */
     parts.push(T(cellX, cTop + 172, bandText, 23, colorOf(score), { weight: 700 }));
-    var r = cTop + 24;
-    parts.push(T(rightX, r, '当前建议', 23, C.faint));
-    r += 34;                                            /* 标题与内容更近（原 42） */
-    parts.push(T(rightX, r, b[3], 34, C.ink, { weight: 700 }));
-    r += 44;                                            /* 内容与说明更近（原 54） */
+
+    /* 当前建议：标题与结论同一行（灰字标签 + 粗体结论），说明另起一行组 */
+    var rowY = cTop + 26;
+    parts.push(T(rightX, rowY, '当前建议', 23, C.faint));
+    parts.push(T(rightX + measure('当前建议', 23) + 16, rowY, b[3], 32, C.ink, { weight: 700 }));
     var sumL = wrap(d.summary, rightW, 23);
-    sumL.forEach(function (L, k) { parts.push(T(rightX, r + k * 38, L, 23, C.body)); });
-    r += (sumL.length - 1) * 38 + 92;                   /* 两组之间拉开距离（原 44） */
-    parts.push(T(rightX, r, '适用周期', 23, C.faint));
-    r += 34;
-    parts.push(T(rightX, r, d.horizon || '—', 34, C.ink, { weight: 700 }));
-    r += 44;
-    var hnL = wrap(d.horizonNote, rightW, 21);
-    hnL.forEach(function (L, k) { parts.push(T(rightX, r + k * 33, L, 21, C.muted)); });
-    r += (hnL.length - 1) * 33;
+    sumL.forEach(function (L, k) { parts.push(T(rightX, cTop + 74 + k * 40, L, 23, C.body)); });
+    var rightBottom = cTop + 74 + (sumL.length - 1) * 40;
+
+    /* 分隔线：把「当前建议」与「适用周期」分成两个清晰区块 */
+    var divY = Math.max(cTop + 172, rightBottom) + 34;
+    parts.push('<line x1="' + cellX + '" x2="' + (cellX + cellW) + '" y1="' + divY + '" y2="' + divY + '" stroke="rgba(70,128,253,0.16)" stroke-width="1"/>');
+
+    /* 适用周期：整行横排（标签 + 结论），说明按整幅宽度折行 */
+    var hzY = divY + 44;
+    parts.push(T(cellX, hzY, '适用周期', 23, C.faint));
+    parts.push(T(cellX + measure('适用周期', 23) + 16, hzY, d.horizon || '—', 30, C.ink, { weight: 700 }));
+    var hnL = wrap(d.horizonNote, cellW, 21);
+    hnL.forEach(function (L, k) { parts.push(T(cellX, hzY + 40 + k * 34, L, 21, C.muted)); });
+    var contentBottom = hzY + 40 + (hnL.length - 1) * 34 + 6;
 
     /* 历史对比（4 列，与页面蓝框同口径：取整、无小数点） */
-    var contentBottom = Math.max(cTop + 172, r);
-    var sepY = contentBottom + 36, labY = sepY + 36, valY = sepY + 84;
+    var sepY = contentBottom + 32, labY = sepY + 36, valY = sepY + 84;
     parts.push('<line x1="' + cellX + '" x2="' + (cellX + cellW) + '" y1="' + sepY + '" y2="' + sepY + '" stroke="rgba(70,128,253,0.16)" stroke-width="1"/>');
     var cmp = d.compare || {}, keys = Object.keys(cmp), colW = cellW / (keys.length || 1);
     keys.forEach(function (k, i) {
