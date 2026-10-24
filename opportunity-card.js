@@ -150,7 +150,7 @@
     /* ② 当前建议：标签 + 结论同行，说明整幅宽度折行 */
     var rowY = div1 + 38;
     parts.push(T(cellX, rowY, '当前建议', 23, C.faint));
-    parts.push(T(cellX + measure('当前建议', 23) + 16, rowY, b[3], 32, C.ink, { weight: 700 }));
+    parts.push(T(cellX + measure('当前建议', 23) + 16, rowY, b[3], 23, C.ink, { weight: 700 }));
     var sumL = wrap(d.summary, cellW, 23);
     sumL.forEach(function (L, k) { parts.push(T(cellX, div1 + 80 + k * 38, L, 23, C.body)); });
     var div2 = div1 + 80 + (sumL.length - 1) * 38 + 27;
@@ -159,7 +159,7 @@
     /* ③ 适用周期：标签 + 结论同行，说明整幅宽度折行 */
     var hzY = div2 + 38;
     parts.push(T(cellX, hzY, '适用周期', 23, C.faint));
-    parts.push(T(cellX + measure('适用周期', 23) + 16, hzY, d.horizon || '—', 30, C.ink, { weight: 700 }));
+    parts.push(T(cellX + measure('适用周期', 23) + 16, hzY, d.horizon || '—', 23, C.ink, { weight: 700 }));
     var hnL = wrap(d.horizonNote, cellW, 21);
     hnL.forEach(function (L, k) { parts.push(T(cellX, div2 + 80 + k * 34, L, 21, C.muted)); });
     var div3 = div2 + 80 + (hnL.length - 1) * 34 + 27;
