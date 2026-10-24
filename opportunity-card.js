@@ -144,16 +144,16 @@
     parts.push(T(cellX, cTop + 172, bandText, 23, colorOf(score), { weight: 700 }));
     var r = cTop + 24;
     parts.push(T(rightX, r, '当前建议', 23, C.faint));
-    r += 42;
+    r += 34;                                            /* 标题与内容更近（原 42） */
     parts.push(T(rightX, r, b[3], 34, C.ink, { weight: 700 }));
-    r += 54;
+    r += 44;                                            /* 内容与说明更近（原 54） */
     var sumL = wrap(d.summary, rightW, 23);
     sumL.forEach(function (L, k) { parts.push(T(rightX, r + k * 38, L, 23, C.body)); });
-    r += (sumL.length - 1) * 38 + 44;
+    r += (sumL.length - 1) * 38 + 92;                   /* 两组之间拉开距离（原 44） */
     parts.push(T(rightX, r, '适用周期', 23, C.faint));
-    r += 42;
+    r += 34;
     parts.push(T(rightX, r, d.horizon || '—', 34, C.ink, { weight: 700 }));
-    r += 54;
+    r += 44;
     var hnL = wrap(d.horizonNote, rightW, 21);
     hnL.forEach(function (L, k) { parts.push(T(rightX, r + k * 33, L, 21, C.muted)); });
     r += (hnL.length - 1) * 33;
@@ -179,10 +179,15 @@
     var S = series3y(d), chH = 210, chTop = chartTop + 74;
     if (S) chParts.push('<g transform="translate(' + chX + ',' + chTop + ')">' + chartContent(S, chW, chH) + '</g>');
     var legY = chTop + chH + 40, lx = pad + ip;
-    LEGEND.forEach(function (it) {
-      chParts.push('<rect x="' + lx + '" y="' + (legY - 4) + '" width="28" height="' + (it[1] === '50=中性值' ? 1.5 : 3) + '" fill="' + it[0] + '"/>');
-      chParts.push(T(lx + 38, legY, it[1], 21, C.faint));
-      lx += 38 + measure(it[1], 21) + 34;
+    /* 图例按可用宽度自适应间距，右侧留 20px，避免最后一项贴边/被裁掉（2026-10-24） */
+    var legW = LEGEND.map(function (it) { return 30 + measure(it[1], 21); });
+    var legFixed = legW.reduce(function (a, b) { return a + b; }, 0);
+    var legGap = LEGEND.length > 1 ? Math.min(34, (chW - 20 - legFixed) / (LEGEND.length - 1)) : 0;
+    legGap = Math.max(14, legGap);
+    LEGEND.forEach(function (it, i) {
+      chParts.push('<rect x="' + lx + '" y="' + (legY - 4) + '" width="22" height="' + (it[1] === '50=中性值' ? 1.5 : 3) + '" fill="' + it[0] + '"/>');
+      chParts.push(T(lx + 30, legY, it[1], 21, C.faint));
+      lx += legW[i] + legGap;
     });
     var chartBottom = legY + 30;
     parts.push('<rect x="' + pad + '" y="' + chartTop + '" width="' + iw0 + '" height="' + (chartBottom - chartTop)
