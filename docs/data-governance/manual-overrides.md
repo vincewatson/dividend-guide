@@ -54,6 +54,8 @@
 
 | 2026-10-25 | `data/curation/indices_pro.json` / `indices_main.json` / `indices_feishu_info.json` / `indices_feishu_yield.json` + `data/indexData.json`（`HSSCHKY.HI`）+ `cn_etf.json` / `data/cnEtfData.json` / `index.html`（`513690.OF` 跟踪指数名）| `指数名称`/`指数简称`、`指数全称`、`trackName` | 恒生港股通高股息率 / 恒生港股通高股息率指数 → **恒生港股通红利 / 恒生港股通红利优选指数** | 用户核对恒生指数公司官网：该指数现名「恒生港股通红利优选指数」，简称「恒生港股通红利」，代码 `HSSCHKY.HI` 不变 | **D（改清单真源）**：4 个 curation 源同步改，`build_lists` 重建不回退；`indexData.json` 与 `index.html` 内嵌副本同步；ETF `trackName` 由 `sync_wind_fields` 按指数规范名对齐。中央库 `idx.master.full_name_cn` 已提提案 `2026-10-25-dividend-guide-180450`，待下次构建实施（`hsi:02055.00`）| ✅ |
 
+| 2026-10-25 | `build_lists.py` 规则 + `data/indexData.json`（10 个指数）| `taxRate` | 港股/沪港深指数 `1.0` → **`0.8`**（932584 / 931722 / 987016 / HSMCHYI / CESFHY / SPAHLVCP / 995128 / 995127 / 931157 / 930917）| 用户口径（2026-10-25）：**沪港深三地的红利，港股红利税系数统一 0.8**；A 股维持 1.0 | **B（代码硬编码）**：`build_lists.build_index_data()` 末尾按 `market` 归一（`港股`/`沪港深` → 0.8，其余 1.0），重建不会回退；已同步改 `data/indexData.json` 并用 `embed_data.py` 刷新内嵌副本 | ✅ |
+
 > 上表"历史"行 = 代码 `build_lists.py · AUTHORITATIVE_MANUAL` 中既有的权威硬编码值（补登记，非本次新增）。
 > 后续新增手工修订请**追加行**，勿覆盖历史行。
 > 配套记录：backlog 决定、文档说明、变更记录（changelog）见对应文档，本台账只作索引，权威值仍以落地的 JSON/代码为准。

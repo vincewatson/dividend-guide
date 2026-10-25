@@ -712,6 +712,14 @@ def build_index_data():
                 if u.get('adjustDate'): item['adjustDate'] = u['adjustDate']
                 if u.get('yieldNum'): item['yieldNum'] = u['yieldNum']
             out[code] = item
+
+    # 红利税系数按市场统一（2026-10-25 用户口径）：港股、沪港深 0.8，其余（A股）1.0
+    for item in out.values():
+        if item.get('market') in ('港股', '沪港深'):
+            item['taxRate'] = 0.8
+        else:
+            item.setdefault('taxRate', 1.0)
+
     return list(out.values())
 
 
