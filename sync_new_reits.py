@@ -8,17 +8,18 @@
 2. 新标的的「名称 / 资产类型 / 上市日 / 产权类·特许经营权类」取自 Wind
    基金级档案（get_fund_info）。资产类型允许出现站内新类目（如 Wind 的
    「新型基础设施 / 市政设施 / 商业不动产」，2026-09-26 用户确认接受）。
-3. **空字段补齐（2026-09-26 用户要求）**：对「字段为空」的 REITs（含新补入的），
-   用 Wind 补 累计分红次数(totalDiv) / 年化分红次数(annualDiv) / 单位累计分红(cumDivAmt) /
-   单位年化分红(annualDivAmt) / 年化派息率(yield·yieldNum) / 前收盘价(prevClose)；
-   **取不到继续留空、不写 0**；只补空值、绝不覆盖已有值。
+3. **分红/派息字段（2026-10-25 起默认不取）**：`reitsData` 的单只分红/派息率/前收盘价
+   前端不消费（首页 REITs 两类中位数取自 `reitsDaily.json`），故默认不再调用 Wind；
+   需要时加 `--fill`（补空字段，只补空不覆盖）或 `--annual`（按 2026 自然年刷新年度分红，可覆盖）。
 4. 简称口径（2026-09-26 用户确认「全部采用扩位场内简称」）：**全部 REITs**
    （含站内已有行）的 `shortName` 统一为 Wind「基金扩位场内简称」；每次运行
    批量取回（12 只/批、并发）并刷新站内已有行，以覆盖 build_lists 每周重建后的值。
 
 用法：
     python3 sync_new_reits.py --dry-run   # 只打印，不写入（上线前先跑这个核对）
-    python3 sync_new_reits.py             # 正式写入 data/reitsData.json
+    python3 sync_new_reits.py             # 正式写入 data/reitsData.json（只做发现 + shortName）
+    python3 sync_new_reits.py --fill      # 额外补齐空的分红/派息字段（耗额度）
+    python3 sync_new_reits.py --annual-only  # 只刷新 2026 年度分红（轻量入口）
 
 注意：只**追加**新标的 / **刷新既有行 `shortName`** / **补齐空字段**，
       绝不删除或改动其它既有字段（三条铁律之一：写回绝不删除旧数据）。
@@ -548,12 +549,16 @@ def main():
                  merged['listedDate'] or '—', merged['foundDate'] or '—', merged['shortName'] or '—'),
               flush=True)
 
-    # ③ 空字段补齐：对「字段为空」的 REITs 用 Wind 补 分红次数/派息率/派息额/收盘价（并发）
+    # ③ 空字段补齐 / 年度分红刷新：**默认不跑**（2026-10-25 用户确认）
+    #   `reitsData` 的单只分红/派息率/前收盘价前端不消费（首页 REITs 两类中位数取自
+    #   reitsDaily.json，与本文件这些字段无关），故不再为它们消耗周更 Wind 额度。
+    #   需要时显式加 --fill（补空字段）或 --annual（刷新 2026 年度分红，可覆盖旧值）。
     fill_pool = list(site) + built
-    # ③0 年度分红（2026 自然年口径）全量刷新 —— 自然年内分红增长时要能覆盖旧值
-    annual_got = fetch_annual_2026(fill_pool)
-    annual_changes = apply_annual_2026(fill_pool, annual_got)
-    need = [r for r in fill_pool if needs_fill(r)]
+    annual_changes = []
+    if '--annual' in sys.argv:
+        annual_got = fetch_annual_2026(fill_pool)
+        annual_changes = apply_annual_2026(fill_pool, annual_got)
+    need = [r for r in fill_pool if needs_fill(r)] if '--fill' in sys.argv else []
     fills = []
     if need:
         print('\n  [%s] 补齐空字段：需补 %d 只（并发 %d 路取数）...'
