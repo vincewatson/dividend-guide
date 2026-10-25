@@ -35,8 +35,8 @@
       host: 'hketfListContainer', label: 'ETF排序',
       keyVar: 'hkSortKey', descVar: 'hkSortDesc',
       render: 'renderHkEtf',
-      def: { key: 'listedDate', desc: true },   // 默认按基金成立日期（新→旧）（2026-10-04 用户要求）
-      opts: [['listedDate','按成立日期（新→旧）','desc'],['name','按ETF简称（A-Z）','asc'],['feeNum','按管理费（从低到高）','asc']]
+      def: { key: 'listedDate', desc: true },   // 默认按上市日期（新→旧）
+      opts: [['listedDate','按上市日期（新→旧）','desc'],['name','按ETF简称（A-Z）','asc'],['feeNum','按管理费（从低到高）','asc']]
     },
     {
       host: 'monthlyEtfContainer', label: 'ETF排序',

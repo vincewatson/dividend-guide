@@ -1419,7 +1419,7 @@
           <div class="detail-info-row"><span class="label">跟踪指数代码</span><span class="value" id="hkEtfDetailTrackCode"></span></div>
           <div class="detail-info-row"><span class="label">跟踪指数名称</span><span class="value" id="hkEtfDetailTrackName"></span></div>
           <div class="detail-info-row"><span class="label">基金管理人</span><span class="value" id="hkEtfDetailManager"></span></div>
-          <div class="detail-info-row"><span class="label">成立日期</span><span class="value" id="hkEtfDetailListedDate"></span></div>
+          <div class="detail-info-row"><span class="label">上市日期</span><span class="value" id="hkEtfDetailListedDate"></span></div>
           <div class="detail-info-row"><span class="label">管理费率</span><span class="value" id="hkEtfDetailFee"></span></div>
           <div class="detail-info-row"><span class="label">最近分红日期</span><span class="value" id="hkEtfDetailDivDate"></span></div>
           <div class="detail-info-row" id="hkEtfDetailUrlRow" style="display:none"><span class="label">ETF官方详情页</span><span class="value" id="hkEtfDetailUrl"><a href="#" target="_blank" rel="noopener">➡️ 查看官方页面</a></span></div>
@@ -2890,7 +2890,7 @@ function bindChartHover(prefix){
 }
 
 // ===== HK ETF SORT =====
-var hkSortKey = 'listedDate';   // 默认按基金成立日期（新→旧）
+var hkSortKey = 'listedDate';   // 默认按上市日期（新→旧）
 var hkSortDesc = true;
 
 function hkToggleSort(key) {
@@ -2915,7 +2915,7 @@ function renderHkEtf() {
     '<th onclick="hkToggleSort(\'code\')">ETF代码<span'+s('code')+'">' + SI_UP_SVG + '</span></th>'+
     '<th onclick="hkToggleSort(\'name\')">ETF简称<span'+s('name')+'">' + SI_UP_SVG + '</span></th>'+
     '<th onclick="hkToggleSort(\'trackName\')">跟踪指数名称<span'+s('trackName')+'">' + SI_UP_SVG + '</span></th>'+
-    '<th onclick="hkToggleSort(\'listedDate\')">成立日期<span'+s('listedDate')+'">' + SI_UP_SVG + '</span></th>'+
+    '<th onclick="hkToggleSort(\'listedDate\')">上市日期<span'+s('listedDate')+'">' + SI_UP_SVG + '</span></th>'+
     '<th class="col-num" onclick="hkToggleSort(\'feeNum\')">管理费率<span'+s('feeNum')+'">' + SI_UP_SVG + '</span></th>'+
   '</tr></thead><tbody>';
 
