@@ -56,6 +56,8 @@
 
 | 2026-10-25 | `build_lists.py` 规则 + `data/indexData.json`（10 个指数）| `taxRate` | 港股/沪港深指数 `1.0` → **`0.8`**（932584 / 931722 / 987016 / HSMCHYI / CESFHY / SPAHLVCP / 995128 / 995127 / 931157 / 930917）| 用户口径（2026-10-25）：**沪港深三地的红利，港股红利税系数统一 0.8**；A 股维持 1.0 | **B（代码硬编码）**：`build_lists.build_index_data()` 末尾按 `market` 归一（`港股`/`沪港深` → 0.8，其余 1.0），重建不会回退；已同步改 `data/indexData.json` 并用 `embed_data.py` 刷新内嵌副本 | ✅ |
 
+| 2026-10-25 | `sync_wind_fields.py` + `data/etfData.json` / `data/fundData.json` | `annualDiv` / `annualDivAmt` / `monthlyDivAmt` | 月月分红 ETF 的 2026 分红次数 6~8 → **9~10**（如 513530 7→10、561580 7→10、530880 6→9）；`021388.OF` 银河 annualDivAmt `0` → **0.0114**、单次 `0` → **0.0014**；另 021583/022325/021375 单次分红按 Wind 修正 | 用户质疑「10 月末还只有 6、7 次」；核实为 curation 旧 Excel 值 + 「金额只补空白」导致永不更新（站点前端只是如实展示旧数据） | **B（改代码）**：ETF 批量查询会被 Wind 截断（5 只只回 1 只）→ 改逐只查询；增加「2026年基金分红次数」字段别名；年度额改为「单次 × 次数」自洽；基金金额改为按 Wind 覆盖 | ✅ |
+
 > 上表"历史"行 = 代码 `build_lists.py · AUTHORITATIVE_MANUAL` 中既有的权威硬编码值（补登记，非本次新增）。
 > 后续新增手工修订请**追加行**，勿覆盖历史行。
 > 配套记录：backlog 决定、文档说明、变更记录（changelog）见对应文档，本台账只作索引，权威值仍以落地的 JSON/代码为准。

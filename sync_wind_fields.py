@@ -448,8 +448,8 @@ def update_etf_data():
     updated = 0
     iy = _extend_yield_map(_index_yield_map(), todo)
     _iname = _index_name_map()   # trackCode → 站内指数规范名（ETF.trackName 须与之对齐，2026-10-05）
-    batches = [todo[i:i + BATCH] for i in range(0, len(todo), BATCH)]
-    # 拆两次查询（字段 ≤7 个，Wind 才返回；2026-08-16 实测）；两批查询一并并发预取
+    # ETF 批量查询会被 Wind 截断（2026-10-25 实测：5 只只回 1 只），改为逐只查询
+    batches = [[x] for x in todo]
     q1s = [' '.join('%s %s' % (x['code'], x['name']) for x in b) +
            ' 这些基金的基金成立日 管理费率 基金规模合计 基金份额 跟踪指数名称 基金公司名称' for b in batches]
     q2s = [' '.join('%s %s' % (x['code'], x['name']) for x in b) +
@@ -501,8 +501,13 @@ def update_etf_data():
                 def gv2(c):
                     return row2[cm2[c]] if c in cm2 and len(row2) > cm2[c] else None
                 v = num(gv2('2026年分红次数'))
+                if v is None:   # Wind 对 ETF 可能用「2026年基金分红次数」（2026-10-25 实测）
+                    v = num(gv2('2026年基金分红次数'))
                 if v is not None:
                     upd('annualDiv', int(v))
+                if x.get('annualDiv') and x.get('monthlyDivAmt'):
+                    # 年度单位分红与「单次 × 次数」保持自洽（否则 cur 旧值会让年度额停在旧月份）
+                    upd('annualDivAmt', round(x['monthlyDivAmt'] * x['annualDiv'], 4))
                 v = num(gv2('成立以来累计分红次数'))
                 if v is not None:
                     upd('totalDiv', int(v))
@@ -586,6 +591,8 @@ def update_fund_data():
             v = num(gv('2026年分红次数'))
             if v is not None:
                 upd('annualDiv', int(v))
+            if x.get('annualDiv') and x.get('monthlyDivAmt'):
+                upd('annualDivAmt', round(x['monthlyDivAmt'] * x['annualDiv'], 4))
             v = num(gv('最新单位净值'))
             if v is not None:
                 upd('nav', round(v, 4))
