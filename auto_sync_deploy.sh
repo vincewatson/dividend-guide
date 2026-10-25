@@ -85,10 +85,10 @@ run_py() {
   local dur=$(( $(date +%s) - t0 ))
   printf '{"label":"%s","sec":%s,"rc":%s}\n' "$label" "$dur" "$rc" >> "$TIMINGS_FILE"
   if [ $rc -eq 0 ]; then
-    echo "  ✅ [$(date '+%H:%M:%S')] 完成：$label（耗时 ${dur}s）"
+    echo "  ✅ [$(date '+%H:%M:%S')] 完成：${label}（耗时 ${dur}s）"
     report_event "$label" ran ""
   else
-    echo "  ❌ [$(date '+%H:%M:%S')] 失败：$label（耗时 ${dur}s，退出码 $rc）"
+    echo "  ❌ [$(date '+%H:%M:%S')] 失败：${label}（耗时 ${dur}s，退出码 ${rc}）"
     report_event "$label" fail "退出码 $rc"
   fi
   return $rc
@@ -148,6 +148,8 @@ print(last, days, cn, is_weekend, ran_weekend)
 ')"
 read -r LAST_WEEKLY DAYS_SINCE_WEEKLY WD_IDX IS_WEEKEND RAN_WEEKEND <<< "$_TIER"
 _WD_NAMES=(周一 周二 周三 周四 周五 周六 周日)
+# 2026-10-25：「??」的真正原因——Mac 自带 bash 3.2 会把紧跟在 $变量 后的中文（如全角括号）当成变量名的一部分，
+# 所以 "$WD_CN（北京）" 取不到值。凡是 $变量 后面紧跟中文的地方一律写成 ${变量}
 WD_CN="${_WD_NAMES[${WD_IDX:-0}]:-周?}"
 
 if [ "$MANUAL_WEEKLY" = "1" ]; then
@@ -158,18 +160,18 @@ elif [ "$MANUAL_DAILY" = "1" ]; then
   MODE_REASON="--daily 手动强制：只跑日更"
 elif [ "${DAYS_SINCE_WEEKLY:-0}" -gt 13 ]; then
   RUN_DAILY=1; RUN_WEEKLY=1; MODE="daily+weekly"
-  MODE_REASON="兜底：距上次周更（$LAST_WEEKLY）已 $DAYS_SINCE_WEEKLY 天（>13），不论周几补跑周更 → 日更 + 周更"
+  MODE_REASON="兜底：距上次周更（${LAST_WEEKLY}）已 $DAYS_SINCE_WEEKLY 天（>13），不论周几补跑周更 → 日更 + 周更"
 elif [ "$IS_WEEKEND" = "1" ]; then
   if [ "$RAN_WEEKEND" = "1" ]; then
     RUN_DAILY=1; RUN_WEEKLY=0; MODE="daily"
-    MODE_REASON="$WD_CN（北京）默认日更+周更；但本周六 0 点后已跑过周更（lastWeekly=$LAST_WEEKLY）→ 仅日更"
+    MODE_REASON="${WD_CN}（北京）默认日更+周更；但本周六 0 点后已跑过周更（lastWeekly=${LAST_WEEKLY}）→ 仅日更"
   else
     RUN_DAILY=1; RUN_WEEKLY=1; MODE="daily+weekly"
-    MODE_REASON="$WD_CN（北京）：周末首跑、本周末尚未跑过周更 → 日更 + 周更（只部署一次）"
+    MODE_REASON="${WD_CN}（北京）：周末首跑、本周末尚未跑过周更 → 日更 + 周更（只部署一次）"
   fi
 else
   RUN_DAILY=1; RUN_WEEKLY=0; MODE="daily"
-  MODE_REASON="$WD_CN（北京）：工作日 → 仅日更"
+  MODE_REASON="${WD_CN}（北京）：工作日 → 仅日更"
 fi
 MODE_LABEL="$MODE"
 export MODE MODE_LABEL MODE_REASON RUN_DAILY RUN_WEEKLY
@@ -211,7 +213,7 @@ label_on() {  # 编号外步骤是否执行：$1=代表 label 关键字
     [ "$RUN_DAILY" = "1" ] && return 0 || return 1
   fi
 }
-echo "===== 本次档位：$MODE_LABEL（$MODE_REASON）====="
+echo "===== 本次档位：${MODE_LABEL}（${MODE_REASON}）====="
 
 # [自检] SX_GATE_ONLY=1：只打印本次档位下各步骤的「跑 / 跳过」判定后退出（不跑步骤、不部署）。
 #   用途：改动档位逻辑后做无副作用的验证（2026-10-17）。例：SX_GATE_ONLY=1 bash auto_sync_deploy.sh --daily
@@ -487,7 +489,7 @@ else
     if [ -f "$PENDING_MD" ]; then
       CL="docs/changelog/$(date +%Y-%m).md"
       { echo ""; echo "<!-- $(date '+%Y-%m-%d %H:%M') 随数据更新上线的本地改动（原 deploy/待部署清单.md） -->"; grep '^| 20' "$PENDING_MD" | sed 's/^| /| 已上线·/' ; } >> "$CL"
-      rm -f "$PENDING_MD" && echo "[待部署清单] 已随部署上线，内容记入 $CL，清单已删除"
+      rm -f "$PENDING_MD" && echo "[待部署清单] 已随部署上线，内容记入 ${CL}，清单已删除"
       report_event "待部署清单" ran "随本次部署上线，已记入 changelog 并删除"
     fi
   else
@@ -508,7 +510,7 @@ else
     curl -s --compressed --connect-timeout 10 --max-time 40 "https://divlab.net/data/opportunity.json?cmp=$(date +%s)" \
     | python3 -c 'import json,sys;print((json.load(sys.stdin) or {}).get("asof") or "")' 2>/dev/null)"
   if [ -n "$_ONLINE_ASOF" ] && [ "$_ONLINE_ASOF" = "$_LOCAL_ASOF" ]; then
-    echo "✅ 线上 opportunity asof = $_ONLINE_ASOF（与本地一致）"
+    echo "✅ 线上 opportunity asof = ${_ONLINE_ASOF}（与本地一致）"
     report_event "线上验证" ran ""
   else
     echo "⚠️ 线上核对未通过：线上 asof=${_ONLINE_ASOF:-取不到} / 本地 asof=${_LOCAL_ASOF:-—}，请手动确认 https://divlab.net"
