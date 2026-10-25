@@ -95,7 +95,10 @@ def _find_col(cols, names):
 # 「停用名单」（excel-exit 机制 B，2026-10-06）：sync_lifecycle.py 依 Wind「基金到期日」
 #   （≤ 今天 = 已结束）写入 data/curation/_retired.json；重建时跳过这些 code（历史数据不删）。
 #   适用于：境内红利ETF / 港交所红利ETF / REITs / 货币基金。
-_RETIRED_KEYS = ('cnEtfData', 'hkEtfData', 'reitsData', 'moneyFundData')
+#   2026-10-25 修复：月月分红两个名单（etfData / fundData）也纳入 —— 步骤 14 的
+#   prune_stale_monthly 会把「停止月月分红」的成员写进 _retired 并从 json 删除，但若该成员
+#   仍在 curation 清单里，本轮重建会按 curation 重新生成，导致「移出」失效。故一并剔除。
+_RETIRED_KEYS = ('cnEtfData', 'hkEtfData', 'reitsData', 'moneyFundData', 'etfData', 'fundData')
 
 
 def load_retired_codes():
