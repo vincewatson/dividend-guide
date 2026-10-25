@@ -127,6 +127,22 @@ for fn, min_n in specs.items():
     n = len(d) if isinstance(d, (list, dict)) else 0
     check(f'{fn} 条数', n >= min_n, f'{n} 条 (≥{min_n})')
 
+# 1b. 生成文件 JSON 格式统一（2026-10-25）：必须与「紧凑单行」逐字节一致。
+#     背景：build_lists 与各 sync_* 脚本曾分别写「缩进版 / 单行版」，每轮互相覆盖，
+#     产生几万行纯格式 diff。此处作为防回退护栏。
+_fmt_files = ['indexData.json', 'cnEtfData.json', 'hkEtfData.json', 'etfData.json',
+              'fundData.json', 'moneyFundData.json', 'reitsData.json']
+_bad_fmt = []
+for _fn in _fmt_files:
+    try:
+        _raw = io.open(os.path.join(DATA, _fn), encoding='utf-8').read()
+        if _raw != json.dumps(json.loads(_raw), ensure_ascii=False):
+            _bad_fmt.append(_fn)
+    except Exception:
+        pass
+check('JSON 格式统一(紧凑单行)', not _bad_fmt,
+      ('格式不一致: ' + ', '.join(_bad_fmt)) if _bad_fmt else '7 个生成文件均为紧凑单行')
+
 # 2. divHistory 最新日期
 idx = jload('indexData.json')
 if idx:

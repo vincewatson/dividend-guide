@@ -1256,7 +1256,9 @@ def main():
         fd, tmp_path = tempfile.mkstemp(dir=DATA_DIR, suffix='.tmp')
         try:
             with os.fdopen(fd, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=1)
+                # 统一为「紧凑单行」JSON（2026-10-25）：各脚本写 data/*.json 的格式必须一致，
+                # 否则「缩进版 ↔ 单行版」每轮互相覆盖，产生几万行纯格式 diff。
+                json.dump(data, f, ensure_ascii=False)
             os.replace(tmp_path, path)
         finally:
             if os.path.exists(tmp_path):

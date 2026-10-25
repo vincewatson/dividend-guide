@@ -71,7 +71,8 @@ def atomic_write_json(path, obj):
     """原子写入（临时文件 + os.replace），避免坚果云同步锁导致半截文件。"""
     fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), suffix='.tmp')
     with os.fdopen(fd, 'w', encoding='utf-8') as f:
-        json.dump(obj, f, ensure_ascii=False, indent=1)
+        # 与 build_lists 等写 data/*.json 的脚本统一为紧凑单行（2026-10-25，避免格式互相覆盖）
+        json.dump(obj, f, ensure_ascii=False)
     os.replace(tmp, path)
 
 

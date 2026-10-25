@@ -63,7 +63,8 @@ def load_norecord():
 def save_norecord(d):
     fd, tmp = tempfile.mkstemp(dir=BASE, suffix='.tmp')
     with os.fdopen(fd, 'w', encoding='utf-8') as f:
-        json.dump(d, f, ensure_ascii=False, indent=1)
+        # 与 build_lists 等写 data/*.json 的脚本统一为紧凑单行（2026-10-25，避免格式互相覆盖）
+        json.dump(d, f, ensure_ascii=False)
     os.replace(tmp, NORECORD_FILE)
 
 def call_wind(question):
@@ -268,7 +269,8 @@ def process(fn, label, norecord):
         d = prune_stale_monthly(d, fn)
     fd, tmp = tempfile.mkstemp(dir=BASE, suffix='.tmp')
     with os.fdopen(fd, 'w', encoding='utf-8') as f:
-        json.dump(d, f, ensure_ascii=False, indent=1)
+        # 与 build_lists 等写 data/*.json 的脚本统一为紧凑单行（2026-10-25，避免格式互相覆盖）
+        json.dump(d, f, ensure_ascii=False)
     os.replace(tmp, p)
     print(f'  → {updated} 更新, {empty} 空, 已写回 {fn}\n', flush=True)
     return updated

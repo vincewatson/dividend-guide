@@ -235,9 +235,13 @@ if [ "$SX_GATE_ONLY" = "1" ]; then
 fi
 
 # ------------------------------------------------------------
-# [预检] 更新前体检（2026-10-04 新增）。日更下可按建议跳过已是最新步骤（PREFLIGHT_AUTO=1）。
+# [预检] 更新前体检（2026-10-04 新增）。日更下按建议跳过已是最新步骤。
+#   2026-10-25：改为**默认自动跳过**（PREFLIGHT_AUTO 未显式设为 0 即启用）——
+#   此前默认关闭，导致周末/无新交易日仍把 5–10、16 步完整跑一遍（白烧数百次 Wind）。
+#   显式 `PREFLIGHT_AUTO=0` 可关闭；手写 `SKIP_STEPS` 时仍以手写为准。
 # ------------------------------------------------------------
 echo "===== [预检] 更新前体检（preflight.py）====="
+PREFLIGHT_AUTO="${PREFLIGHT_AUTO:-1}"
 PF_ARGS=""; [ "$MODE" = "weekly" ] && PF_ARGS="--weekly"
 if [ "$RUN_DAILY" = "1" ] && [ -z "$SKIP_STEPS" ] && [ "$PREFLIGHT_AUTO" = "1" ]; then
   SKIP_STEPS="$(python3 preflight.py --emit-skip 2>/dev/null || true)"

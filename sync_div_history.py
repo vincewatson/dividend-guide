@@ -313,7 +313,8 @@ def main():
     fd, tmp_path = tempfile.mkstemp(dir=DATA_DIR, suffix='.tmp')
     try:
         with os.fdopen(fd, 'w', encoding='utf-8') as f:
-            json.dump(index_data, f, ensure_ascii=False, indent=1)
+            # 与 build_lists 等写 data/*.json 的脚本统一为紧凑单行（2026-10-25，避免格式互相覆盖）
+            json.dump(index_data, f, ensure_ascii=False)
         os.replace(tmp_path, INDEX_JSON)
     finally:
         if os.path.exists(tmp_path):
