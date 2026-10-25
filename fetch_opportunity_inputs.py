@@ -55,6 +55,10 @@ class Quota(Exception):
     pass
 
 
+class BackendError(Exception):
+    """接口返回体报错（如「账户积分余额不足」）——返回码是 0，但内容不可用。"""
+
+
 class WindAPI:
     def __init__(self):
         import wind_client
@@ -68,8 +72,26 @@ class WindAPI:
             env.pop(k, None)
         return env
 
+    @staticmethod
+    def _error_body(stdout):
+        """取出 ok:false 的错误体。成功时 CLI 输出是 {_meta, content:[{text:…}]}；失败时**直接**是错误 JSON。"""
+        try:
+            obj = json.loads(stdout or "")
+        except Exception:
+            return None
+        cands = [obj]
+        if isinstance(obj, dict) and obj.get("content"):
+            try:
+                cands.append(json.loads(obj["content"][0]["text"]))
+            except Exception:
+                pass
+        for c in cands:
+            if isinstance(c, dict) and c.get("ok") is False:
+                return c
+        return None
+
     def call(self, server, tool, params):
-        """返回内层 JSON（dict）；'没找到' 返回 {}；额度拒绝抛 Quota；3 次失败返回 None。"""
+        """返回内层 JSON（dict）；'没找到' 返回 {}；额度拒绝抛 Quota；返回体报错抛 BackendError；3 次失败返回 None。"""
         for attempt in range(3):
             try:
                 r = self.wc.run(["node", self.wc.CLI, "call", server, tool, json.dumps(params, ensure_ascii=False)],
@@ -80,12 +102,22 @@ class WindAPI:
             if r.returncode == 3:
                 raise Quota((r.stderr or "").strip())
             if r.returncode != 0:
+                # 参数/接口错误时 CLI 直接 rc≠0，错误体写在 stdout（如积分不足）
+                body = self._error_body(r.stdout)
+                if body:
+                    raise BackendError("%s：%s" % (body.get("code") or "backend_error", body.get("message") or ""))
                 time.sleep(5); continue
             try:
                 text = json.loads(r.stdout)["content"][0]["text"]
+                inner = json.loads(text)
+                # 返回体报错（积分余额不足等）：返回码仍是 0，必须当故障处理，不能当成「0 行 = 无数据」（2026-10-25）
+                if isinstance(inner, dict) and inner.get("ok") is False:
+                    raise BackendError("%s：%s" % (inner.get("code") or "backend_error", inner.get("message") or text[:200]))
                 if "没找到" in text:
                     return {}
-                return json.loads(text)
+                return inner
+            except BackendError:
+                raise
             except Exception:
                 time.sleep(5)
         return None
@@ -407,7 +439,7 @@ def run(api, args):
         if not todo and not args.no_submit and not args.plan:
             submit([])          # 补交上次留在队列里的
         return 0
-    new_rows, fails = [], []
+    new_rows, fails, fatal = [], [], None
     try:
         for key, (s, e) in todo.items():
             pts = fetch_one(api, key, s, e)
@@ -417,14 +449,26 @@ def run(api, args):
             new_rows += [(d, key[0], key[1], float(v)) for d, v in sorted(pts.items())]
     except Quota as q:
         print(f"  ⏸ Wind 额度用尽，已取部分照常保存，其余下次续取：{q}")
+    except BackendError as e:
+        # 积分余额不足等返回体报错：明确报故障 + 记待补，绝不当作「0 行 = 无数据」（2026-10-25）
+        print(f"  ✗ Wind 接口报错：{e}")
+        fatal = "backend"
     if args.probe:
-        print("（--probe：不写文件、不写回）"); return 0
+        print("（--probe：不写文件、不写回）")
+        return 2 if fatal else 0
     n = merge_increments(new_rows, central)
     print(f"· 本地增量 inputs/opportunity/increments.csv：{n} 行")
     if new_rows and not args.no_submit:
         submit(build_submissions(new_rows), dry=args.selftest)
     if fails:
-        print(f"⚠ 有序列本次未取到（措辞/接口可能漂移，或该区间无新交易日）：{fails}")
+        print(f"  ✗ 有序列本次取到 0 行（口径漂移 / 接口异常 / 该日无数据）：{fails}")
+    if fatal or fails:
+        try:
+            api.wc.add_pending("fetch_opportunity_inputs.py")
+        except Exception:
+            pass
+        print(f"  ✗ 本次失败：已保存 {len(new_rows)} 个点，缺口记入待补（.wind_pending.json），下次先补这一步")
+        return 2
     print(f"✅ 完成：新取 {len(new_rows)} 个数据点，Wind 调用 {getattr(api, 'calls', 0)} 次")
     return 0
 

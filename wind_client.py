@@ -23,6 +23,7 @@
 步骤名：环境变量 `SX_WIND_STEP`（run_py 注入，与 `.run_timings.jsonl` 的 label 对齐）。
 
 自测：`python3 wind_client.py`（用量/预算报表）；`--pending`（打印待补步骤）；`--clear-pending`。
+探活：`python3 wind_client.py --probe`（1 次真实取数并检查返回内容；2026-10-25 起，不再只看返回码）。
 """
 import datetime
 import json
@@ -203,8 +204,63 @@ def report(day=None):
     return "\n".join(out)
 
 
+def _probe_env():
+    env = dict(os.environ)
+    env["NODE_EXTRA_CA_CERTS"] = "/etc/ssl/cert.pem"
+    for k in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy", "NODE_USE_ENV_PROXY"):
+        env.pop(k, None)
+    return env
+
+
+def probe():
+    """开跑前探活：做 1 次真实取数并**检查返回内容**（2026-10-25）。
+
+    只验返回码不够 —— 账户积分余额不足时接口 rc=0，错误写在返回体里
+    （`{"ok": false, "code": "backend_error", "message": "…积分余额不足…"}`），
+    调用方会当成「0 行 = 没数据」。这里把这类返回判为故障。
+
+    返回：0 可用；2 返回体报错/取不到数据；3 额度拒绝（本档位预算或当日硬上限）。
+    """
+    os.environ.setdefault("SX_WIND_STEP", "probe")
+    end = datetime.date.today()
+    q = {"windcode": "000922.CSI", "begin_date": (end - datetime.timedelta(days=7)).isoformat(),
+         "end_date": end.isoformat(), "period": "1d"}
+    skill = os.path.expanduser("~/.agents/skills/wind-mcp-skill")
+    try:
+        cp = run(["node", CLI, "call", "index_data", "get_index_kline", json.dumps(q, ensure_ascii=False)],
+                 capture_output=True, text=True, timeout=90, env=_probe_env(), cwd=skill)
+    except Exception as e:
+        print("[探活] ✗ 调用失败：%s" % e)
+        return 2
+    if cp.returncode == 3:
+        print("[探活] ⏸ 额度拒绝（本档位用尽）：%s" % (cp.stderr or "").strip())
+        return 3
+    if cp.returncode != 0:
+        print("[探活] ✗ 返回码 %s：%s" % (cp.returncode, (cp.stderr or cp.stdout or "").strip()[:300]))
+        return 2
+    try:
+        text = json.loads(cp.stdout)["content"][0]["text"]
+        inner = json.loads(text)
+    except Exception:
+        print("[探活] ✗ 返回体无法解析：%s" % (cp.stdout or "").strip()[:300])
+        return 2
+    if isinstance(inner, dict) and inner.get("ok") is False:
+        print("[探活] ✗ 接口报错 %s：%s" % (inner.get("code", "?"), inner.get("message", "")))
+        return 2
+    rows = (((inner or {}).get("data") or {}).get("rows")) or []
+    if not rows:
+        print("[探活] ✗ 返回 0 行（可能无数据或口径漂移），原始返回：%s" % text[:200])
+        return 2
+    cols = [c.get("name") if isinstance(c, dict) else str(c) for c in ((inner or {}).get("data") or {}).get("columns", [])]
+    latest = str(rows[-1][0])[:10] if rows else "—"
+    print("[探活] ✅ 账号可用：000922.CSI 日 K 取到 %d 行（最新 %s，列 %s）" % (len(rows), latest, ",".join(cols[:4])))
+    return 0
+
+
 def main():
     argv = sys.argv[1:]
+    if "--probe" in argv:
+        sys.exit(probe())
     if "--pending" in argv:
         print(" ".join(load_pending()))
         return
