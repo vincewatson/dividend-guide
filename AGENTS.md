@@ -10,6 +10,8 @@
 
 **跑完更新后必做（2026-10-10 用户确立）**：写一份复盘笔记到 `Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-<YYYYMMDD>.md`（Windows：`D:\Codes\all_coding_projects\website-updates-review\`；同名同日只保留一份，含补跑）。结构见 `update-mechanism.md`「跑完之后必做：更新复盘」。
 
+**跑完更新后必做（2026-10-25 用户确立）**：部署与线上核对通过后，调用 skill `div-tencent-docs-update` 同步腾讯文档 6 张表并回读校验；不建定时任务，收尾固定执行 + 用户随时手动吊起。
+
 ## 工作目录约定（2026-10-04 确立）
 
 **本站（食息指南 dividend-guide）的所有网站改动，只能写入本目录：**
