@@ -56,6 +56,14 @@ DIV_PHRASINGS = [
     '{} 累计分红次数 单位累计分红 年化派息率',
 ]
 
+# 年度分红（2026 自然年口径，2026-10-25 用户确认）：
+#   REITs 的 annualDiv/annualDivAmt 不再取 Wind「年化」字段——对上市不足一个完整分红年度的
+#   REIT（如中银中外运仓储物流REIT 508090.SH）Wind 恒返回空；改为「2026年分红次数 /
+#   2026年单位年度分红」，与月月分红 ETF / 指数基金口径一致。批内 5 只（实测稳定）。
+ANNUAL_2026_COUNT_KEYS = ('2026年分红次数', '2026年基金分红次数')
+ANNUAL_2026_AMT_KEYS = ('2026年单位年度分红', '2026年基金的累计单位分红')
+ANNUAL_BATCH = 5
+
 # 与 sync_new_etf.py 一致：3 次重试 + 6s 退避 + 代理变量清理 + 批次间限速
 SLEEP = float(os.environ.get('SX_NR_SLEEP', '0.4'))
 
@@ -336,6 +344,69 @@ def fetch_reit_dividend_fields(wind_code):
     return vals
 
 
+def _fetch_annual_batches(rows, size):
+    """按 size 只/批查询 2026 年度分红，返回 {code: (次数, 金额)}。"""
+    out = {}
+    for i in range(0, len(rows), size):
+        batch = rows[i:i + size]
+        codes = set(r.get('code') for r in batch)
+        q = (' '.join('%s %s' % (r.get('code'), r.get('name') or '') for r in batch) +
+             ' 这些基金 2026年分红次数 2026年基金分红次数 2026年单位年度分红 '
+             '2026年基金的累计单位分红_最新分红日')
+        for cols, rws in call_wind_tbl('fund_data', 'get_fund_financials', q):
+            ci = _col_index(cols, 'Wind代码')
+            ni = _col_index(cols, *ANNUAL_2026_COUNT_KEYS)
+            ai = _col_index(cols, *ANNUAL_2026_AMT_KEYS)
+            if ci < 0 or ni < 0:
+                continue
+            for r in rws:
+                if len(r) <= max(ci, ni):
+                    continue
+                code = str(r[ci] or '').strip()
+                if code not in codes:      # 同一只基金可能同时返回 .OF / .SZ，只认站内代码
+                    continue
+                cnt = _to_num(r[ni])
+                amt = _to_num(r[ai]) if 0 <= ai < len(r) else None
+                if cnt is not None:
+                    out[code] = (int(cnt), amt)
+        time.sleep(SLEEP)
+    return out
+
+
+def fetch_annual_2026(rows):
+    """2026 自然年口径的「分红次数 / 单位年度分红」。
+
+    Wind 批量查询会截断（5 只不保证全回），故：5 只/批 → 3 只/批 → 逐只，逐层补齐漏掉的代码。
+    """
+    out = _fetch_annual_batches(rows, ANNUAL_BATCH)
+    pending = [r for r in rows if r.get('code') not in out]
+    if pending:
+        out.update(_fetch_annual_batches(pending, 3))
+        pending = [r for r in pending if r.get('code') not in out]
+    for r in pending:
+        out.update(_fetch_annual_batches([r], 1))
+    return out
+
+
+def apply_annual_2026(rows, got):
+    """把 2026 自然年口径写入 annualDiv / annualDivAmt（可覆盖旧值）。返回变更列表。"""
+    changes = []
+    for r in rows:
+        v = got.get(r.get('code'))
+        if not v:
+            continue
+        cnt, amt = v
+        if r.get('annualDiv') != cnt:
+            changes.append((r['code'], 'annualDiv', r.get('annualDiv'), cnt))
+            r['annualDiv'] = cnt
+        if amt is not None:
+            a = round(amt, 4)
+            if r.get('annualDivAmt') != a:
+                changes.append((r['code'], 'annualDivAmt', r.get('annualDivAmt'), a))
+                r['annualDivAmt'] = a
+    return changes
+
+
 def fetch_reit_prev_close(wind_code):
     """取前收盘价。"""
     for cols, rows in call_wind_params('fund_data', 'get_fund_price_indicators',
@@ -396,7 +467,28 @@ def fetch_fill_pair(row):
 
 def main():
     dry_run = '--dry-run' in sys.argv
+    annual_only = '--annual-only' in sys.argv
     mode = 'DRY-RUN（只打印，不写入）' if dry_run else '写入'
+
+    # --annual-only：只刷新 REITs 年度分红（2026 自然年口径），不检索新标的、不补其它空字段
+    if annual_only:
+        print('[REITs年度分红] [%s] 2026 自然年口径刷新（模式=%s）...' % (ts(), mode), flush=True)
+        site = load_json(REITS)
+        got = fetch_annual_2026(site)
+        changes = apply_annual_2026(site, got)
+        print('  [%s] 取回 %d / %d 只，变更 %d 项' % (ts(), len(got), len(site), len(changes)), flush=True)
+        for code, field, old, new in changes:
+            print('    %s  %s: %s → %s' % (code, field, old, new), flush=True)
+        if dry_run:
+            print('\n[DRY-RUN] 未写入 data/reitsData.json。', flush=True)
+            return 0
+        if not changes:
+            print('[完成] 无变化，无需写入', flush=True)
+            return 0
+        save_json(REITS, site)
+        print('[完成] reitsData.json 已更新（%d 项）' % len(changes), flush=True)
+        return 0
+
     print('[新REITs发现] [%s] 检索全部已上市公募 REITs（范围：508xxx.SH / 18xxxx.SZ），模式=%s ...'
           % (ts(), mode), flush=True)
 
@@ -458,6 +550,9 @@ def main():
 
     # ③ 空字段补齐：对「字段为空」的 REITs 用 Wind 补 分红次数/派息率/派息额/收盘价（并发）
     fill_pool = list(site) + built
+    # ③0 年度分红（2026 自然年口径）全量刷新 —— 自然年内分红增长时要能覆盖旧值
+    annual_got = fetch_annual_2026(fill_pool)
+    annual_changes = apply_annual_2026(fill_pool, annual_got)
     need = [r for r in fill_pool if needs_fill(r)]
     fills = []
     if need:
@@ -468,8 +563,8 @@ def main():
                 fills.append((row['code'], apply_fill(row, div, px)))
     filled_cnt = sum(1 for _c, ap in fills if ap)
 
-    if not new_items and not sn_changes and not filled_cnt:
-        print('[完成] [%s] 无新 REITs、shortName 无变化、空字段无需补，无需更新' % ts(), flush=True)
+    if not new_items and not sn_changes and not filled_cnt and not annual_changes:
+        print('[完成] [%s] 无新 REITs、shortName 无变化、空字段无需补、年度分红无变化，无需更新' % ts(), flush=True)
         return 0
 
     print('\n===== 本次变更 =====', flush=True)
@@ -483,6 +578,9 @@ def main():
     for code, ap in fills:
         if ap:
             print('    %s  +%s' % (code, json.dumps(ap, ensure_ascii=False)), flush=True)
+    print('  ④ 年度分红刷新（2026 自然年口径）%d 项：' % len(annual_changes), flush=True)
+    for code, field, old, new in annual_changes:
+        print('    %s  %s: %s → %s' % (code, field, old, new), flush=True)
 
     if dry_run:
         print('\n[DRY-RUN] 未写入 data/reitsData.json。确认无误后去掉 --dry-run 正式运行。', flush=True)
@@ -506,8 +604,8 @@ def main():
                                      'source': 'sync_new_reits'} for it in built if it.get('code')])
         except Exception as e:
             print('  [i] 自动补入登记失败（不影响补入）：%s' % e, flush=True)
-    print('\n[完成] [%s] 新增 %d 只、刷新 shortName %d 条、补齐空字段 %d 只；reitsData.json 现 %d 行'
-          % (ts(), len(built), len(sn_changes), filled_cnt, len(site)), flush=True)
+    print('\n[完成] [%s] 新增 %d 只、刷新 shortName %d 条、补齐空字段 %d 只、年度分红 %d 项；reitsData.json 现 %d 行'
+          % (ts(), len(built), len(sn_changes), filled_cnt, len(annual_changes), len(site)), flush=True)
     return 0
 
 
