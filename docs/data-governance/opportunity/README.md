@@ -37,6 +37,8 @@
    - 只补近 120 天缺口；更早的历史以中央库为准，不用 Wind 回补。
    - 因此中途漏跑一两天，下次日更会自动把缺的交易日一起补上。
    - 手动：`--plan`（只看缺口和计划调用数）、`--probe`（每类调 1 次看返回）、`--selftest`（模拟 Wind，0 次调用）、`--no-submit`。
+   - **故障判定（2026-10-25 起）**：接口返回体里 `ok:false` / `backend_error` / 「积分余额不足」一律抛 `BackendError`，脚本会打印故障、写入 `.wind_pending.json` 并以 **rc=2** 退出；某序列**该有数据却取到 0 行**同样记待补并非 0 退出（已取到的点照常保存）。不再出现「0 行 + rc=0」的假成功。
+   - **开跑前探活**：`python3 wind_client.py --probe`（1 次真实取数 + 检查返回内容），返回 0 才继续。
 2. `opportunity_engine.py`：只读 **中央库 + 本地增量**（`opportunity_central.py`）。中央库不完整时直接报错，不读任何手工导出。
 3. 取数 / 引擎失败 → 保留上一版 `data/opportunity.json`，不阻断其它数据与部署。
 4. 观察指标（`data/curation/opportunity_observe.json`）仍手工维护，不参与计算。
