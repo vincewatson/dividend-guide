@@ -16,7 +16,8 @@
     data/curation/indices_feishu_info.json / _yield.json   → indexData（用户标注：详情页/加权/调整周期/税系数…）
     data/curation/cn_etf.json                              → cnEtfData
     data/curation/hk_etf_pro.json                          → hkEtfData（清单）
-    data/curation/hk_etf_feishu.json                       → hkEtfData（用户标注：详情页/互联互通）
+    data/curation/hk_etf_feishu.json                       → hkEtfData（用户标注：详情页）
+    data_center/exports/common/hk-etf-list.json            → hkEtfData.connect（港股通资格唯一来源）
     data/curation/monthly_etf.json                         → etfData
     data/curation/monthly_fund.json                        → fundData
     data/curation/money_fund.json                          → moneyFundData
@@ -39,6 +40,9 @@ import os, io, json, math, datetime
 # 指数币种变体归并（数据治理 · 单一事实来源；见 index_variants.py 顶部说明）
 # 用户口径（2026-09-20）：同一指数的港币/人民币两版站内只保留一条，取「基准版」，不并列。
 from index_variants import normalize as iv_norm
+
+# 中央库导出（港交所 ETF 的「港股通资格」唯一来源，2026-11-02）
+import lifecycle_common as lc
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE, 'data')
@@ -249,7 +253,6 @@ def load_user_hk_etf():
         out[name] = {
             'fullname': clean_str(row.get('ETF全称')) or '',
             'detailUrl': clean_str(row.get('详情页')),          # 官方详情页（curation 第3列）
-            'connect': clean_str(row.get('互联互通ETF')) == '是',
             'trackCode': clean_code(row.get('跟踪指数代码')),
             'trackName': clean_str(row.get('跟踪指数名称')),
             'manager': clean_str(row.get('基金管理人')),
@@ -753,10 +756,54 @@ def build_cn_etf_data():
     return rows
 
 
+def load_central_hk_connect():
+    """港交所 ETF「港股通/互联互通」资格：中央库 hk-etf-list.json 的 hk_connect。
+
+    2026-11-02 起为唯一来源（此前维护在 curation 的「是否互联互通ETF」列，已停用）。
+    返回 {5 位代码.HK: bool}；文件缺失/解析不到 → None（调用方回退 curation 旧值）。
+    """
+    path = os.path.join(lc.CENTRAL_EXPORT_DIR, lc.CENTRAL_HK_LIST)
+    try:
+        with io.open(path, 'r', encoding='utf-8') as f:
+            obj = json.load(f)
+    except Exception:
+        return None
+    cols = obj.get('columns') if isinstance(obj, dict) else None
+    rows = obj.get('rows') if isinstance(obj, dict) else None
+    if not isinstance(cols, list) or not isinstance(rows, list):
+        return None
+    idx = {}
+    for i, c in enumerate(cols):
+        key = (c.get('key') if isinstance(c, dict) else str(c)) or ''
+        if key in ('sec_code', 'code') and 'code' not in idx:
+            idx['code'] = i
+        elif key == 'hk_connect' and 'connect' not in idx:
+            idx['connect'] = i
+    if 'code' not in idx or 'connect' not in idx:
+        return None
+    out = {}
+    for r in rows:
+        if not isinstance(r, (list, tuple)):
+            continue
+        code = hk_code5(r[idx['code']])
+        if not code:
+            continue
+        v = r[idx['connect']]
+        if v is not None:
+            out[code] = bool(v)
+    return out or None
+
+
 def build_hk_etf_data():
     """港交所红利ETF：curation 用户标注优先，清单补充缺失。
-    来源：hk_etf_pro.json（清单）+ hk_etf_feishu.json（标注）。"""
+    来源：hk_etf_pro.json（清单）+ hk_etf_feishu.json（标注）
+    + 中央库 hk-etf-list.json（港股通资格）。"""
     user_hk = load_user_hk_etf()
+    central_connect = load_central_hk_connect()
+    if central_connect is None:
+        print('[告警] 中央库 hk-etf-list.json 不可用，港股通资格回退 curation「是否互联互通ETF」旧值')
+    else:
+        print('[INFO] 中央库港股通资格已加载: {} 只'.format(len(central_connect)))
     rows = []
     for row in curation_rows('hk_etf_pro.json'):
         code = hk_code5(row.get('ETF代码'))
@@ -778,12 +825,14 @@ def build_hk_etf_data():
             'size': round(clean_num(row.get('管理规模(亿港元)')), 2),
             'divDate': date_str(row.get('最近分红日期')),
         }
-        # 用户表覆盖（用户手动修订：互联互通、跟踪指数等）
+        # 港股通资格：中央库为准（2026-11-02 起不再由本站维护）
+        if central_connect is not None:
+            item['connect'] = central_connect.get(code, False)
+        # 用户表覆盖（用户手动修订：详情页/跟踪指数等；互联互通不走这里）
         if name_key in user_hk:
             u = user_hk[name_key]
             if u.get('fullname'): item['fullname'] = u['fullname']
             if u.get('detailUrl'): item['detailUrl'] = u['detailUrl']
-            if u.get('connect'): item['connect'] = u['connect']
             if u.get('trackCode'): item['trackCode'] = u['trackCode']
             if u.get('trackName'): item['trackName'] = u['trackName']
             if u.get('manager'): item['manager'] = u['manager']

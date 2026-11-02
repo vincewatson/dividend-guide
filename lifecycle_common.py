@@ -260,6 +260,8 @@ def extract_funds(obj):
                     idx['full'] = i
                 if ('name' in blob or '简称' in blob or '名称' in blob) and 'name' not in idx:
                     idx['name'] = i
+                if key == 'hk_connect' and 'connect' not in idx:
+                    idx['connect'] = i
             for r in rows:
                 if not isinstance(r, (list, tuple)):
                     continue
@@ -270,6 +272,8 @@ def extract_funds(obj):
                     d['name'] = r[idx['name']]
                 if 'full' in idx and idx['full'] < len(r):
                     d['full_name'] = r[idx['full']]
+                if 'connect' in idx and idx['connect'] < len(r):
+                    d['hk_connect'] = r[idx['connect']]
                 n = norm(d)
                 if n:
                     funds.append(n)

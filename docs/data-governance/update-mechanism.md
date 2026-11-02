@@ -106,7 +106,8 @@
 | dailyData / dailyTagColors | `digest-db.json`（生成端）| sync_daily | **每次**（数据源每日更新）| 步骤 16 |
 | assetHistory · 重点50城租金率 | 中指研究院季度报告 | 用户手动给值 + sync_asset_macro **保留** | **季度**（4/7/10/12 月下旬）| B2（`runbooks/quarterly-rent-sop.md`）|
 | 月月分红清单**新增**成员（etfData/fundData）| Wind 全市场检索`search_funds`（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly** | **每周**（2026-10-07 起归周更）| 步骤 13 之后（**编号外**）|
-| 港交所互联互通·跟踪指数 / 租金率列表值 | 用户业务判断 | 手动 | **不定期** | B3 |
+| 港交所跟踪指数 / 租金率列表值 | 用户业务判断 | 手动 | **不定期** | B3 |
+| 港交所 ETF 港股通资格（`hkEtfData.connect`）| 中央库 `hk-etf-list.json` 的 `hk_connect`（2026-11-02 起，本站不再维护）| build_lists | **每周**（随重建）| 步骤 11 |
 | 月月分红清单**移出**已停止月月分红的成员 | 自动（最近分红 < 上月初）| sync_fund_divdate（步骤 14）| **每周**（随步骤 14 归周更）| 步骤 14 |
 
 **说明**：
@@ -200,13 +201,14 @@
     - `hkEtfData`：人工补充字段 `active`（主动管理ETF 标记）/`shares`/`sharesUnit` 旧值非空则保留（curation 清单无此列，2026-10-05）。
   - 规模类（cnEtf/hkEtf 的 `size`、etf/fund 的 `fundSize`、moneyFund 的 `size`）：旧文件 `sizeDate` 比 curation 清单快照新 → 保留 Wind 值与日期。
 - **「重建 → 重放」顺序（不可调整）**：`etfData/fundData/cnEtfData/hkEtfData` 的 Wind 字段依赖 step 15 `sync_wind_fields`、`divDate` 依赖 step 14 `sync_fund_divdate`；`reitsData.shortName`（扩位简称）依赖 step 13 `sync_new_reits`——均在 step 11 的第二次 `build_lists` 之后。
-- **手工修订通道（2026-09-27 用户约定；2026-10-06 excel-exit P1/P2 升级）**：手工修订**在对话里告知 AI**，由 AI 落到 `data/*.json` 并登记到 `manual-overrides.md` 台账，同时确保该项能扛住 rebuild（落到 `MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / 专用护栏）。**不要直接改最终 JSON 了事**（非白名单字段会被下轮重建覆盖）。**「标注」类现统一来源 = `data/curation/*.json`**（指数详情页/加权附加条件/调整周期/调整生效日、港ETF详情页/互联互通、港股红利税系数、每月千元投入、博客内容标签/相关指数）；P1 后 `build_lists.py`/`sync_blog.py` **只读 curation、不再读飞书表/标注 Excel**；**清单**亦于 P2 改读 curation（`build_lists.py` 已不读任何 xlsx）—— 至此彻底脱离 Excel（见 `excel-exit-plan.md`）。
+- **手工修订通道（2026-09-27 用户约定；2026-10-06 excel-exit P1/P2 升级）**：手工修订**在对话里告知 AI**，由 AI 落到 `data/*.json` 并登记到 `manual-overrides.md` 台账，同时确保该项能扛住 rebuild（落到 `MANUAL_FIELDS` / `AUTHORITATIVE_MANUAL` / 专用护栏）。**不要直接改最终 JSON 了事**（非白名单字段会被下轮重建覆盖）。**「标注」类现统一来源 = `data/curation/*.json`**（指数详情页/加权附加条件/调整周期/调整生效日、港ETF详情页、港股红利税系数、每月千元投入、博客内容标签/相关指数）；**例外：港交所 ETF 的港股通资格（`connect`）自 2026-11-02 起唯一来源 = 中央库 `hk-etf-list.json` 的 `hk_connect`**（curation 的「是否互联互通ETF」列已停用，`build_lists.py` 不再读它）；P1 后 `build_lists.py`/`sync_blog.py` **只读 curation、不再读飞书表/标注 Excel**；**清单**亦于 P2 改读 curation（`build_lists.py` 已不读任何 xlsx）—— 至此彻底脱离 Excel（见 `excel-exit-plan.md`）。
 - **新增 Wind 自动字段时的检查清单**：① 写入方在 step 11 之前还是之后？② 之前 → 必须在 `build_lists` 加保留护栏或在 step 11 之后重放；③ 之后 → 确认该文件不被后续步骤重建。
 
 ### 清单「出」机制 · 停用名单 `_retired.json`（2026-10-06 新增；2026-10-07 判据升级）
 - **范围**：境内红利ETF / 港交所红利ETF / REITs / 月月分红ETF（etfData）/ 指数基金月月分红（fundData）/ 货币基金 六类清单。
 - **① 清盘名单（中央数据库导出）＝ 境内红利ETF / 货币基金 / 月月分红ETF / 指数基金月月分红 的判据**：数据源 `../../data_center/exports/common/fund-liquidated.json`（全市场已清盘名单，用户在 data_center 点「更新数据库」生成；2026-10-07 21:01 已到位）。**按代码前 6 位比对**，命中 ⇒ 已清盘 ⇒ **立即移出**（reason=「已清盘（中央数据库）」、source=`central-db-liquidated`）。文件缺失 ⇒ 该项跳过并打印（绝不误判）。
 - **② 港交所红利ETF 的判据 = 中央数据库「港交所上市 ETF」全量名单**（与「策略魔方」同源）：优先读 `../../data_center/exports/common/hk-etf-list.json`；缺失时**回退**本地冻结副本 `data/curation/_hk_etf_universe.json`（451 只，由**会话内 MCP** 从中央库 `fund.product` 导出）；再缺则退回抓 aastocks 港股 ETF 列表（`default.aspx`）。标的**不在**名单 ⇒ 退市/终止 ⇒ 停用。两路都失败则跳过，绝不误判。
+同文件的 **`hk_connect` 也是 `hkEtfData.connect`（港股通/互联互通资格）的唯一来源**（2026-11-02 起由策略魔方港交所数据集统一维护，本站不再手工标注；已生效的 4 只新增 3031/3190/3466/3488 由中央库带出，3116 为不可）。
 - **③ REITs 仍用 Wind「基金到期日」≤ 今天** ⇒ 已结束 ⇒ 移出。⚠️ **不可**按「非空即出」——公募 REITs 运作中也有**未来**的「到期日」（成立日 + 合约存续期，实测 `180101.SZ`=2071-06-07、`508000.SH`=2056-06-07），按「非空」判定会**误杀全部 REITs**。约 28 天节流（`SX_LIFECYCLE_DAYS`）。
 - **安全阀**：清盘名单命中 ⇒ **立即**移出；其它判据（REITs 到期日已过、港股不在名单）需**连续两次运行都命中**才真正移出，第一次仅在运行报告「清单变动」标「待观察」（观察计数存仓库根 `.lifecycle_state.json`，不入库）。
 - **实现**：编号外步骤 `sync_lifecycle.py`（置于**步骤 3 之后、流水线首个取数步骤之前**）；命中即写入 `data/curation/_retired.json`；`build_lists.py` 重建时**在全部「表外行护栏」之后**统一剔除该名单的 code（确保停用标的不会被重新并入）。**历史数据不删**，仅移出展示清单；**删条目即恢复**。
