@@ -222,7 +222,7 @@ def fetch_fund_detail(wind_code):
     found = g('基金成立日')
     mkt = g('上市日期')
     return {
-        'trackCode': str(g('跟踪指数代码') or ''),
+        'trackCode': str(g('跟踪指数代码') or '').strip().upper(),   # Wind 偶发返回小写，统一大写（2026-11-02）
         'trackName': str(g('跟踪指数名称') or ''),
         'manager': str(g('基金管理人') or ''),
         'feeRate': fee,
@@ -267,7 +267,7 @@ def add_to_cn_etf(fund, detail, scale):
     item = {
         'code': fund['code'] + '.OF',
         'name': fund['name'],
-        'trackCode': detail.get('trackCode', ''),
+        'trackCode': str(detail.get('trackCode', '') or '').strip().upper(),
         'trackName': detail.get('trackName', ''),
         'manager': detail.get('manager', ''),
         'listedDate': detail.get('foundDate', ''),
@@ -303,7 +303,8 @@ def ensure_index_in_browser(track_code, track_name):
          ❌ 禁止 0.00%」，若无数据仍强行纳入会写入一条 0.00% 的假指数。
     """
     idx = load_json(INDEX)
-    if any(x['code'] == track_code for x in idx):
+    track_code = str(track_code or '').strip().upper()   # Wind 偶发返回小写代码，统一大写后再比对（2026-11-02）
+    if any(str(x.get('code') or '').upper() == track_code for x in idx):
         return 'exists'
     # 拉指数基础信息（按列名解析）
     info = {}

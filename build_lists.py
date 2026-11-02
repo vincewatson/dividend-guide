@@ -1250,6 +1250,38 @@ def main():
             if len(data) != _n_before:
                 print('  [停用] {} 剔除已结束标的 {} 只（curation/_retired.json）'.format(
                     key, _n_before - len(data)))
+        # 代码大小写归一 + 指数去重（2026-11-02）：
+        #   Wind 偶发把指数代码返回成小写（如 h30269.CSI），会被 sync_new_etf 当成「新指数」
+        #   重复纳入（无 dailyChange，触发滞后告警）。统一大写；indexData 再按代码合并，
+        #   保留数据更全的一行（有 dailyChange / 更长 divHistory）。
+        for _it in data:
+            if not isinstance(_it, dict):
+                continue
+            if _it.get('code'):
+                _it['code'] = str(_it['code']).strip().upper()
+            if _it.get('trackCode'):
+                _it['trackCode'] = str(_it['trackCode']).strip().upper()
+        if key == 'indexData':
+            _uniq = {}
+            for _it in data:
+                _c = _it.get('code')
+                if not _c:
+                    continue
+                if _c not in _uniq:
+                    _uniq[_c] = _it
+                    continue
+                _a, _b = _uniq[_c], _it
+                _score = lambda x: (x.get('dailyChange') is not None,
+                                    len(x.get('divHistory') or []),
+                                    not x.get('trackOnly'))
+                _keep, _drop = (_a, _b) if _score(_a) >= _score(_b) else (_b, _a)
+                for _k, _v in _drop.items():
+                    if _keep.get(_k) in (None, '', [], 0) and _v not in (None, ''):
+                        _keep[_k] = _v
+                _uniq[_c] = _keep
+            if len(_uniq) != len(data):
+                print('  [归一] indexData 代码大小写合并：{} → {} 条'.format(len(data), len(_uniq)))
+            data = list(_uniq.values())
         path = os.path.join(DATA_DIR, fname)
         # 原子写入：先写临时文件再替换，避免坚果云盘对目标文件加锁导致 EPERM
         import tempfile

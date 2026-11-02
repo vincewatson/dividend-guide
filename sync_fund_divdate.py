@@ -265,7 +265,10 @@ def process(fn, label, norecord):
             print(f'  [{n}/{len(results)}] {ts()} {name}: {tag}', flush=True)
 
     # 月月名单自动剔除：最近分红早于「上一个月」的成员移出名单（仅 etfData/fundData；2026-10-06）
-    if always:
+    #   2026-11-02 修复：`--monthly-empty`（日更，只补查空日期）**不刷新已有日期**，
+    #   此时用旧 divDate 判「是否停止月月分红」会把上月正常分红、但日期尚未刷新的成员误移出
+    #   （当日实测误删 9 只基金 + 1 只 ETF）。剔除只在真正刷新过日期的运行里做。
+    if always and not MONTHLY_EMPTY:
         d = prune_stale_monthly(d, fn)
     fd, tmp = tempfile.mkstemp(dir=BASE, suffix='.tmp')
     with os.fdopen(fd, 'w', encoding='utf-8') as f:
