@@ -6,7 +6,9 @@
 
 ## 数据更新前必读（2026-10-10）
 
-跑日更/周更前先读 `docs/data-governance/update-mechanism.md` 开头的「开跑前必读：2026-10-10 中央复盘要点」（不手写 SKIP_STEPS、一次运行只部署一次、先过 digest-db 告警、Wind 列名/单位漂移按“未知不写”处理）。
+跑日更/周更前先读 `docs/data-governance/update-mechanism.md` 开头的「开跑前必读：2026-10-10 中央复盘要点」（不手写 SKIP_STEPS、一次运行只部署一次、Wind 列名/单位漂移按“未知不写”处理）。
+
+**食息日报无更新时直接忽略（2026-11-08 用户确立）**：若 `digest-db.json` 落后或当日无新条目，**不要等待坚果云、不要因此停跑或推迟部署**；`sync_daily` 按现有最新日期写入，`dailyData` 停在上游最后日期即可，继续完成本次日更/周更。
 
 **跑完更新后必做（2026-10-10 用户确立）**：写一份复盘笔记到 `Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-<YYYYMMDD>.md`（Windows：`D:\CloudDrive\Codes\all_coding_projects\website-updates-review\`；同名同日只保留一份，含补跑）。结构见 `update-mechanism.md`「跑完之后必做：更新复盘」。
 

@@ -289,9 +289,9 @@ def build(today, mode="daily"):
             _up = (_load(_db) or {}).get("meta", {}).get("updatedAt") if isinstance(_load(_db), dict) else None
             _upd = _d(str(_up)[:10]) if _up else None
             if _upd and _upd < today - datetime.timedelta(days=1):
-                warn.append("食息资讯上游 digest-db.json 最后更新 %s，落后于昨天：多半是坚果云未开启或未同步完，先打开坚果云等同步，再跑步骤 16" % _upd)
+                warn.append("食息资讯上游 digest-db.json 最后更新 %s，落后于昨天：上游未更新时可忽略，继续本次更新（步骤 16 按现有最新日期写入）" % _upd)
         else:
-            warn.append("未找到上游 digest-db.json（坚果云同步目录），食息资讯无法更新")
+            warn.append("未找到上游 digest-db.json（坚果云同步目录）：可忽略，本轮保留现有 dailyData，继续更新其它数据")
     except Exception as _e:
         warn.append("检查上游 digest-db.json 失败：%s" % _e)
 
