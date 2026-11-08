@@ -19,6 +19,15 @@
 # ============================================================
 set -e
 cd "$(dirname "$0")"
+
+# 2026-11-08：Windows（Git Bash）兼容——那里通常没有可用的 python3（只有 py / python，或微软商店的占位程序），
+# 用同名函数转给 py -3；Mac / Linux 上 python3 可用，这段不起作用
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    if ! command python3 -c "" >/dev/null 2>&1; then
+      if command -v py >/dev/null 2>&1; then python3() { py -3 "$@"; }; else python3() { python "$@"; }; fi
+    fi ;;
+esac
 # 2026-10-10：Agent 终端常不带 UTF-8 locale ⇒ Python 输出的中文（星期等）在报告里变成 ??。统一指定
 export PYTHONIOENCODING=utf-8 PYTHONUTF8=1
 export LANG="${LANG:-zh_CN.UTF-8}"

@@ -17,6 +17,15 @@ set -o pipefail   # 2026-10-12：wrangler 输出经 `| tail` 时，若 wrangler 
                   #   调用方（auto_sync_deploy.sh 步骤 20）才能正确记为 fail。
 cd "$(dirname "$0")"
 
+# 2026-11-08：Windows（Git Bash）兼容——那里通常没有可用的 python3（只有 py / python，或微软商店的占位程序），
+# 用同名函数转给 py -3；Mac / Linux 上 python3 可用，这段不起作用
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    if ! command python3 -c "" >/dev/null 2>&1; then
+      if command -v py >/dev/null 2>&1; then python3() { py -3 "$@"; }; else python3() { python "$@"; }; fi
+    fi ;;
+esac
+
 PROJECT="${CF_PAGES_PROJECT:-dividend-guide}"
 CF_DIR="$HOME/.config/dividend-guide"
 
@@ -34,17 +43,22 @@ export CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 # --- 组装部署目录（保留 functions/ 与 _redirects / _headers；排除非上线文件）---
 DEPLOY_DIR="$HOME/.trae/work/6a4132f2b99c56d056553a09/deploy-cf"
 rm -rf "$DEPLOY_DIR"; mkdir -p "$DEPLOY_DIR"
-rsync -a \
-  --exclude='.DS_Store' --exclude='.git' --exclude='.vercel' --exclude='.trae' \
-  --exclude='node_modules' --exclude='__pycache__' \
-  --exclude='*.xlsx' --exclude='*.py' --exclude='*.sh' --exclude='*.bak' --exclude='*.bak-*' --exclude='*.tmp' \
-  --exclude='archive' --exclude='backup' --exclude='docs' --exclude='/api' \
-  --exclude='prototype' \
-  --exclude='data/user' --exclude='user_upload' \
-  --exclude='/inputs' \
-  --exclude='vercel.json' --exclude='.vercelignore' --exclude='.gitignore' --exclude='/*.md' \
-  --exclude='/.*' --exclude='/logs' --exclude='/deploy' \
-  "./" "$DEPLOY_DIR/"
+if command -v rsync >/dev/null 2>&1; then
+  rsync -a \
+    --exclude='.DS_Store' --exclude='.git' --exclude='.vercel' --exclude='.trae' \
+    --exclude='node_modules' --exclude='__pycache__' \
+    --exclude='*.xlsx' --exclude='*.py' --exclude='*.sh' --exclude='*.bak' --exclude='*.bak-*' --exclude='*.tmp' \
+    --exclude='archive' --exclude='backup' --exclude='docs' --exclude='/api' \
+    --exclude='prototype' \
+    --exclude='data/user' --exclude='user_upload' \
+    --exclude='/inputs' \
+    --exclude='vercel.json' --exclude='.vercelignore' --exclude='.gitignore' --exclude='/*.md' \
+    --exclude='/.*' --exclude='/logs' --exclude='/deploy' \
+    "./" "$DEPLOY_DIR/"
+else
+  # Windows（Git Bash）没有 rsync：用 deploy_copy.py 按同一套排除规则复制（2026-11-08）
+  python3 deploy_copy.py "./" "$DEPLOY_DIR/"
+fi
 
 echo "== 部署目录抽查 =="
 ls "$DEPLOY_DIR" | head -30

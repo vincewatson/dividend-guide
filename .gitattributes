@@ -1,0 +1,4 @@
+# 2026-11-08：迁到 Windows 后防止 Git 把脚本换成 CRLF 换行（bash 会报 $'\r': command not found）
+*.sh text eol=lf
+*.py text eol=lf
+*.mjs text eol=lf
