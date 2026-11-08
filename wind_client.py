@@ -206,7 +206,8 @@ def report(day=None):
 
 def _probe_env():
     env = dict(os.environ)
-    env["NODE_EXTRA_CA_CERTS"] = "/etc/ssl/cert.pem"
+    if os.path.exists("/etc/ssl/cert.pem"):          # Mac 上的系统证书；Windows 没有这个文件，设了只会多一行警告（2026-11-08）
+        env["NODE_EXTRA_CA_CERTS"] = "/etc/ssl/cert.pem"
     for k in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy", "NODE_USE_ENV_PROXY"):
         env.pop(k, None)
     return env
@@ -236,7 +237,8 @@ def probe():
         print("[探活] ⏸ 额度拒绝（本档位用尽）：%s" % (cp.stderr or "").strip())
         return 3
     if cp.returncode != 0:
-        print("[探活] ✗ 返回码 %s：%s" % (cp.returncode, (cp.stderr or cp.stdout or "").strip()[:300]))
+        # 2026-11-08：CLI 的错误说明写在 stdout（JSON），stderr 里常常只有无关警告，两者都打出来
+        print("[探活] ✗ 返回码 %s：%s" % (cp.returncode, ((cp.stdout or "").strip()[:400] + " | " + (cp.stderr or "").strip()[:200]).strip(" |")))
         return 2
     try:
         text = json.loads(cp.stdout)["content"][0]["text"]
