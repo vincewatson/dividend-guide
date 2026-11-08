@@ -2,22 +2,22 @@
 
 ## 周期更新总规则（2026-10-14）
 
-跑日更/周更/月更前，先看跨站总规则 `D:\Codes\all_coding_projects\periodic-update-items\periodic-update-rule.md`（档位时点、字段分层、只追加不覆盖、变化面闸门）；本项目文档与它冲突时以它为准。
+跑日更/周更/月更前，先看跨站总规则 `D:\CloudDrive\Codes\all_coding_projects\periodic-update-items\periodic-update-rule.md`（档位时点、字段分层、只追加不覆盖、变化面闸门）；本项目文档与它冲突时以它为准。
 
 ## 数据更新前必读（2026-10-10）
 
 跑日更/周更前先读 `docs/data-governance/update-mechanism.md` 开头的「开跑前必读：2026-10-10 中央复盘要点」（不手写 SKIP_STEPS、一次运行只部署一次、先过 digest-db 告警、Wind 列名/单位漂移按“未知不写”处理）。
 
-**跑完更新后必做（2026-10-10 用户确立）**：写一份复盘笔记到 `Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-<YYYYMMDD>.md`（Windows：`D:\Codes\all_coding_projects\website-updates-review\`；同名同日只保留一份，含补跑）。结构见 `update-mechanism.md`「跑完之后必做：更新复盘」。
+**跑完更新后必做（2026-10-10 用户确立）**：写一份复盘笔记到 `Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-<YYYYMMDD>.md`（Windows：`D:\CloudDrive\Codes\all_coding_projects\website-updates-review\`；同名同日只保留一份，含补跑）。结构见 `update-mechanism.md`「跑完之后必做：更新复盘」。
 
 **跑完更新后必做（2026-10-25 用户确立）**：部署与线上核对通过后，调用 skill `div-tencent-docs-update` 同步腾讯文档 6 张表并回读校验；不建定时任务，收尾固定执行 + 用户随时手动吊起。
 
 ## 工作目录约定（2026-10-04 确立）
 
-**本站（食息指南 dividend-guide）的所有网站改动，只能写入本目录：**
-`/Users/vincentwatson/Library/CloudStorage/坚果云-vincent.watson@live.com/Codes/trae/dividend-guide-website`
+**本站（食息指南 dividend-guide）的所有网站改动，只能写入本目录（Windows 项目根）：**
+`D:\CloudDrive\Codes\trae\dividend-guide-website`
 
-不得写入本目录以外的任何其他位置。
+不得写入本目录以外的任何其他位置（Mac 侧已收尾，2026-11-08 起只在这台 Windows 上跑）。
 
 ## Git 提交约定（2026-10-04 确立）
 
@@ -26,19 +26,19 @@
 - 提交信息用 `feat:` / `fix:` / `docs:` 前缀 + 简述；版本类改动带上版本号（如 `v0.1.84`）。
 - 推送前确认 `.gitignore` 已排除敏感/大文件（`data/user/`、`user_upload/`、`*.xlsx`、`backup/`、`archive/`、`*.bak*`）。
 - 仓库为 **public**：禁止提交/推送用户原始数据与上传文件。
-- 推送凭据：GitHub 细粒度 PAT（仅本仓 `Contents: Read and write`）存于 `~/.config/dividend-guide/studio-credentials.txt`，且已写入 macOS 钥匙串（`host=github.com`）。若 push 报 `Invalid username or token`，从该文件取 `GITHUB_PAT` 重新写入钥匙串（`git credential-osxkeychain store`）或临时用 `git -c http.extraheader="Authorization: Basic <base64(x-access-token:PAT)>" push origin main`。
+- 推送凭据：Windows 用 Git Credential Manager 托管（`git config credential.helper` = `manager`），不再使用 macOS 钥匙串与 `studio-credentials.txt`。若 push 提示认证失败，按 Git 弹出的窗口登录/授权一次即可。
 
 ## 统一数据库 data_center（2026-09-24 确立）
 
 本项目与食息指南、资管棱镜、Index Analyzer、策略魔方、食息资讯归档共用同一个资本市场数据库 **data_center**。它分成 9 个独立的库（ref 公共参照 / idx 指数 / fund 基金 / rates 利率 / quote 行情 / industry 行业统计 / portfolio 组合 / fundnews 基金行业动态 / yielddaily 食息日报），库之间通过 `hub.*` 视图互相关联：
 
-- Windows：`D:\Codes\data_center`；MacBook：坚果云同步目录下的 `data_center` 文件夹
+- Windows：`D:\CloudDrive\Codes\data_center`（本项目根为 `D:\CloudDrive\Codes\trae\dividend-guide-website`，即相对路径 `../../data_center`）
 - **读写 data_center 之前，必须先完整阅读其中的 `AGENTS.md`，并按其中的规则操作。**
 
 要点（有出入时以 AGENTS.md 为准）：
 
 1. **读取**：首选 MCP 服务 `central-market-db`（先 `find_data`，库里没有的再去外部取，取到后用 `submit_data` 写回）；没有配置 MCP 时，用 `exports/` 下的 JSON；直接查 `db/<库>.duckdb` 时必须用 `read_only=True`（跨库查询用 `pipelines/hub.py` 的 `open_all()`）。
-2. **写入**：只能通过 `python pipelines/submit.py`，本项目的 project 名为 `dividend-guide`。禁止直接修改 `db/`、`warehouse/`、`exports/`、`sources/`、`domains/`（含各库合同）、`curated/`、`pipelines/`。
+2. **写入**：只能通过 `py -3 pipelines/submit.py`（在 `D:\CloudDrive\Codes\data_center` 下执行），本项目的 project 名为 `dividend-guide`。禁止直接修改 `db/`、`warehouse/`、`exports/`、`sources/`、`domains/`（含各库合同）、`curated/`、`pipelines/`。
 3. **口径**：比率一律用小数（5% 写 0.05），日期写成 YYYY-MM-DD，基金用 .OF 代码。只能使用 `domains/<库>/contracts/` 里登记过的指标、标签和字段；需要新增时，在 `data_center/proposals/` 里写提案，不要自己改合同。
 4. **不要运行** data_center 的 `build.py`，除非用户明确要求。它只在 Windows 主构建机上运行。
 5. **本站自己的 `data/` 目录目前仍是网站的数据来源**，本规则不改变现有的取数、同步和部署流程。
@@ -59,13 +59,13 @@
 ## 治理档案（供 project-governance-review 使用）
 
 - **项目名 / 复盘目录名**：`dividend-guide`（复盘报告写 `Codes/all_coding_projects/governance-review/dividend-guide/<日期>.md`）
-- **主力 Agent 与电脑**：TRAE · Mac；⚠️ Windows 侧 Claude / WorkBuddy 会经坚果云同步同一目录，易产生冲突副本（已在 `.gitignore` 忽略 `*冲突*`）
+- **主力 Agent 与电脑**：TRAE · Windows（项目根 `D:\CloudDrive\Codes\trae\dividend-guide-website`；Mac 侧 2026-11-08 已收尾，不再参与）。坚果云仍会同步该目录，冲突副本（`*冲突*`）不入库、不部署（已在 `.gitignore` 忽略 `*冲突*`）。
 - **规则文档**：`.trae/rules/project_rules.md`（Agent 规则）+ `docs/reference/*`（格式 / 口径 / 样式）
 - **误操作记录**：`docs/known-issues.md`（`## N. 标题（日期）` 体例）
 - **数据清单文档**：`docs/data-governance/data-catalog.md` + `docs/data-governance/update-mechanism.md`
 - **数据目录**：`data/`（体检用 `--data data`）
-- **更新方式**：`bash auto_sync_deploy.sh`（入口按【星期·北京时间】自动判「日更 / 周更」）；定时任务 = TRAE「食息指南 - 网站数据更新」`a0479427`（cron `0 15 * * SAT`，Paused，按需手动触发）
-- **部署**：Cloudflare Pages 项目 `dividend-guide`（主域 `divlab.net`）；脚本 `deploy_cloudflare.sh`（wrangler 直传；排除清单见其 rsync `--exclude`）
+- **更新方式**：在 Git Bash 里执行 `bash auto_sync_deploy.sh`（入口按【星期·北京时间】自动判「日更 / 周更」）；原 Mac TRAE 定时任务 `a0479427` 已停用，Windows 侧按需手动运行
+- **部署**：Cloudflare Pages 项目 `dividend-guide`（主域 `divlab.net`）；脚本 `deploy_cloudflare.sh`（wrangler 直传；有 rsync 时按 `--exclude` 组装，Windows 无 rsync 时改用 `deploy_copy.py` 按同一套规则复制）
 - **与 data_center 的关系**：**上游**——只读取 `../../data_center/exports/common/*.json`（`hk-etf-list.json` / `fund-liquidated.json`）；写入须经 `data_center/pipelines/submit.py`，project 名 `dividend-guide`
 - **文档惯例**：`reference/` 与 `data-governance/` 为权威；`changelog/` 仅为历史；手工修订登记到 `docs/data-governance/manual-overrides.md`
 - **本项目特有的检查项**：① `check_data.py` 全 ✅ 是**部署硬门槛**；② 清单进出闭环（`data/curation/_retired.json` / `_auto_added.json`）；③ 港交所代码统一 **5 位 + `.HK`**（与中央库 `sec_code` 对齐）；④ 坚果云冲突副本（`*冲突*`）不入库、不部署
@@ -74,7 +74,7 @@
 
 **`deploy/LOCAL_MODE` 存在期间，手工改动（样式、页面、脚本等）做完不部署；数据更新照常部署。** 规则全文见 `deploy/README.md`，要点：
 
-1. 任何任务做完：给用户看**本地页面**（双击 `deploy/本地预览.command`，或本地打开 `http://localhost:8090/`），**不要部署**。
+1. 任何任务做完：给用户看**本地页面**（在项目根用 Git Bash 执行 `py -3 -m http.server 8090`，浏览器打开 `http://localhost:8090/`），**不要部署**。
 2. 每完成一项改动，在 `deploy/待部署清单.md` **追加一行**（时间 / 类型 / 用户看得懂的一句话 / 涉及文件）；没有就新建。
 3. **数据更新（日更 / 周更）例外：照常部署。** 部署会连带上线清单里已完成的本地改动，脚本部署成功后自动把清单记入 changelog 并删除清单。还没改完、不想上线的改动，先不要跑数据更新（或先告诉用户）。
 4. **其他时候只有用户明确说“部署”才部署**：复述清单 → `check_data.py` 全通过 → 提交 → `deploy_cloudflare.sh` → 逐项线上核对 → 清单内容写入 `docs/changelog/` 当月文件 → **删除 `deploy/待部署清单.md`**。

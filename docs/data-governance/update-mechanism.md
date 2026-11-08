@@ -20,7 +20,7 @@
 
 ## 开跑前必读：2026-10-10 中央复盘要点
 
-> 来源：`D:\Codes\all_coding_projects\website-updates-review\dividend-guide-update-report-20261010.md`（当天 3 次部署、4 轮返工）。下列①–③已由中央维护直接改好，④–⑦是执行时要遵守的做法。
+> 来源：`D:\CloudDrive\Codes\all_coding_projects\website-updates-review\dividend-guide-update-report-20261010.md`（当天 3 次部署、4 轮返工）。下列①–③已由中央维护直接改好，④–⑦是执行时要遵守的做法。
 
 1. ✅ **已修 · preflight 误判“最新”**：货基/余额宝/宏观/REITs 原先套用 2 天跨市场容差，落后 1 个交易日也显示 ✅，被建议跳过（10-10 漏更 10-09 余额宝的真正根因）。现在这些单一市场数据必须到 A 股最近交易日才算最新（`preflight.py` 的 `strict`）。
 2. ✅ **已修 · 食息资讯上游检查**：preflight 会检查坚果云目录里的 `digest-db.json`，`meta.updatedAt` 早于昨天就告警“坚果云未开启或未同步完”。看到这条先请用户打开坚果云，等同步完再整跑。
@@ -30,13 +30,13 @@
 6. **Wind 返回的列名和单位会漂移**：凡是从 `get_fund_financials` 这类自然语言查询取数的脚本，一律“多候选列名 + 按 unit 归一 + unit 不明就不写”；命中 0 条或覆盖率比上次明显下降时，要当作失败处理，不能当成“无变化”。
 7. **`index.html.bak-*` 别堆在根目录**：根目录已有 10 份；以后备份请写到 `backup/`（部署已排除，但堆积会干扰查找）。**已修（2026-10-12）**：`embed_data.py` 的内嵌备份改写到 `backup/index.html.bak-<时间>`，并把根目录已堆积的 12 份移入 `backup/`。
 8. **整跑不要用「后台 + 免审批」方式启动（2026-10-12 新增）**：部署脚本的组装目录在项目目录之外
-   （`$HOME/.trae/work/.../deploy-cf`），沙箱会拒绝其 `rm/mkdir`，导致 `deploy_cloudflare.sh` 在组装处中止、
+   （Windows：`C:\Users\<用户名>\.trae\work\...\deploy-cf`；Git Bash 里写 `$HOME/.trae/work/.../deploy-cf`），沙箱会拒绝其 `rm/mkdir`，导致 `deploy_cloudflare.sh` 在组装处中止、
    **wrangler 根本没跑**（且旧版脚本仍打印「✅ 已部署」造成假成功）。整跑须**带审批**（或在非沙箱环境）启动；
    `deploy_cloudflare.sh` 已加 `set -o pipefail`，部署失败会正确返回非 0。Cloudflare 偶发
    `Failed to publish your Function / Unknown internal error` 属瞬时错误，**重试 1–2 次**即可。
 9. ✅ **已修（2026-10-17，中央维护）· 周更完成记录的时机**：`auto_sync_deploy.sh` 改为**部署成功后**才记 `.run_state.json:lastWeekly`（部署失败不记，同一周末再点会重跑周更）；`SX_NO_DEPLOY=1`（只跑数据、稍后统一部署）时也记。
 10. ✅ **已修（2026-10-17，中央维护）· 季度租金率提醒**：`preflight.py` 在 4/7/10/12 月 20 日之后（或租金率已超过 120 天没更新），且还缺最近一季的值时告警，提醒用户按 `runbooks/quarterly-rent-sop.md` 提供。
-11. ✅ **已修（2026-10-25，中央维护）· 运行报告星期 `??` 的真正原因**：Mac 自带 bash 3.2 会把紧跟在 `$变量` 后面的中文（如全角括号）当成变量名的一部分，`"$WD_CN（北京）"` 因此取不到值。`auto_sync_deploy.sh` 里 12 处 `$变量` 后紧跟中文的写法已全部改成 `${变量}`；**以后写 shell 时，`$变量` 后面紧跟中文一律加花括号**。
+11. ✅ **已修（2026-10-25，中央维护）· 运行报告星期 `??` 的真正原因**：Mac 自带 bash 3.2 会把紧跟在 `$变量` 后面的中文（如全角括号）当成变量名的一部分，`"$WD_CN（北京）"` 因此取不到值。`auto_sync_deploy.sh` 里 12 处 `$变量` 后紧跟中文的写法已全部改成 `${变量}`；**以后写 shell 时，`$变量` 后面紧跟中文一律加花括号**（Windows Git Bash 为 bash 4.x/5.x 虽不复现，但脚本仍按此规则写，保持跨机一致）。
 11. ✅ **已修（2026-10-17）· 线上验证假绿**：步骤 21 原抓页面文案「数据更新于」，而该文案早已改成运行时拼的「数据截至」→ 永远抓不到却仍记 ✅。现改为**结构化核对**：线上 `data/opportunity.json` 的 `asof` 与本地一致才算通过；取不到或不一致记 fail 并提示手动确认。
 12. ✅ **已修（2026-10-17）· 报告里星期显示 `??`**：档位判定的 python 改为只输出星期**序号**，中文由 bash 数组映射，避开跨进程编码；实测输出「本次档位：**日更+周更**（周六（北京）…）」，不再出现 `??`。仅影响报告文字，不影响数据与部署。
 13. ⚠️ **digest-db 就绪时间（2026-10-17）**：上游每日约 **08:44–08:50** 才同步完（`mtime` / `meta.updatedAt` 同步变化）。08:30 前体检会误报「落后于昨天」；建议默认 **09:30 之后**再整跑，或开跑前复查一次 `digest-db.json` 的 `meta.updatedAt`。
@@ -47,7 +47,7 @@
 **每次跑完数据更新（日更 / 周更，含当天所有补跑），都要写一份复盘笔记并落到跨项目复盘目录：**
 
 - **路径**：`Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-<YYYYMMDD>.md`
-  （Windows：`D:\Codes\all_coding_projects\website-updates-review\`；MacBook：坚果云同步目录下同名路径）
+  （Windows：`D:\CloudDrive\Codes\all_coding_projects\website-updates-review\`；2026-11-08 起只在 Windows 上跑）
 - **命名**：`dividend-guide-update-report-YYYYMMDD.md`（用运行日）。**同一天只保留一份**——当天多次运行/补跑就更新同一份，不要另起名字。
 - **参考样例**：`dividend-guide-update-report-20261010.md`（当天 3 次部署、4 轮返工）。
 - **固定结构（9 节，保持口径一致）**：
@@ -70,7 +70,7 @@
 - **同步范围**：6 张表——主流资产食息率（`assetData`）、红利指数（`indexData`，只同步可见 50 个）、月月分红ETF（`etfData`）、月月分红指数基金（`fundData`）、港交所红利ETF（`hkEtfData`）、首页（内容表，不动）。
 - **硬性要求**：写完必须**回读校验**（行数、关键数值、日期、公式列是否「计算错误」）；不要在文档里用旧的 Excel 或 `sync_engine.py`。
 - **不建定时任务**（用户 2026-10-25 决定）：不做每周自动跑，改为「数据更新收尾固定执行 + 用户随时用 skill 手动吊起」两种方式。
-- **产物位置**：同步脚本 / 差异清单 / 日志一律写到同级目录 `Codes/trae/dividend-guide-tencent-docs`，不写进本站仓库。
+- **产物位置**：同步脚本 / 差异清单 / 日志一律写到同级目录（Windows：`D:\CloudDrive\Codes\trae\dividend-guide-tencent-docs`），不写进本站仓库。
 
 ---
 
@@ -82,7 +82,7 @@
 
 1 修订文档（读 docs/README.md 索引 → 更新 `reference/` 或 `data-governance/`，冲突以用户最新指令为准）→ 2 确认任务逻辑（核对「食息指南网站数据更新」定时任务 / `auto_sync_deploy.sh` / 本文件三者步骤数·顺序·脚本清单一致）→ 3 脚本语法预检（全部 .py）→ 5 div_history → 6 daily_change → 7 money_fund → 8 yuebao_history → 9 asset_macro → 10 **sync_reits_daily（REITs 日频增量，asset_macro 不覆盖 REITs）** → **重建 build_lists（唯一一次，原第 11 步位置；assetData 取最新）** → 12 **sync_new_etf（新 ETF/新指数自动发现）** → 13 **sync_new_reits（新 REITs 自动发现，2026-09-26 起）** → **（2026-10-06 起）步骤 13 之后插入一个编号外步骤 `sync_new_monthly`（月月分红名单自动补入：全市场「近 1 年分红次数 ≥ 11」的指数产品，A 类去重）** → 14 fund_divdate（恢复 divDate + 月月名单剔除超期成员）→ 15 **sync_wind_fields（字段级 Wind 化：fundCount/ETF 字段/月月分红字段/股息率口径/N 前缀检查，2026-08-16 起）** → 16 **sync_daily（食息资讯日报；只读 digest-db.json；2026-09-20 起取代原 weekly）** → 17 backup → 18 **check_data（硬门槛）** → 19 embed → 20 部署 → 21 线上验证。（**2026-10-05 起**在步骤 12 之后插入一个**编号外**步骤 `sync_product_quotes`（产品行情快照入库），不计入 1..21；详见下方「产品行情快照库 productQuotes」。**2026-10-06 起**在步骤 13 之后插入编号外步骤 `sync_new_monthly`，详见「月月分红名单『自动补入 + 自动移出』规则」。**2026-10-08 起**在步骤 14 之后插入**编号外·仅日更**步骤 `sync_fund_divdate --monthly-empty`（只补查月月名单中 `divDate` 为空的成员）。**2026-10-17 起**：步骤 15 `sync_wind_fields all` 改挂**周更**；其 A 行情层字段单拆为 `sync_wind_fields quotes`，在步骤 15 之后插入**编号外·仅日更**步骤（详见「更新频次总表」说明）。）
 
-> **更新前体检（preflight，2026-10-04 新增；不计入 21 步编号）**：`python3 preflight.py` 读取交易日历（根目录 `market_calendar.json`）与本地各 JSON 最新日期，判断 **A股/港股今天是否开盘、各数据域是否已覆盖到最新交易日、建议跑/跳过哪些步骤**，并给出耗时粗估。`auto_sync_deploy.sh` 在步骤 3 前自动执行并打印；按建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`（保守：仅跳过纯 Wind 日频 5–10 + 资讯 16，`build_lists`/校验/部署一律保留）。目的：假期/休市日不空跑全量（如国庆 A股多日休市，多数日频域无新点，可省去一半步骤）。
+> **更新前体检（preflight，2026-10-04 新增；不计入 21 步编号）**：`py -3 preflight.py` 读取交易日历（根目录 `market_calendar.json`）与本地各 JSON 最新日期，判断 **A股/港股今天是否开盘、各数据域是否已覆盖到最新交易日、建议跑/跳过哪些步骤**，并给出耗时粗估。`auto_sync_deploy.sh` 在步骤 3 前自动执行并打印；按建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`（保守：仅跳过纯 Wind 日频 5–10 + 资讯 16，`build_lists`/校验/部署一律保留）。目的：假期/休市日不空跑全量（如国庆 A股多日休市，多数日频域无新点，可省去一半步骤）。以上命令均在 **Git Bash** 里执行，项目根 `D:\CloudDrive\Codes\trae\dividend-guide-website`。
 
 ## 更新频次总表（数据 → 来源 → 脚本 → 频次）
 
@@ -153,7 +153,7 @@
 2. **留空不填 0**：新标的的明细字段（分红次数 totalDiv、年化派息率 annualDiv、累计/年化派息额、yield/yieldNum、volatility、prevClose…）本次取不到 → **数值型写 `null`、字符串型写 `''`（不写 0）**，待后续人工/其它脚本补齐。
 3. **联动**：`build_lists.py` 重建 reitsData 时保留 Wind 自动补充的标的（不删 curation 清单外条目）；`auto_sync_deploy.sh` 在 sync_new_etf（步骤 12）后挂载 `sync_new_reits.py`（步骤 13）。
 4. **代码范围**：沪市 `508xxx.SH`、深市 `18xxxx.SZ`（**含 `180xxx` / `181xxx`**，2026-09-26 用户放开，`ALLOWED_PREFIX = (('SH','508'), ('SZ','18'))`）。范围外的**其它**代码仍会被单独打印、**不自动纳入**（需人工确认后放开 `ALLOWED_PREFIX`）。
-5. **先跑 --dry-run**：`python3 sync_new_reits.py --dry-run` 只打印不写入，核对无误后再正式运行。
+5. **先跑 --dry-run**：`py -3 sync_new_reits.py --dry-run` 只打印不写入，核对无误后再正式运行。
 6. **日频覆盖 + 空字段补齐（2026-09-26）**：`sync_reits_daily.py` 的日频覆盖以 `reitsData.json` **全量**为准（分组由 `projectType` 推导，新标的从上市日做基线拉取、之后增量）；`sync_new_reits.py` 会对**字段为空**的 REITs 用 Wind 补齐 累计分红次数 / 年化分红次数 / 单位累计分红 / 单位年化分红 / 年化派息率 / 前收盘价——**只补空值、绝不覆盖；取不到继续留空、不写 0**。`build_lists.py` 已加 reitsData 非 Excel 行保留（同 cnEtfData），避免 Excel 重建清掉自动发现标的。
 
 ## 月月分红名单「自动补入 + 自动移出」规则（2026-10-06 固化）
@@ -166,7 +166,7 @@
    - **份额去重**：同一产品的多个份额类别（A/C/E/I/Y）**只保留 A 类**（无 A 类则保留检出的一个）。
    - **限指数产品**：仅纳入 ETF（Wind 代码 .SH/.SZ）与指数基金（Wind 返回「跟踪指数代码」）；主动管理产品（超短债、量化选股等无跟踪指数者）**不纳入** —— 名单两板块固有语义为「ETF / 指数基金 月月分红」。
    - **写入**：ETF → `etfData.json`；场外 → `fundData.json`；`code` 一律 `base + '.OF'`。仅写身份/结构字段，数值与跟踪指数规范名由步骤 15 `sync_wind_fields` 补齐，`divDate` 由步骤 14 刷新。
-   - **无人工确认**（用户 2026-10-06：「直接自动加吧，不要人工确认了」）；`python3 sync_new_monthly.py --dry-run` 可先只读核对。
+   - **无人工确认**（用户 2026-10-06：「直接自动加吧，不要人工确认了」）；`py -3 sync_new_monthly.py --dry-run` 可先只读核对。
    - **首轮落地（2026-10-06）**：补入 `021583.OF 中欧中证港股通央企红利指数A`、`022325.OF 长城中证港股通高股息投资指数A`、`021375.OF 中欧中证红利低波动100指数A`（fundData 25 → 28）；同轮排除 `012773.OF 嘉实超短债A`、`021814.OF 华泰柏瑞红利量化选股A`（非指数产品）。
 2. **调出（自动移出）**：`sync_fund_divdate.prune_stale_monthly`（步骤 14；2026-10-08 起亦在**编号外·仅日更**步骤 `--monthly-empty` 里跑）—— 最近一次分红**早于「上一个月」**（如 2026-10 运行要求 ≥ 2026-09-01）即移出 etfData/fundData，并**同时写入停用名单 `data/curation/_retired.json`**（原因「停止月月分红」、附 `lastDivDate`）；`build_lists` 在**所有**表外行护栏之后按 code 统一剔除，**重建不再带回**；`divDate` 为空者不动（防误删）。**恢复**：`sync_new_monthly` 发现其重新满足「近 1 年分红 ≥ 11 次」时，自动从停用名单移除并恢复入列。
    - 两个月月名单中 **`divDate` 为空的成员**会在运行报告「清单变动」小节列出；**日更**时对它们各补查一次最近分红日期（`sync_fund_divdate --monthly-empty`，计入日更 Wind 额度）。
@@ -244,18 +244,19 @@
 > 用户要求：项目改部署到 **Cloudflare Pages**，绑定自有域名 **divlab.net**；**不再同步到 Vercel**。
 
 - **平台**：Cloudflare Pages（直传 Direct Upload，非 Git 集成——本仓库 git 与工作目录已脱节，仍沿用「本地同步 → 直传」模式）。
-- **命令**：`bash deploy_cloudflare.sh`（`auto_sync_deploy.sh` 第 20 步已改为调用它；原 Vercel 直传逻辑已移除）。
-- **凭据**（脚本开头校验，均放项目外文件，勿写入仓库）：
-  - `~/.config/dividend-guide/cloudflare-token`（一行 API token；需权限 `Account → Cloudflare Pages → Edit`、`Zone → DNS → Edit`（divlab.net））
-  - `~/.config/dividend-guide/cloudflare-account`（一行 Account ID）
-  - 亦可用环境变量 `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID`
+- **命令**：在 Git Bash 里执行 `bash deploy_cloudflare.sh`（`auto_sync_deploy.sh` 第 20 步已改为调用它；原 Vercel 直传逻辑已移除）。
+- **凭据**（脚本开头校验，均放项目外，勿写入仓库；按优先级）：
+  - 环境变量 `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID`（Windows 当前用这一方式，已设为用户级环境变量）
+  - 文件 `~/.config/dividend-guide/cloudflare-token`（一行 API token；需权限 `Account → Cloudflare Pages → Edit`、`Zone → DNS → Edit`（divlab.net））
+  - 文件 `~/.config/dividend-guide/cloudflare-account`（一行 Account ID）
+  - 上述 `~/` 在 Windows Git Bash 下即 `C:\Users\<用户名>\.config\dividend-guide\`
 - **Pages 特定文件**（替代原 `vercel.json`）：
   - `functions/api/studio/*.js`：4 个接口（auth/list/save/delete）由 Vercel Serverless (`module.exports=async(req,res)`) 改写为 Pages Functions (`export async function onRequest(context)`)；`save/delete` 的 `node:https`+`Buffer` 改为 `fetch`+UTF-8 安全 base64；`list` 由读文件系统改为经 `env.ASSETS` 读取静态 `blog/posts.json`。**需在 Pages 项目设置环境变量 `STUDIO_PASSWORD`、`GITHUB_PAT`。**
   - `_redirects`：`/studio` → `/studio/index.html`（hash 路由 SPA 无需兜底 rewrite）。
   - `_headers`：HTML 不缓存、`/blog/*` 与 `/data/*` 协商缓存（与 Vercel 版一致）。
 - **域名**（2026-10-03 已绑定并上线）：Pages 项目 `dividend-guide` 新增自定义域 **`divlab.net`** 与 **`www.divlab.net`**；DNS 托管在同一 Cloudflare 账户，两条 **CNAME → `dividend-guide-5km.pages.dev`（proxied）**（根域走 CNAME 扁平化）。线上实测 `https://divlab.net/`（200）、`http → https`（301）、`https://www.divlab.net/`（200）。
 - **收尾**：Cloudflare 上线验证通过后，**已删除 `vercel.json` / `.vercelignore`**（2026-10-03）；Vercel 侧项目 `dividend-guide`（`prj_ci9SSB1opXOx8912PjiqMauOiaQ8`）不再接收部署，可按需在 Vercel 面板归档/删除。
-- **环境变量（2026-10-03 已配置）**：Pages 项目 `dividend-guide` 的 **Production 与 Preview** 均已设 `STUDIO_PASSWORD`（plain_text，值为后台登录口令）与 `GITHUB_PAT`（secret_text；为**细粒度 token**，仅授权 `vincewatson/dividend-guide` 一个仓库、权限 `Contents: Read and write` + `Metadata: Read-only`、无到期日）。配置后需**重新部署**一次才被 Functions 读取。线上实测：`POST /api/studio/auth`（正确口令）返回 `token`、（错误口令）`密码错误`；`/api/studio/list`（带 token）`{posts:[]}`、无 token `未授权`。⚠️ 口令/PAT 值不写入仓库，仅存于 Cloudflare Pages 环境变量与 `~/.config/dividend-guide/`。
+- **环境变量（2026-10-03 已配置）**：Pages 项目 `dividend-guide` 的 **Production 与 Preview** 均已设 `STUDIO_PASSWORD`（plain_text，值为后台登录口令）与 `GITHUB_PAT`（secret_text；为**细粒度 token**，仅授权 `vincewatson/dividend-guide` 一个仓库、权限 `Contents: Read and write` + `Metadata: Read-only`、无到期日）。配置后需**重新部署**一次才被 Functions 读取。线上实测：`POST /api/studio/auth`（正确口令）返回 `token`、（错误口令）`密码错误`；`/api/studio/list`（带 token）`{posts:[]}`、无 token `未授权`。⚠️ 口令/PAT 值不写入仓库，仅存于 Cloudflare Pages 环境变量与 `~/.config/dividend-guide/`（Windows：`C:\Users\<用户名>\.config\dividend-guide\`）。
 
 ### Wind 额度保护（2026-10-06 新增）
 
@@ -264,7 +265,7 @@
 1. **调用级硬上限 —— `wind_guard_cli.mjs`（包装器）**
    - 全部 sync/fix 脚本的 `CLI` 已由真实 `cli.mjs` 改为指向本包装器；每次真实调用前向 `.wind_calls_<YYYY-MM-DD>` 追加一行计数。
    - 当日计数 ≥ `SX_WIND_DAILY_CAP`（默认 **2000**）→ **直接拒绝**（退出码 3），不发起真实调用；脚本视非零退出码为失败 → 走既有「重试 / 保留旧值」逻辑**安全降级，绝不误改数据**。
-   - argv / stdio / 退出码对调用方**完全透明**；真实 cli.mjs 路径可用 `SX_WIND_CLI_REAL` 覆盖（默认 `~/.agents/skills/wind-mcp-skill/scripts/cli.mjs`）。
+   - argv / stdio / 退出码对调用方**完全透明**；真实 cli.mjs 路径可用 `SX_WIND_CLI_REAL` 覆盖（默认 `~/.agents/skills/wind-mcp-skill/scripts/cli.mjs`；Windows 即 `C:\Users\<用户名>\.agents\skills\wind-mcp-skill\scripts\cli.mjs`）。
 2. **整跑级闸 —— `run_gate.py`（流水线开头调用）**
    - 记录 `.run_state.json`（`{date,count,lastStart}`）；当日整跑次数 ≥ `SX_MAX_FULL_RUNS`（默认 **1**）→ **拒绝启动**（退出码 3，避免「跑一半没额度」）。
    - 强制再跑：`SX_FORCE_RUN=1 bash auto_sync_deploy.sh`；上限可调 `SX_MAX_FULL_RUNS`。
