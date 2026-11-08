@@ -278,6 +278,8 @@ def build(today, mode="daily"):
     try:
         import glob as _g
         _cands = [os.path.expanduser(x) for x in (
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "workbuddy", "dividend-guide-digest-workbuddy", "digest-db.json"),
+            "D:/CloudDrive/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json",
             "~/Library/CloudStorage/坚果云-vincent.watson@live.com/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json",
             "~/Nutstore Files/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json",
             "D:/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json")]

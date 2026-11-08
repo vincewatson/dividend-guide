@@ -31,6 +31,9 @@ OUT_COLORS = os.path.join(DATA_DIR, 'dailyTagColors.json')
 
 # digest-db.json 的候选位置（坚果云同步目录；跨设备时自动探测）
 CANDIDATES = [
+    # 2026-11-08：先按相对位置找（Codes/trae/dividend-guide-website → Codes/workbuddy/…），换电脑、换目录都能用
+    os.path.join(BASE, '..', '..', 'workbuddy', 'dividend-guide-digest-workbuddy', 'digest-db.json'),
+    'D:/CloudDrive/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json',
     '~/Library/CloudStorage/坚果云-vincent.watson@live.com/Codes/workbuddy/'
     'dividend-guide-digest-workbuddy/digest-db.json',
     '~/Nutstore Files/Codes/workbuddy/dividend-guide-digest-workbuddy/digest-db.json',
