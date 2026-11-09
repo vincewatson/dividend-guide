@@ -42,7 +42,7 @@ CLI = os.path.join(BASE, "wind_guard_cli.mjs")
 # 运行档位：daily（默认）/ weekly
 _MODE_RAW = (os.environ.get("SX_WIND_MODE") or "daily").strip().lower()
 MODE = "weekly" if _MODE_RAW.startswith("w") else "daily"
-_DEFAULT_BUDGET = {"daily": 500, "weekly": 650}   # 2026-10-21：日更 300→500（用户要求，REITs 扩容后 300 易被打满）；周更 650 不变
+_DEFAULT_BUDGET = {"daily": 800, "weekly": 650}   # 2026-11-09：日更 500→800（REITs 324 次 + 股息率 109 次易打满，机会值被挤掉）；2026-10-21 曾 300→500；周更 650 不变
 BUDGET = int(os.environ.get("SX_WIND_BUDGET", str(_DEFAULT_BUDGET[MODE])))
 # 全局每日硬上限（守卫层 2000）与「当天合计」软上限（账号 A 规则：当天合计 ≤1600）
 CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "2000"))
