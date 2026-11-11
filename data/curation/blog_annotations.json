@@ -1,8 +1,8 @@
 {
  "domain": "blog_annotations",
  "source": "博客文章标注表.xlsx",
- "sourceMtime": "2026-10-10 23:05",
- "exportedAt": "2026-10-10 23:14:46",
+ "sourceMtime": "2026-11-11 09:31",
+ "exportedAt": "2026-11-11 09:52:24",
  "schema": "url -> {direction, indexes}",
  "note": "博客文章标注（内容标签 direction / 相关指数 indexes）。由 export_curation.py 从用户维护的《博客文章标注表》（常驻 blog/mp-bullettrain/）冻结；此后手工维护，sync_blog.py 只读不写。",
  "annotations": {
@@ -690,6 +690,18 @@
    "indexes": [
     "富时定制南向通高股息",
     "富时ETF通东西传承股票精选指数"
+   ]
+  },
+  "https://mp.weixin.qq.com/s/g59kZhmnMU_RZ8PrHV8Kzw": {
+   "direction": "红利",
+   "indexes": [
+    "红利增长"
+   ]
+  },
+  "https://mp.weixin.qq.com/s/k0Y9i0wozBvg5TqXg3jivg": {
+   "direction": "红利",
+   "indexes": [
+    "中证红利"
    ]
   }
  }

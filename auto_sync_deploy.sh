@@ -432,6 +432,19 @@ report_event "sync_daily.py" skip "$([ "$MODE" = "weekly" ] && echo '日更步�
 fi
 
 echo ""
+# 博客文章（编号外·日更）：读 blog/mp-bullettrain/博客文章标注表*.xlsx → curation/blog_*.json → data/blogData.json。
+# 2026-11-11 起纳入流水线：此前为纯手工，导致站点博客列表长期滞后（10-17 之后 4 篇新文没上）。
+# 纯本地读写、0 次 Wind；失败只告警，保留旧数据，不阻断流水线。
+if label_on "sync_blog.py"; then
+echo "===== [博客] 从 blog/mp-bullettrain 标注表刷新文章 ====="
+run_py "export_curation.py --blog" export_curation.py --blog || echo "  ⚠ 博客清单/标注导出失败，保留旧数据"
+run_py "sync_blog.py" sync_blog.py || echo "  ⚠ 博客数据生成失败，保留旧 data/blogData.json"
+else
+echo "===== [博客] 刷新文章 — ⏭ 跳过 ====="
+report_event "sync_blog.py" skip "周更档不跑博客（日更步骤）"
+fi
+
+echo ""
 # A股红利机会值（日更档，2026-10-08 起）。数据来自中央库 data_center（exports/dividend/）+ Wind MCP 增量：
 #   ① fetch_opportunity_inputs.py：按「中央库连续覆盖到哪天 → A 股最新交易日」算缺口，把中间缺的交易日**一次补齐**
 #      （不是只取最后一天；缺口上限 120 天，更早的以中央库为准，故跳过一两天再跑也能追平）。无缺口 → 0 次 Wind，约 4–6 次/有缺口。

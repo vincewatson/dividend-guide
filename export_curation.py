@@ -297,4 +297,10 @@ def export_blog():
 
 
 if __name__ == '__main__':
-    main()
+    import sys as _sys
+    # --blog：只刷新博客清单/标注（读 blog/mp-bullettrain/ 的标注表），不动其余 curation 文件。
+    # 供 auto_sync_deploy.sh 每次更新时调用，避免博客数据长期滞后（2026-11-11）。
+    if '--blog' in _sys.argv[1:]:
+        export_blog()
+    else:
+        main()

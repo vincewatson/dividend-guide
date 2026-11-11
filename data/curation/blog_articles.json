@@ -1,8 +1,8 @@
 {
  "domain": "blog_articles",
  "source": "博客文章标注表.xlsx",
- "sourceMtime": "2026-10-10 23:05",
- "exportedAt": "2026-10-10 23:14:46",
+ "sourceMtime": "2026-11-11 09:31",
+ "exportedAt": "2026-11-11 09:52:24",
  "note": "子弹列车公众号文章清单（date/title/url/column）。由 export_curation.py 从用户维护的《博客文章标注表》（常驻 blog/mp-bullettrain/）冻结；此后手工维护，sync_blog.py 只读不写。",
  "columns": [
   "date",
@@ -1750,6 +1750,30 @@
    "title": "债基分红为何大幅萎缩？",
    "url": "https://mp.weixin.qq.com/s/BwcS88p5Q0yPeulxCZXL6Q",
    "column": "食息指南"
+  },
+  {
+   "date": "2026-10-11",
+   "title": "食息指南 | 聊聊基金公司集中申报的“红利增长”ETF",
+   "url": "https://mp.weixin.qq.com/s/g59kZhmnMU_RZ8PrHV8Kzw",
+   "column": "食息周报"
+  },
+  {
+   "date": "2026-10-18",
+   "title": "食息指南 | 重点城市租金率一直涨，买房收租更划算了吗？",
+   "url": "https://mp.weixin.qq.com/s/wS55PdVYNp-THaPXPFzG9g",
+   "column": "食息周报"
+  },
+  {
+   "date": "2026-11-01",
+   "title": "食息指南 | 存款搬家的真相：搬了，也没搬",
+   "url": "https://mp.weixin.qq.com/s/ZC0PpxU0ykbQbBau0094Fw",
+   "column": "食息周报"
+  },
+  {
+   "date": "2026-11-10",
+   "title": "十年国债利率下降，不是你买入红利的理由",
+   "url": "https://mp.weixin.qq.com/s/k0Y9i0wozBvg5TqXg3jivg",
+   "column": "畅聊红利"
   }
  ]
 }

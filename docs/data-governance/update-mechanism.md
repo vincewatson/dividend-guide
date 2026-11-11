@@ -84,6 +84,8 @@
 
 > **更新前体检（preflight，2026-10-04 新增；不计入 21 步编号）**：`py -3 preflight.py` 读取交易日历（根目录 `market_calendar.json`）与本地各 JSON 最新日期，判断 **A股/港股今天是否开盘、各数据域是否已覆盖到最新交易日、建议跑/跳过哪些步骤**，并给出耗时粗估。`auto_sync_deploy.sh` 在步骤 3 前自动执行并打印；按建议跳过：`SKIP_STEPS="5 6 7 8 9 10 16" bash auto_sync_deploy.sh` 或 `PREFLIGHT_AUTO=1 bash auto_sync_deploy.sh`（保守：仅跳过纯 Wind 日频 5–10 + 资讯 16，`build_lists`/校验/部署一律保留）。目的：假期/休市日不空跑全量（如国庆 A股多日休市，多数日频域无新点，可省去一半步骤）。以上命令均在 **Git Bash** 里执行，项目根 `D:\CloudDrive\Codes\trae\dividend-guide-website`。
 
+> **博客文章（2026-11-11 起纳入流水线，编号外·仅日更）**：`export_curation.py --blog` 读 `blog/mp-bullettrain/博客文章标注表*.xlsx` → 刷新 `data/curation/blog_articles.json` + `blog_annotations.json`，再由 `sync_blog.py` 生成 `data/blogData.json`。纯本地读写、0 次 Wind，排在步骤 16（食息资讯）之后、机会值之前；失败只告警、保留旧数据。此前为纯手工，导致站点博客列表长期滞后（10-17 之后的新文未上线）。
+
 ## 更新频次总表（数据 → 来源 → 脚本 → 频次）
 
 > 「要更新什么、多久一次、由谁触发」一表看全。步骤号对应上节「标准流程」；「每次」= 每次执行流水线都刷新（至少覆盖最新交易日）。
@@ -104,6 +106,7 @@
 | ETF 成立/上市/费率/规模/份额/持有人/分红次数、fundCount、N 前缀、**fundData 分红金额补空白**（B/C 属性·规模层）| Wind；**境内红利ETF 先读中央库**（见下方「说明」）| sync_wind_fields `all` | **每周**（2026-10-17 起由「每次」改周更，backlog B-4 / 跨站总规则 §三）| 步骤 15 |
 | etfData·`price` / fundData·`nav` / `divYieldNum`（**A 行情层**）| Wind | sync_wind_fields `quotes` | **每次**（日更）| 步骤 15 之后（**编号外**·仅日更）|
 | dailyData / dailyTagColors | `digest-db.json`（生成端）| sync_daily | **每次**（数据源每日更新）| 步骤 16 |
+| blogData（子弹列车公众号文章列表）| `blog/mp-bullettrain/博客文章标注表*.xlsx`（用户维护）| export_curation `--blog` + sync_blog（0 次 Wind）| **每次**（2026-11-11 起纳入）| 步骤 16 之后（**编号外·仅日更**）|
 | assetHistory · 重点50城租金率 | 中指研究院季度报告 | 用户手动给值 + sync_asset_macro **保留** | **季度**（4/7/10/12 月下旬）| B2（`runbooks/quarterly-rent-sop.md`）|
 | 月月分红清单**新增**成员（etfData/fundData）| Wind 全市场检索`search_funds`（近 1 年分红次数 ≥ 11；A 类去重；限指数产品）| **sync_new_monthly** | **每周**（2026-10-07 起归周更）| 步骤 13 之后（**编号外**）|
 | 港交所跟踪指数 / 租金率列表值 | 用户业务判断 | 手动 | **不定期** | B3 |
