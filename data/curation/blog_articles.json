@@ -2,7 +2,7 @@
  "domain": "blog_articles",
  "source": "博客文章标注表.xlsx",
  "sourceMtime": "2026-11-11 09:31",
- "exportedAt": "2026-11-11 09:52:24",
+ "exportedAt": "2026-11-11 20:14:37",
  "note": "子弹列车公众号文章清单（date/title/url/column）。由 export_curation.py 从用户维护的《博客文章标注表》（常驻 blog/mp-bullettrain/）冻结；此后手工维护，sync_blog.py 只读不写。",
  "columns": [
   "date",
