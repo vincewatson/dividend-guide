@@ -401,9 +401,13 @@ if ah and isinstance(ah, dict):
         if _k.endswith('国债'):
             # 国债为周频（储蓄国债票面利率，每周五采样 + 前向填充）：序列随「运行日」前向填充，
             # 可能领先于 A股日历（如 A股休市期间仍填到当周周五）→ 期望取「数据最新日之前最近周五」。
+            # 2026-11-15：指数股息率当日取不到时（divHistory 停在周四），序列已填到本周五会误报，
+            # 故接受两个候选——divHistory 最新日对应周五、A股最近交易日对应周五，二者之一即可。
             _exp = _last_friday(latest)
-            _ok = _exp is not None and str(_last)[:10] == _exp
-            check(f'assetHistory {_k} 最新日期(周频·最近周五)', _ok, f'{_last} vs 期望周五 {_exp}',
+            _exp_cal = _last_friday(CN_LATEST)
+            _ok = _exp is not None and str(_last)[:10] in {_exp, _exp_cal}
+            check(f'assetHistory {_k} 最新日期(周频·最近周五)', _ok,
+                  f'{_last} vs 期望周五 {_exp_cal}（divHistory 对应 {_exp}）',
                   step_label='sync_asset_macro.py')
             continue
         _ok = False
