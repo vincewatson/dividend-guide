@@ -59,7 +59,7 @@
   4. 当天结果（最终态：档位 / 耗时 / Wind 用量 / 清单变动 / check_data / 部署 ID / 提交）
   5. **遇到的问题与处理**（现象 → 根因 → 修复 → 验证）
   6. **主要耗时**（整跑各步 + 返工耗时）
-  7. 额度账（周更 ≤650 / 日更 ≤800 / 当天合计 ≤1600）
+  7. 额度账（**2026-11-15 起次数上限已取消**，此节只记录当日实际调用次数与分步明细，供容量观察）
   8. **经验与改进项**（做对的 / 要改的 / 已知未做）
   9. 当日线上产物（部署 ID、提交号、运行报告路径）
 - **配套**：本文件开头的「开跑前必读」即从复盘里提炼；复盘里出现的新教训，下次开跑前应回填进「开跑前必读」。
@@ -263,22 +263,23 @@
 - **收尾**：Cloudflare 上线验证通过后，**已删除 `vercel.json` / `.vercelignore`**（2026-10-03）；Vercel 侧项目 `dividend-guide`（`prj_ci9SSB1opXOx8912PjiqMauOiaQ8`）不再接收部署，可按需在 Vercel 面板归档/删除。
 - **环境变量（2026-10-03 已配置）**：Pages 项目 `dividend-guide` 的 **Production 与 Preview** 均已设 `STUDIO_PASSWORD`（plain_text，值为后台登录口令）与 `GITHUB_PAT`（secret_text；为**细粒度 token**，仅授权 `vincewatson/dividend-guide` 一个仓库、权限 `Contents: Read and write` + `Metadata: Read-only`、无到期日）。配置后需**重新部署**一次才被 Functions 读取。线上实测：`POST /api/studio/auth`（正确口令）返回 `token`、（错误口令）`密码错误`；`/api/studio/list`（带 token）`{posts:[]}`、无 token `未授权`。⚠️ 口令/PAT 值不写入仓库，仅存于 Cloudflare Pages 环境变量与 `~/.config/dividend-guide/`（Windows：`C:\Users\<用户名>\.config\dividend-guide\`）。
 
-### Wind 额度保护（2026-10-06 新增）
+### Wind 额度保护（2026-10-06 新增；2026-11-15 取消次数上限）
 
-> 背景：Wind 每日额度约 **2000 次**。2026-10-06 因**同日多轮整跑** `auto_sync_deploy.sh`（外加零散单项验证）把当日额度耗尽。为此加**两层防护**，互为补充：
+> **2026-11-15 用户确立：Wind 调整订阅策略，不再有「每天 2000 次」取数上限，本站同步取消 2000 / 1600 / 日更 800 / 周更 650 全部次数限制。** 保留下来的只有「计数 + 连续失败熔断 + 并发控制」；真正要防的是**调用频次**（多项目同时取数时容易被提示「短时间内异常调用次数过多」）。
 
-1. **调用级硬上限 —— `wind_guard_cli.mjs`（包装器）**
-   - 全部 sync/fix 脚本的 `CLI` 已由真实 `cli.mjs` 改为指向本包装器；每次真实调用前向 `.wind_calls_<YYYY-MM-DD>` 追加一行计数。
-   - 当日计数 ≥ `SX_WIND_DAILY_CAP`（默认 **2000**）→ **直接拒绝**（退出码 3），不发起真实调用；脚本视非零退出码为失败 → 走既有「重试 / 保留旧值」逻辑**安全降级，绝不误改数据**。
-   - argv / stdio / 退出码对调用方**完全透明**；真实 cli.mjs 路径可用 `SX_WIND_CLI_REAL` 覆盖（默认 `~/.agents/skills/wind-mcp-skill/scripts/cli.mjs`；Windows 即 `C:\Users\<用户名>\.agents\skills\wind-mcp-skill\scripts\cli.mjs`）。
+> 背景：原 Wind 每日额度约 2000 次。2026-10-06 因**同日多轮整跑** `auto_sync_deploy.sh`（外加零散单项验证）把当日额度耗尽，故曾加两层防护；现按下述保留：
+
+1. **调用级计数 —— `wind_guard_cli.mjs`（包装器）**
+   - 全部 sync/fix 脚本的 `CLI` 指向本包装器；每次真实调用前向 `.wind_calls_<YYYY-MM-DD>` 追加一行计数。
+   - **默认不再拦截**（`SX_WIND_DAILY_CAP` 默认 `0` = 不限）。若临时设了具体数字，当日计数 ≥ 该值 → 拒绝（退出码 3），脚本走「重试 / 保留旧值」安全降级。
+   - argv / stdio / 退出码对调用方**完全透明**；真实 cli.mjs 路径可用 `SX_WIND_CLI_REAL` 覆盖（默认 `~/.agents/skills/wind-mcp-skill/scripts/cli.mjs`）。
 2. **整跑级闸 —— `run_gate.py`（流水线开头调用）**
-   - 记录 `.run_state.json`（`{date,count,lastStart}`）；当日整跑次数 ≥ `SX_MAX_FULL_RUNS`（默认 **1**）→ **拒绝启动**（退出码 3，避免「跑一半没额度」）。
+   - 记录 `.run_state.json`（`{date,count,lastStart}`）；当日整跑次数 ≥ `SX_MAX_FULL_RUNS`（默认 **1**）→ **拒绝启动**（退出码 3）。
    - 强制再跑：`SX_FORCE_RUN=1 bash auto_sync_deploy.sh`；上限可调 `SX_MAX_FULL_RUNS`。
    - 同时打印当日 Wind 用量（读 `.wind_calls_<date>`）。
-3. **按档位的每日预算 + 断点续跑 —— `wind_client.py`（2026-10-07 新增，重构阶段 1）**
-   - 统一 Wind 入口在调用级闸之内再加**按档位预算**：**日更默认 800 次 / 周更默认 650 次**（`SX_WIND_BUDGET` 可调；档位由 `SX_WIND_MODE` 决定）。**（2026-10-07 将周更默认由 800 下调为 650；2026-10-21 将日更由 300 上调为 500；2026-11-09 将日更由 500 上调为 800——REITs 日频单步 324 次 + 指数股息率 109 次已吃满 500，机会值步骤被额度保护挤掉。与 `.trae/rules/project_rules.md` 的「日更 ≤800 / 周更 ≤650 / 当天合计 ≤1600」一致。）**
-   - 当日该档位调用数 ≥ 预算 → **拒绝**后续调用（返回 rc=3 合成结果），并把当前步骤记入 `.wind_pending.json`；脚本走「保留旧值」路径**安全降级**。
-   - **先补 pending**：`auto_sync_deploy.sh` 开头读取 pending，本次**无论档位都先跑**这些步骤（读后清空）。
+3. **按档位计数 + 断点续跑 —— `wind_client.py`（2026-10-07 新增，重构阶段 1）**
+   - **2026-11-15 起 `SX_WIND_BUDGET` 与 `SX_WIND_DAY_CAP` 默认均为 `0`（不限）**，只统计 `.wind_usage` 与 `by_mode`。如需临时限流，用环境变量给数字，达到后行为与原来一致（拒绝 + 记 pending）。
+   - 某步骤因任何原因失败/被拒 → 记入 `.wind_pending.json`；`auto_sync_deploy.sh` 开头读取 pending，本次**无论档位都先跑**这些步骤（读后清空）。
    - 档位：**日更**（日常日频数据）/ **周更**（仅周级步骤：分红日期、生命周期、新 REITs/新 ETF/港 ETF、月月发现）；备份/校验/内嵌（17/18/19）两档都跑。
    - **入口自动判档（2026-10-07 · 按星期 · 北京时间）**：`auto_sync_deploy.sh` 默认按星期自动决定档位——**周一至周五只跑日更；周六/周日同一次运行先日更再周更、只部署一次**；**同一个周末只跑一次周更**（若本周六 0 点后已跑过周更，即 `.run_state.json:lastWeekly ≥ 本周六`，则周日再点只跑日更）；**兜底：距上次周更 > 13 天，不论周几都补跑周更**。手动覆盖：`--weekly` 强制只跑周更、`--daily` 强制只跑日更（手动优先于自动判档）。上次周更日期记于 `.run_state.json:lastWeekly`（初始 2026-10-07）；运行报告开头写明本次档位与原因。`preflight.py --weekly` 可预览周更计划。
 4. **一次构建 + 合并写入 + 运行报告（2026-10-07 新增，重构阶段 3/4）**

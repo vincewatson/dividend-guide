@@ -82,9 +82,11 @@ def main():
     lines.append('- 生成时间：%s' % now.strftime('%Y-%m-%d %H:%M:%S'))
     lines.append('- 档位：**%s**（`SX_WIND_MODE=%s`）' % (mode_name, args.mode))
     lines.append('- 本次档位：**%s**%s' % (mode_name, ('（%s）' % args.reason) if args.reason else ''))
-    lines.append('- Wind 调用：**本次 %d 次**；当日该档位累计 %d / 预算 %d；当日合计 %d / 硬上限 %d'
-                 % (run_total, wind_client.used_mode(), budget,
-                    int(cur.get('total', 0)), wind_client.CAP))
+    lines.append('- Wind 调用：**本次 %d 次**；当日该档位累计 %d / %s；当日合计 %d / %s'
+                 % (run_total, wind_client.used_mode(),
+                    '不限' if budget <= 0 else '预算 %d' % budget,
+                    int(cur.get('total', 0)),
+                    '不限' if wind_client.CAP <= 0 else '上限 %d' % wind_client.CAP))
     if pend:
         lines.append('- 待补（额度不足，下次先跑）：%s' % '、'.join(pend))
     else:

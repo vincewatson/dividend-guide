@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REAL = process.env.SX_WIND_CLI_REAL
   || path.join(os.homedir(), '.agents', 'skills', 'wind-mcp-skill', 'scripts', 'cli.mjs');
-const CAP = parseInt(process.env.SX_WIND_DAILY_CAP || '2000', 10);
+const CAP = parseInt(process.env.SX_WIND_DAILY_CAP || '0', 10);   // 0 = 不限（2026-11-15：Wind 取消每日次数上限）
 
 const d = new Date();
 const DAY = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -27,7 +27,7 @@ const LOG = path.join(HERE, `.wind_calls_${DAY}`);
 let used = 0;
 try { used = fs.readFileSync(LOG, 'utf8').split('\n').filter(Boolean).length; } catch { used = 0; }
 
-if (used >= CAP) {
+if (CAP > 0 && used >= CAP) {
   process.stderr.write(
     `[Wind 额度闸] 今日调用已达上限 ${CAP}（已用 ${used}）→ 拒绝本次调用（可设 SX_WIND_DAILY_CAP 调整）。\n`);
   process.exit(3);

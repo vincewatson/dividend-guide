@@ -7,10 +7,13 @@
 阶段 0（2026-10-06）：只计数（`.wind_usage/YYYY-MM-DD.json`，按日 + 步骤）。
 阶段 1（2026-10-07）：加每日预算 + 额度用尽优雅停止 + pending 续补。
 
-预算（按「运行档位」的当日调用数）：
-    - 日更（SX_WIND_MODE=daily，默认）：SX_WIND_BUDGET 默认 500
-    - 周更（SX_WIND_MODE=weekly）      ：SX_WIND_BUDGET 默认 650
-    - 当天合计软上限 SX_WIND_DAY_CAP（默认 1600，账号 A 规则）
+预算（按「运行档位」的当日调用数；**0 = 不限**，2026-11-15 起默认不限）：
+    - 日更（SX_WIND_MODE=daily，默认）：SX_WIND_BUDGET 默认 0
+    - 周更（SX_WIND_MODE=weekly）      ：SX_WIND_BUDGET 默认 0
+    - 当天合计上限 SX_WIND_DAY_CAP（默认 0 = 不限）
+    2026-11-15：Wind 取消每日取数次数上限，本站同步取消 2000 / 1600 / 日更 800 / 周更 650 的次数限制，
+    只保留「计数 + 连续失败熔断 + 单步并发」来应对服务端的频次限制（短时间调用过多会被限流）。
+    如需临时设限，用环境变量给具体数字，达到上限时的行为与原来一致：
     当日该档位的调用数达到预算 → **拒绝**后续调用（返回 rc=3 的合成结果），
     并把当前步骤记入 `.wind_pending.json`；调用方视 rc≠0 为失败 → 走既有「重试/保留旧值」逻辑，
     安全降级、绝不误改数据（额度不足不失败）。下次运行先补 pending（见 auto_sync_deploy.sh）。
@@ -36,17 +39,18 @@ import time
 BASE = os.path.dirname(os.path.abspath(__file__))
 USAGE_DIR = os.path.join(BASE, ".wind_usage")
 PENDING_PATH = os.path.join(BASE, ".wind_pending.json")
-# 真实 CLI 经「额度守卫」包装器（每日硬上限 2000；见 wind_guard_cli.mjs）
+# 真实 CLI 经「额度守卫」包装器（只计数；每日硬上限默认取消，见 wind_guard_cli.mjs）
 CLI = os.path.join(BASE, "wind_guard_cli.mjs")
 
 # 运行档位：daily（默认）/ weekly
 _MODE_RAW = (os.environ.get("SX_WIND_MODE") or "daily").strip().lower()
 MODE = "weekly" if _MODE_RAW.startswith("w") else "daily"
-_DEFAULT_BUDGET = {"daily": 800, "weekly": 650}   # 2026-11-09：日更 500→800（REITs 324 次 + 股息率 109 次易打满，机会值被挤掉）；2026-10-21 曾 300→500；周更 650 不变
+# 0 = 不限（2026-11-15 起默认不限：Wind 取消每日取数次数上限，改为按频次限流）
+_DEFAULT_BUDGET = {"daily": 0, "weekly": 0}
 BUDGET = int(os.environ.get("SX_WIND_BUDGET", str(_DEFAULT_BUDGET[MODE])))
-# 全局每日硬上限（守卫层 2000）与「当天合计」软上限（账号 A 规则：当天合计 ≤1600）
-CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "2000"))
-DAY_CAP = int(os.environ.get("SX_WIND_DAY_CAP", "1600"))
+# 全局每日上限（守卫层）与「当天合计」上限：0 = 不限
+CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "0"))
+DAY_CAP = int(os.environ.get("SX_WIND_DAY_CAP", "0"))
 
 _LOCK = threading.Lock()
 
@@ -111,6 +115,9 @@ def used_mode():
 
 
 def remaining():
+    """剩余可用次数；返回 -1 表示本档位不限次数（2026-11-15 起默认）。"""
+    if BUDGET <= 0:
+        return -1
     return max(0, BUDGET - used_mode())
 
 
@@ -159,8 +166,9 @@ def clear_pending():
 # ---------------------------------------------------------------------------
 def _refused(cmd, kwargs):
     """预算用尽时的合成结果（rc=3），stdout/stderr 类型与 kwargs 的 text 设置一致。"""
-    msg = ("[wind_client] %s 档位今日调用 %d/%d、当日合计 %d/%d → 已达上限，拒绝本次调用并记入 pending。"
-           % (MODE, used_mode(), BUDGET, used_today(), DAY_CAP))
+    msg = ("[wind_client] %s 档位今日调用 %d/%s、当日合计 %d/%s → 已达上限，拒绝本次调用并记入 pending。"
+           % (MODE, used_mode(), BUDGET if BUDGET > 0 else "不限",
+              used_today(), DAY_CAP if DAY_CAP > 0 else "不限"))
     text = bool(kwargs.get("text") or kwargs.get("encoding") or kwargs.get("universal_newlines"))
     return subprocess.CompletedProcess(cmd, 3,
                                        "" if text else b"",
@@ -170,11 +178,11 @@ def _refused(cmd, kwargs):
 def run(cmd, **kwargs):
     """透传 `subprocess.run`，并把本次 Wind 调用计入当日用量。
 
-    额度用尽（本档位当日调用 ≥ 预算）时 **不再发起真实调用**：记入 pending 并返回 rc=3 的
+    额度用尽（本档位当日调用 ≥ 预算，且预算 > 0）时 **不再发起真实调用**：记入 pending 并返回 rc=3 的
     合成 CompletedProcess，使调用方按既有「失败/保留旧值」路径安全降级。
     参数/返回值其余与 `subprocess.run` 一致。
     """
-    if used_mode() >= BUDGET or used_today() >= DAY_CAP:
+    if (BUDGET > 0 and used_mode() >= BUDGET) or (DAY_CAP > 0 and used_today() >= DAY_CAP):
         add_pending()
         return _refused(cmd, kwargs)
     t0 = time.time()
@@ -190,9 +198,11 @@ def report(day=None):
     """返回「档位/预算/用量 + 步骤明细」的可读文本。"""
     obj = load(day)
     out = ["日期: %s" % obj.get("date")]
-    out.append("档位: %s    预算: %d 次/日    本档已用: %d    剩余: %d"
-               % (MODE, BUDGET, used_mode(), remaining()))
-    out.append("当日合计: %d 次（硬上限 %d）" % (int(obj.get("total", 0)), CAP))
+    out.append("档位: %s    预算: %s    本档已用: %d    剩余: %s"
+               % (MODE, "不限" if BUDGET <= 0 else "%d 次/日" % BUDGET,
+                  used_mode(), "不限" if BUDGET <= 0 else remaining()))
+    out.append("当日合计: %d 次（上限 %s）"
+               % (int(obj.get("total", 0)), "不限" if CAP <= 0 else CAP))
     bm = obj.get("by_mode") or {}
     if bm:
         out.append("按档位: " + "  ".join("%s=%d" % (k, v) for k, v in bm.items()))

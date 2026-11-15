@@ -22,7 +22,7 @@ import sys
 BASE = os.path.dirname(os.path.abspath(__file__))
 STATE = os.path.join(BASE, ".run_state.json")
 MAX = int(os.environ.get("SX_MAX_FULL_RUNS", "1"))
-CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "2000"))
+CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "0"))   # 0 = 不限（2026-11-15：Wind 取消每日次数上限）
 
 today = datetime.date.today().isoformat()
 
@@ -48,7 +48,8 @@ try:
 except Exception:
     used = 0
 
-print("[额度闸] 今日 Wind 已用 %d/%d 次；今日已整跑 %d 次（上限 %d）。" % (used, CAP, n, MAX))
+print("[额度闸] 今日 Wind 已用 %d 次（上限 %s）；今日已整跑 %d 次（上限 %d）。"
+      % (used, "不限" if CAP <= 0 else CAP, n, MAX))
 
 if n >= MAX and os.environ.get("SX_FORCE_RUN") != "1":
     print("[额度闸] ⛔ 今日整跑已达标，拒绝再跑。如确需再跑：设 SX_FORCE_RUN=1 后重试。")
