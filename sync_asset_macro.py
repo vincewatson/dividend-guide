@@ -16,6 +16,8 @@
                               2026-10-05 用户确认对外展示即用「储蓄国债票面利率」）
    10年期国债到期收益率     → 中央库 exports/dividend/rates.json（Wind EDB「中国:国债到期收益率:10年」，
                               由 fetch_opportunity_inputs.py 按日写回 rates.value；缺失时回退 Wind）
+                              EDB 指标 S0059749 本账号无权限（2026-11-15 换新 Key 后仍无）→
+                              回退「当前活跃 10 年期国债的收盘价收益率」（bond_data，基差约 −1bp）
    人身保险产品预定利率研究值 → EDB: 中国:预定利率研究值:普通型人身保险
    中证同业存单AAA指数      → index: 931059.CSI 日收盘近30日滚动复利年化（2026-10-17 起；原月度年化停用）
    重点50城租金率           → 用户/季度报告维护（中指研究院季度口径，2026-08-16 起）；中原口径→重点城市租金率(中原6城均值) 备用
@@ -77,6 +79,13 @@ def call_wind(server, tool, params):
         except Exception:
             time.sleep(5); continue
         if r.returncode != 0:
+            # 永久性错误（指标无权限等）重试无意义，直接带回错误体让调用方走替代口径（2026-11-15）
+            try:
+                body = json.loads(r.stdout)
+                if isinstance(body, dict) and body.get('ok') is False and '无权限' in str(body.get('message', '')):
+                    return body
+            except Exception:
+                pass
             time.sleep(5); continue
         try:
             outer = json.loads(r.stdout)
@@ -227,6 +236,57 @@ def fetch_bond_savings(term):
     return out
 
 
+def fetch_bond_yield_10y_bond(lo=9.0, hi=10.6, days=45):
+    """替代口径（2026-11-15）：当前活跃 10 年期国债的「收盘价收益率」。
+
+    EDB「中债国债到期收益率:10年」(S0059749) 与中债指标全族对本账号无权限（换新 Key 后实测仍无），
+    但债券层行情有权限，故用活跃券收盘 YTM 续接。实测与中债 10 年曲线基差 −0.8~−1.6bp（2026-09~11，39 个交易日），
+    水平一致，可直接拼接；口径标注为「活跃 10 年期国债收盘价收益率」。
+    只取近 days 天：历史由中央库导出提供，长窗口会被 Wind 截断在最早的 100 行。
+    同一只债在 .SH/.SZ/.IB/.BJ 多场所重复出现（北交所报价偏高），**按券选一只**：
+    剩余期限最接近 10 年的银行间券（.IB），点数太少的不参与。
+    """
+    start = (datetime.date.fromisoformat(END) - datetime.timedelta(days=days)).isoformat()
+    inner = call_wind('bond_data', 'get_bond_market_data',
+                      {'question': '查询当前活跃的10年期中国国债，自{}至{}每日收盘价收益率，按交易日列出'.format(start, END)})
+    tabs = ((inner.get('data') or {}).get('data') or [])
+    best, best_score = {}, None
+    for tb in tabs:
+        cols = [c.get('name', '') if isinstance(c, dict) else str(c) for c in tb.get('columns', [])]
+        rows = tb.get('rows', [])
+        ci = next((i for i, n in enumerate(cols) if '代码' in n), None)
+        vi = next((i for i, n in enumerate(cols) if '收盘价收益率' in n and '类型' not in n), None)
+        di = next((i for i, n in enumerate(cols) if n == '日期'), None)
+        mi = next((i for i, n in enumerate(cols) if '剩余期限' in n), None)
+        if None in (ci, vi, di, mi):
+            continue
+        by = {}
+        for r in rows:
+            try:
+                m = float(r[mi])
+            except (TypeError, ValueError):
+                continue
+            if not (lo <= m <= hi):
+                continue
+            v = r[vi]
+            if v is None:
+                continue
+            try:
+                by.setdefault(str(r[ci]), [m, {}])[1][norm_date(r[di])] = round(float(v), 4)
+            except (TypeError, ValueError):
+                continue
+        cands = [(m, len(ser), code, ser) for code, (m, ser) in by.items() if len(ser) >= 3]
+        if not cands:
+            continue
+        ib = [c for c in cands if c[2].upper().endswith('.IB')] or cands
+        ib.sort(key=lambda c: (c[0], c[1]))
+        ser = ib[-1][3]
+        score = (max(ser), len(ser))
+        if best_score is None or score > best_score:
+            best, best_score = ser, score
+    return [{'date': k, 'yield': best[k]} for k in sorted(best)]
+
+
 def fetch_bond_yield_10y():
     """10 年期国债到期收益率（日频，百分数口径，与 assetHistory 其余序列一致）。
     中央库导出 exports/dividend/rates.json 与 Wind EDB 合并：中央库给全历史、Wind 给最新几天；
@@ -244,6 +304,9 @@ def fetch_bond_yield_10y():
     except Exception as e:
         print('  [WARN] 中央库 rates 读取失败（%s）' % e, flush=True)
     pts = parse_edb_series(fetch_edb('中国国债到期收益率10年'), '国债到期收益率')
+    if not pts:
+        pts = fetch_bond_yield_10y_bond()
+        print('  [INFO] EDB 10 年期国债不可用（无权限）→ 改用活跃 10 年期国债收盘价收益率 %d 点' % len(pts), flush=True)
     for p in pts:
         m[p['date']] = p['yield']
     # 本地增量（fetch_opportunity_inputs.py 写入）优先级最高：中央库导出与 Wind EDB 常滞后 1~3 个交易日

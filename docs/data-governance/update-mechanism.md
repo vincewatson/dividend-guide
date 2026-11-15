@@ -20,7 +20,7 @@
 
 ## 开跑前必读：2026-10-10 中央复盘要点
 
-> 来源：`D:\CloudDrive\Codes\all_coding_projects\website-updates-review\dividend-guide-update-report-20261010.md`（当天 3 次部署、4 轮返工）。下列①–③已由中央维护直接改好，④–⑦是执行时要遵守的做法。
+> 来源：`D:\CloudDrive\Codes\projects_center\projects\website-updates-review\dividend-guide\dividend-guide-update-report-20261010.md`（当天 3 次部署、4 轮返工）。下列①–③已由中央维护直接改好，④–⑦是执行时要遵守的做法。
 
 1. ✅ **已修 · preflight 误判“最新”**：货基/余额宝/宏观/REITs 原先套用 2 天跨市场容差，落后 1 个交易日也显示 ✅，被建议跳过（10-10 漏更 10-09 余额宝的真正根因）。现在这些单一市场数据必须到 A 股最近交易日才算最新（`preflight.py` 的 `strict`）。
 2. ✅ **已修 · 食息资讯上游检查**：preflight 会检查坚果云目录里的 `digest-db.json`，`meta.updatedAt` 早于昨天就告警“坚果云未开启或未同步完”。**2026-11-08 用户确立：看到这条直接忽略，继续整跑；不等待坚果云、不因此停跑或推迟部署。** 步骤 16 会按 digest-db 现有最新日期写入，`dailyData` 停在上游最后日期即可。
@@ -48,8 +48,8 @@
 
 **每次跑完数据更新（日更 / 周更，含当天所有补跑），都要写一份复盘笔记并落到跨项目复盘目录：**
 
-- **路径**：`Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-<YYYYMMDD>.md`
-  （Windows：`D:\CloudDrive\Codes\all_coding_projects\website-updates-review\`；2026-11-08 起只在 Windows 上跑）
+- **路径**：`Codes/projects_center/projects/website-updates-review/dividend-guide/dividend-guide-update-report-<YYYYMMDD>.md`
+  （Windows：`D:\CloudDrive\Codes\projects_center\projects\website-updates-review\dividend-guide\`；2026-11-08 起只在 Windows 上跑）
 - **命名**：`dividend-guide-update-report-YYYYMMDD.md`（用运行日）。**同一天只保留一份**——当天多次运行/补跑就更新同一份，不要另起名字。
 - **参考样例**：`dividend-guide-update-report-20261010.md`（当天 3 次部署、4 轮返工）。
 - **固定结构（9 节，保持口径一致）**：
@@ -99,7 +99,7 @@
 | productQuotes · 产品行情快照（当日涨跌幅/今年以来回报）| Wind `fund_data.get_fund_price_indicators` | sync_product_quotes | **每次**（按日期【追加】，同日仅补空值、绝不覆盖旧值）| 「月月名单自动补入」之后（**编号外**步骤）|
 | moneyFundData · 头部 7 日年化 | Wind 实时 | sync_money_fund | **每次** | 步骤 7 |
 | yuebaoHistory | Wind 日频 | sync_yuebao_history | **每次**（动态 180 天）| 步骤 8 |
-| assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单/**10年期国债收益率**）| Wind EDB（储蓄国债=Wind 债券发行记录；**10年期国债=中央库 rates 导出 ∪ Wind EDB ∪ 本地 `inputs/opportunity/increments.csv`（RATES），按日期去重**，后者最新；**同业存单=931059.CSI 日收盘按 30 自然日滚动复利年化**，2026-10-17 起日频，原「月度年化」口径停用）| sync_asset_macro | **每次** | 步骤 9 |
+| assetHistory · 宏观序列（LPR/存款/国债/预定利率/存单/**10年期国债收益率**）| Wind EDB（储蓄国债=Wind 债券发行记录；**10年期国债=中央库 rates 导出 ∪ Wind 债券层活跃券收盘 YTM ∪ 本地 `inputs/opportunity/increments.csv`（RATES），按日期去重**，后者最新——EDB `S0059749` 本账号无权限，2026-11-15 起改用活跃 10 年期国债收盘价收益率，基差约 −1bp；**同业存单=931059.CSI 日收盘按 30 自然日滚动复利年化**，2026-10-17 起日频，原「月度年化」口径停用）| sync_asset_macro | **每次** | 步骤 9 |
 | assetHistory · REITs 两类日频 | Wind 日频中位数 | sync_reits_daily | **每次**（增量；**2026-09-26 起覆盖 reitsData.json 全量**，分组由 projectType 推导）| 步骤 10 |
 | cnEtfData / hkEtfData / etfData / fundData / moneyFundData / reitsData / assetData | **`data/curation/*.json` 清单 + 标注**（2026-10-06 excel-exit P2 起；原用户 Excel 快照已弃用）| build_lists（**只跑一次**，2026-10-07 阶段 3 由原「两次」合并）| **每周**（`data/curation/` 变更时才变化）| 重建（唯一一次，原第 11 步位置）；「出」由编号外 `sync_lifecycle.py` → `_retired.json` 负责 |
 | cnEtfData · 新 ETF、indexData · 新指数 | Wind 自动发现 | sync_new_etf | **每周**（2026-10-07 起归周更；检索近 30 天）| 步骤 12 |

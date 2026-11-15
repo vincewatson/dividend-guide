@@ -14,6 +14,8 @@ Wind 调用（每周约 4–6 次）：
   - index_data/get_index_fundamentals：000922.CSI 换手率（自然语言、按交易日）
   - index_data/get_index_fundamentals：881001.WI 股息率（同 sync_div_history 的措辞）
   - economic_data/query_economic_indicator_data：中国国债到期收益率 10 年（EDB）
+    ↳ 该指标（S0059749）及中债全族无权限（2026-11-15 换新 Key 后仍无）→ 改用
+      bond_data/get_bond_market_data：「当前活跃 10 年期国债的收盘价收益率」（基差约 −1bp）
   - 000922.CSI 股息率一般不调 Wind：取站点日更已维护的 data/indexData.json divHistory（滞后时才补取）
 
 用法：
@@ -190,6 +192,37 @@ def parse_edb(inner, keyword="10年"):
     return {}
 
 
+def parse_bond_yield(inner, lo=9.0, hi=10.6):
+    """债券层替代口径：当前活跃 10 年期国债的「收盘价收益率」（2026-11-15）。
+
+    EDB「中债国债到期收益率:10年」(S0059749) 及中债指标全族对本账号无权限（换新 Key 后实测仍无），
+    债券层行情有权限，故用活跃券收盘 YTM 续接；与中债 10 年曲线基差 −0.8~−1.6bp，水平一致。
+    同一只债会在 .SH/.SZ/.IB/.BJ 多个场所重复出现（北交所报价明显偏高），**按券选一只**：
+    剩余期限最接近 10 年的银行间券（.IB），点数太少的不参与。
+    """
+    cols, rows = _table(inner)
+    ci = next((i for i, n in enumerate(cols) if "代码" in n), None)
+    vi = next((i for i, n in enumerate(cols) if "收盘价收益率" in n and "类型" not in n), None)
+    di = next((i for i, n in enumerate(cols) if n == "日期"), None)
+    mi = next((i for i, n in enumerate(cols) if "剩余期限" in n), None)
+    if None in (ci, vi, di, mi):
+        return {}
+    by = {}
+    for r in rows:
+        if len(r) <= max(ci, vi, di, mi):
+            continue
+        m, v = _num(r[mi]), _num(r[vi])
+        if m is None or not (lo <= m <= hi) or v is None:
+            continue
+        by.setdefault(str(r[ci]), [m, {}])[1][_norm_date(r[di])] = v
+    cands = [(m, len(ser), code, ser) for code, (m, ser) in by.items() if len(ser) >= 3]
+    if not cands:
+        return {}
+    ib = [c for c in cands if c[2].upper().endswith(".IB")] or cands
+    ib.sort(key=lambda c: (c[0], c[1]))
+    return ib[-1][3]
+
+
 # ------------------------------------------------------------------ 取数
 def segments(start, end, days=SEG_DAYS):
     cur = start
@@ -205,9 +238,18 @@ def fetch_one(api, key, start, end):
     how = FETCH[key]
     out = {}
     if how == "edb":
-        inner = api.call("economic_data", "query_economic_indicator_data",
-                         {"question": "中国国债到期收益率10年", "beginDate": start.isoformat(), "endDate": end.isoformat()})
-        return {d: float(v) / 100 for d, v in parse_edb(inner).items() if start.isoformat() <= d <= end.isoformat()}
+        try:
+            inner = api.call("economic_data", "query_economic_indicator_data",
+                             {"question": "中国国债到期收益率10年", "beginDate": start.isoformat(), "endDate": end.isoformat()})
+            pts = parse_edb(inner)
+        except BackendError as e:
+            print(f"  [i] EDB 10 年期国债不可用（{str(e)[:50]}）→ 改用债券层活跃券收盘价收益率", flush=True)
+            pts = {}
+        if not pts:
+            q = (f"查询当前活跃的10年期中国国债，自{start.isoformat()}至{end.isoformat()}"
+                 "每日收盘价收益率，按交易日列出")
+            pts = parse_bond_yield(api.call("bond_data", "get_bond_market_data", {"question": q}))
+        return {d: float(v) / 100 for d, v in pts.items() if start.isoformat() <= d <= end.isoformat()}
     # 自然语言日频查询：区间只含 1 个交易日时 Wind 可能不返回「日期」列（REITs 10-08 实测，见 sync_reits_daily）。
     # → 起点往前多取 7 天，保证区间 ≥2 个交易日；多取的天数在下面按 start 过滤掉，不重复写回。
     q_start = start - dt.timedelta(days=7) if how != "kline" else start
