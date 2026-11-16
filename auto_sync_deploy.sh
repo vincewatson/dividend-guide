@@ -130,7 +130,7 @@ done
 _TIER="$(python3 -c '
 import json, datetime
 try:
-    rec = json.load(open(".run_state.json", encoding="utf-8"))
+    rec = json.load(open(".run_state.json", encoding="utf-8-sig"))
 except Exception:
     rec = {}
 last = str(rec.get("lastWeekly") or "2026-10-07")[:10]
@@ -479,7 +479,7 @@ record_weekly() {
 import json, datetime
 p = ".run_state.json"
 try:
-    rec = json.load(open(p, encoding="utf-8"))
+    rec = json.load(open(p, encoding="utf-8-sig"))  # 兼容 BOM（11-11 PowerShell 写入 BOM 曾致周更状态被重置）
 except Exception:
     rec = {}
 try:
@@ -581,5 +581,5 @@ echo "✅ 同步完成！请访问 https://divlab.net"
 # ------------------------------------------------------------
 echo ""
 echo "📝 [复盘提醒] 请写更新复盘："
-echo "   Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-$(date +%Y%m%d).md"
-echo "   （Windows 为 D:\\\\CloudDrive\\\\Codes\\\\all_coding_projects\\\\website-updates-review\\\\；同一天多次运行/补跑写同一份）"
+echo "   Codes/projects_center/projects/website-updates-review/dividend-guide/dividend-guide-update-report-$(date +%Y%m%d).md"
+echo "   （Windows 为 D:\\\\CloudDrive\\\\Codes\\\\projects_center\\\\projects\\\\website-updates-review\\\\dividend-guide\\\\；同一天多次运行/补跑写同一份）"

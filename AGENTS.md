@@ -2,7 +2,7 @@
 
 ## 周期更新总规则（2026-10-14）
 
-跑日更/周更/月更前，先看跨站总规则 `D:\CloudDrive\Codes\all_coding_projects\periodic-update-items\periodic-update-rule.md`（档位时点、字段分层、只追加不覆盖、变化面闸门）；本项目文档与它冲突时以它为准。
+跑日更/周更/月更前，先看跨站总规则 `D:\CloudDrive\Codes\projects_center\projects\periodic-update-items\periodic-update-rule.md`（档位时点、字段分层、只追加不覆盖、变化面闸门）；本项目文档与它冲突时以它为准。
 
 ## 数据更新前必读（2026-10-10）
 
@@ -10,7 +10,7 @@
 
 **食息日报无更新时直接忽略（2026-11-08 用户确立）**：若 `digest-db.json` 落后或当日无新条目，**不要等待坚果云、不要因此停跑或推迟部署**；`sync_daily` 按现有最新日期写入，`dailyData` 停在上游最后日期即可，继续完成本次日更/周更。
 
-**跑完更新后必做（2026-10-10 用户确立）**：写一份复盘笔记到 `Codes/all_coding_projects/website-updates-review/dividend-guide-update-report-<YYYYMMDD>.md`（Windows：`D:\CloudDrive\Codes\all_coding_projects\website-updates-review\`；同名同日只保留一份，含补跑）。结构见 `update-mechanism.md`「跑完之后必做：更新复盘」。
+**跑完更新后必做（2026-10-10 用户确立）**：写一份复盘笔记到 `Codes/projects_center/projects/website-updates-review/dividend-guide/dividend-guide-update-report-<YYYYMMDD>.md`（Windows：`D:\CloudDrive\Codes\projects_center\projects\website-updates-review\dividend-guide\`；同名同日只保留一份，含补跑）。结构见 `update-mechanism.md`「跑完之后必做：更新复盘」。
 
 **跑完更新后必做（2026-10-25 用户确立）**：部署与线上核对通过后，调用 skill `div-tencent-docs-update` 同步腾讯文档 6 张表并回读校验；不建定时任务，收尾固定执行 + 用户随时手动吊起。
 
@@ -60,7 +60,7 @@
 
 ## 治理档案（供 project-governance-review 使用）
 
-- **项目名 / 复盘目录名**：`dividend-guide`（复盘报告写 `Codes/all_coding_projects/governance-review/dividend-guide/<日期>.md`）
+- **项目名 / 复盘目录名**：`dividend-guide`（复盘报告写 `Codes/projects_center/projects/website-updates-review/dividend-guide/dividend-guide-governance-review-<YYYYMMDD>.md`）
 - **主力 Agent 与电脑**：TRAE · Windows（项目根 `D:\CloudDrive\Codes\trae\dividend-guide-website`；Mac 侧 2026-11-08 已收尾，不再参与）。坚果云仍会同步该目录，冲突副本（`*冲突*`）不入库、不部署（已在 `.gitignore` 忽略 `*冲突*`）。
 - **规则文档**：`.trae/rules/project_rules.md`（Agent 规则）+ `docs/reference/*`（格式 / 口径 / 样式）
 - **误操作记录**：`docs/known-issues.md`（`## N. 标题（日期）` 体例）

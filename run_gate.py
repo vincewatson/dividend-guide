@@ -33,7 +33,7 @@ if os.environ.get("SX_GATE_ONLY") == "1":
 
 rec = {}
 try:
-    with open(STATE, encoding="utf-8") as f:
+    with open(STATE, encoding="utf-8-sig") as f:   # 兼容 BOM（2026-11-15）
         rec = json.load(f)
 except Exception:
     rec = {}

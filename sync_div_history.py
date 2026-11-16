@@ -263,6 +263,23 @@ def main():
     codes = get_all_codes()
     code_mkt = get_code_market()
     print('指数数:', len(codes), '（A股最新 {} / 港股最新 {}）'.format(_TARGETS['CN'], _TARGETS['HK']))
+    # 2026-11-15（中央复盘）：单只探针先行。A股旗舰指数还没拿到新交易日的值 ⇒ 整批 + 滞后单查必然全空，直接跳过、记 pending。
+    #   （11-11 两轮 261 次 0 写入；11-15 上午同样全空，下午换账号后立刻取到 —— 「全空」既可能是 Wind 未发布，也可能是账号被限流。）
+    #   关闭：SX_DIV_PROBE=0；全量刷新（SX_FULL_REFRESH=1）不探。
+    probe_code = '000922.CSI'
+    last_dates = get_existing_last_dates()
+    cn_tgt = _TARGETS['CN'].isoformat() if _TARGETS['CN'] else None
+    if (os.environ.get('SX_DIV_PROBE', '1') != '0' and os.environ.get('SX_FULL_REFRESH') != '1'
+            and cn_tgt and last_dates.get(probe_code) and last_dates[probe_code] < cn_tgt):
+        got = _fetch_gap_single(probe_code, last_dates[probe_code], cn_tgt)
+        newest = max(got) if got else None
+        if not newest or newest <= last_dates[probe_code]:
+            print('[探针] {} 在 {}~{} 没有新值 ⇒ 跳过整批与滞后单查（省下约百次空跑），已记 pending 下次重试。'.format(
+                probe_code, last_dates[probe_code], cn_tgt))
+            print('       可能是 Wind 尚未发布，也可能是账号被限流（返回空而不报错）；换账号或稍后探一次即可区分。')
+            wind_client.add_pending()
+            return
+        print('[探针] {} 已有新值到 {}，继续整批拉取'.format(probe_code, newest))
     hist = fetch_history(codes, code_mkt, _TARGETS)
     print('拉取到 {} 个指数的历史数据'.format(len(hist)))
 

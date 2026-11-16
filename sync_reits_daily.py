@@ -29,7 +29,10 @@ CACHE = os.path.join(DATA_DIR, 'reitsDaily.json')
 HIST = os.path.join(DATA_DIR, 'assetHistory.json')
 REITS = os.path.join(DATA_DIR, 'reitsData.json')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+import trade_calendar   # 交易日历（含收盘时间：A股 15:30 前今天不算最新交易日）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
+# 2026-11-15（中央复盘）：只接受「已收盘的最新交易日」及以前的点（11-11 盘中跑两次把盘前快照写成 11-11）
+LAST_CLOSED = (trade_calendar.latest_trading_day('CN') or datetime.date.today()).isoformat()
 SEG_DAYS = 135          # 每段日历天数（≤100 交易日/次）
 BASE_START = '2023-01-01'   # 历史序列统一起点（早于此无意义）
 WORKERS = max(1, int(os.environ.get('SX_WIND_WORKERS', '8')))   # 并发路数（2026-09-26）
@@ -132,7 +135,7 @@ def fetch_range(code, start, end):
         for r in rows:
             if len(r) >= 4 and r[2] is not None and r[3]:
                 d = str(r[3])[:10]
-                if start <= d <= end:
+                if start <= d <= end and d <= LAST_CLOSED:
                     out[d] = float(r[2])
             elif len(r) >= 3 and r[2] is not None:
                 # 2026-10-08：区间仅剩 1 个交易日时 Wind 不返回「日期」列（3 列）→ 无法定位日期。
@@ -172,6 +175,38 @@ def updates_for(code, series, listed, full_mode, today):
     #   导致单日增量被静默略过（节后首个交易日、以及任何「缺口=1 个交易日」的情形必现）。
     #   含 last 可保证区间 ≥2 个交易日 → Wind 带上日期列；重取 last 当天值不变，无害。
     return fetch_since(code, last), 'incr:' + last
+
+
+def trim_unsettled_tail(cache, max_days=5):
+    """尾部「未落定」交易日闸门（2026-11-15 中央复盘）。从最新一天往前逐日检查，不合格就从缓存删掉该日全部点
+    （下次增量会从前一天重取），合格即停：
+      ① 覆盖率：该日有值的只数 < 前一日的 90% ⇒ 中位数会因样本变少假跳（11-12：44/103，产权类 4.74%→5.29%）；
+      ② 重复值：与前一日共有的标的里 ≥80% 数值完全相同 ⇒ Wind 返回的是前一日快照（11-11 晚：84/90 相同）。
+    返回被删日期清单 [(date, n, n_prev, same, common, reason)]。"""
+    codes = cache.get('codes', {})
+    by_day = defaultdict(dict)
+    for c, v in codes.items():
+        for d, val in (v.get('series') or {}).items():
+            by_day[d][c] = val
+    days = sorted(by_day)
+    removed = []
+    for _ in range(max_days):
+        if len(days) < 2:
+            break
+        d, prev = days[-1], days[-2]
+        cur, pv = by_day[d], by_day[prev]
+        common = [c for c in cur if c in pv]
+        same = sum(1 for c in common if cur[c] == pv[c])
+        low_cov = len(cur) < 0.9 * len(pv)
+        stale = len(common) >= 10 and same >= 0.8 * len(common)
+        if not (low_cov or stale):
+            break
+        reason = '覆盖不足 %d/%d' % (len(cur), len(pv)) if low_cov else '与前一日重复 %d/%d' % (same, len(common))
+        for c in cur:
+            codes[c]['series'].pop(d, None)
+        removed.append((d, len(cur), len(pv), same, len(common), reason))
+        days.pop()
+    return removed
 
 
 def rebuild_medians(cache):
@@ -264,6 +299,9 @@ def main():
         else:
             print('  [{:2d}/{:2d}] {} {} {} 无新增（最新 {}）'.format(
                 i, n_codes, ts(), code, name, new_last or '-'), flush=True)
+    for d, n, n_prev, same, common, reason in trim_unsettled_tail(cache):
+        print('  [闸门] {} 未落定（{}）→ 已从缓存删除该日 {} 个点，不进中位数，下次增量重取'.format(d, reason, n), flush=True)
+        wind_client.add_pending()
     save_cache(cache)
 
     # 重算中位数并更新 assetHistory

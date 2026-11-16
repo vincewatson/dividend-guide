@@ -296,10 +296,13 @@ def build(today, mode="daily"):
         warn.append("检查上游 digest-db.json 失败：%s" % _e)
 
     # --- 指数（A股+港股）---
+    # 2026-11-15（中央复盘）：改 strict。当前值取的是「全部指数里最新的日期」，A股/港股谁有新交易日谁的指数就会到 both，
+    #   不需要再给 2 天跨市场容差；原 market 口径在 11-11（11-09 vs 11-10）、11-15（11-12 vs 11-13）两次把落后一天判成
+    #   「✅ 最新」并建议跳过步骤 5、6，指数当天漏更。
     dh, dh_n, dh_tot = r_divhistory()
-    add("指数股息率 divHistory", 5, dh, both, "market", "%d/%d 只" % (dh_n, dh_tot))
+    add("指数股息率 divHistory", 5, dh, both, "strict", "%d/%d 只" % (dh_n, dh_tot))
     dc, dc_n, dc_tot = r_index_field("dailyDate")
-    add("指数涨跌幅 dailyChange", 6, dc, both, "market", "%d/%d 只" % (dc_n, dc_tot))
+    add("指数涨跌幅 dailyChange", 6, dc, both, "strict", "%d/%d 只" % (dc_n, dc_tot))
 
     # --- 货基 / 余额宝（A股口径）---
     # 2026-10-10 修正：这些是单一市场数据，原先套用 2 天跨市场容差 ⇒ 落后 1 个交易日也判“最新”、被建议跳过

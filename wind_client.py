@@ -27,6 +27,16 @@
 
 自测：`python3 wind_client.py`（用量/预算报表）；`--pending`（打印待补步骤）；`--clear-pending`。
 探活：`python3 wind_client.py --probe`（1 次真实取数并检查返回内容；2026-10-25 起，不再只看返回码）。
+
+熔断（2026-11-15 中央复盘落地；此前只写在文档里、代码未实现）：
+    - 收到 Wind「短时间内异常调用次数过多」→ **立即熔断**；连续 SX_WIND_BREAK_N 次（默认 8）调用失败
+      （返回码 ≠ 0 或返回体 ok=false）→ 熔断。成功一次即清零。SX_WIND_BREAK_N=0 关闭。
+    - 熔断状态写 `.wind_breaker.json`，冷却 SX_WIND_BREAK_COOLDOWN 秒（默认 900）内**跨步骤生效**：
+      之后任何 `run()` 都不再发起真实调用，记入 pending 后抛 `WindBreakerOpen`。
+    - `WindBreakerOpen` 继承 BaseException（不是 Exception），各脚本的 `except Exception: sleep; retry`
+      拦不住它 ⇒ 当前步骤立即失败退出、不写半截数据；流水线按既有「失败保留旧值、下次补 pending」处理。
+      （11-08 产品行情空转 50 分钟 / 1129 次、11-11 指数股息率 261 次空跑，都是重试风暴。）
+    - 手动解除：`python3 wind_client.py --clear-breaker`。
 """
 import datetime
 import json
@@ -51,8 +61,18 @@ BUDGET = int(os.environ.get("SX_WIND_BUDGET", str(_DEFAULT_BUDGET[MODE])))
 # 全局每日上限（守卫层）与「当天合计」上限：0 = 不限
 CAP = int(os.environ.get("SX_WIND_DAILY_CAP", "0"))
 DAY_CAP = int(os.environ.get("SX_WIND_DAY_CAP", "0"))
+# 熔断（见文件头）
+BREAKER_PATH = os.path.join(BASE, ".wind_breaker.json")
+BREAK_N = int(os.environ.get("SX_WIND_BREAK_N", "8"))
+BREAK_COOLDOWN = int(os.environ.get("SX_WIND_BREAK_COOLDOWN", "900"))
+THROTTLE_MARKS = ("异常调用次数过多", "请求暂时受限")
 
 _LOCK = threading.Lock()
+_FAIL_STREAK = [0]
+
+
+class WindBreakerOpen(BaseException):
+    """熔断中：不再发起 Wind 调用。继承 BaseException，避免被脚本的 `except Exception` 重试循环吞掉。"""
 
 
 def _today():
@@ -175,13 +195,64 @@ def _refused(cmd, kwargs):
                                        (msg + "\n") if text else (msg + "\n").encode("utf-8"))
 
 
+def breaker_state():
+    """熔断状态：未熔断返回 None；熔断中返回 {"until","reason","at"}（过期自动视为未熔断）。"""
+    try:
+        with open(BREAKER_PATH, encoding="utf-8-sig") as f:
+            st = json.load(f)
+        return st if float(st.get("until", 0)) > time.time() else None
+    except Exception:
+        return None
+
+
+def clear_breaker():
+    try:
+        os.remove(BREAKER_PATH)
+    except FileNotFoundError:
+        pass
+    _FAIL_STREAK[0] = 0
+
+
+def _trip(reason):
+    st = {"until": time.time() + BREAK_COOLDOWN, "reason": reason,
+          "at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "step": _step()}
+    try:
+        with open(BREAKER_PATH, "w", encoding="utf-8") as f:
+            json.dump(st, f, ensure_ascii=False)
+    except Exception:
+        pass
+    sys.stderr.write("[wind_client] ⛔ 熔断：%s —— %d 分钟内本流水线不再调用 Wind，当前步骤记入 pending、保留旧值"
+                     "（手动解除：python3 wind_client.py --clear-breaker）\n" % (reason, BREAK_COOLDOWN // 60))
+
+
+def _check_result(cp):
+    """按返回判定成功/失败并维护熔断计数。"""
+    out = cp.stdout if isinstance(cp.stdout, str) else (cp.stdout or b"").decode("utf-8", "ignore")
+    err = cp.stderr if isinstance(cp.stderr, str) else (cp.stderr or b"").decode("utf-8", "ignore")
+    blob = (out or "") + (err or "")
+    if any(m in blob for m in THROTTLE_MARKS):
+        _trip("Wind 返回「短时间内异常调用次数过多」（服务端限流）")
+        return
+    failed = cp.returncode != 0 or '"ok": false' in out[:300] or '"ok":false' in out[:300]
+    with _LOCK:
+        _FAIL_STREAK[0] = _FAIL_STREAK[0] + 1 if failed else 0
+        n = _FAIL_STREAK[0]
+    if failed and BREAK_N > 0 and n >= BREAK_N:
+        _trip("连续 %d 次调用失败" % n)
+
+
 def run(cmd, **kwargs):
     """透传 `subprocess.run`，并把本次 Wind 调用计入当日用量。
 
     额度用尽（本档位当日调用 ≥ 预算，且预算 > 0）时 **不再发起真实调用**：记入 pending 并返回 rc=3 的
     合成 CompletedProcess，使调用方按既有「失败/保留旧值」路径安全降级。
+    熔断中（见文件头）：记入 pending 后抛 `WindBreakerOpen`，当前步骤立即失败退出。
     参数/返回值其余与 `subprocess.run` 一致。
     """
+    st = breaker_state()
+    if st:
+        add_pending()
+        raise WindBreakerOpen("Wind 熔断中（%s，%s 起）" % (st.get("reason"), st.get("at")))
     if (BUDGET > 0 and used_mode() >= BUDGET) or (DAY_CAP > 0 and used_today() >= DAY_CAP):
         add_pending()
         return _refused(cmd, kwargs)
@@ -191,6 +262,13 @@ def run(cmd, **kwargs):
         record(1, time.time() - t0)
     except Exception:
         pass
+    try:
+        _check_result(cp)
+    except Exception:
+        pass
+    if breaker_state():
+        add_pending()
+        raise WindBreakerOpen("Wind 已熔断")
     return cp
 
 
@@ -211,6 +289,9 @@ def report(day=None):
     pend = load_pending()
     if pend:
         out.append("待补(pending): " + " ".join(pend))
+    st = breaker_state()
+    out.append("熔断: " + ("⛔ 熔断中（%s，%s 起，步骤 %s）" % (st.get("reason"), st.get("at"), st.get("step"))
+                           if st else "未熔断（连续失败 %d 次或遇限流即熔断）" % BREAK_N))
     return "\n".join(out)
 
 
@@ -240,6 +321,9 @@ def probe():
     try:
         cp = run(["node", CLI, "call", "index_data", "get_index_kline", json.dumps(q, ensure_ascii=False)],
                  capture_output=True, text=True, timeout=90, env=_probe_env(), cwd=skill)
+    except WindBreakerOpen as e:
+        print("[探活] ⛔ %s —— 冷却结束前不要整跑；确认已恢复可 `python3 wind_client.py --clear-breaker`" % e)
+        return 2
     except Exception as e:
         print("[探活] ✗ 调用失败：%s" % e)
         return 2
@@ -279,6 +363,10 @@ def main():
     if "--clear-pending" in argv:
         clear_pending()
         print("[wind_client] pending 已清空")
+        return
+    if "--clear-breaker" in argv:
+        clear_breaker()
+        print("[wind_client] 熔断已解除")
         return
     print(report())
 
