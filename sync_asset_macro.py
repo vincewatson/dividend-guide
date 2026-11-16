@@ -275,12 +275,21 @@ def fetch_bond_yield_10y_bond(lo=9.0, hi=10.6, days=45):
                 by.setdefault(str(r[ci]), [m, {}])[1][norm_date(r[di])] = round(float(v), 4)
             except (TypeError, ValueError):
                 continue
-        cands = [(m, len(ser), code, ser) for code, (m, ser) in by.items() if len(ser) >= 3]
+        cands = []
+        for code, (m, ser) in by.items():
+            if not ser:
+                continue
+            # 多个交易日数值完全不变 = 僵尸券（无成交，Wind 沿用旧值，如「07国债06」常年 4.2665），排除
+            if len(ser) >= 2 and len(set(ser.values())) < 2:
+                continue
+            cands.append((len(ser), m, code, ser))
         if not cands:
             continue
-        ib = [c for c in cands if c[2].upper().endswith('.IB')] or cands
-        ib.sort(key=lambda c: (c[0], c[1]))
-        ser = ib[-1][3]
+        latest = max(max(c[3]) for c in cands)
+        cands = [c for c in cands if latest in c[3]] or cands      # 必须在最新一天有值
+        # 覆盖点数最多（避免选中刚发行、只有 1 个点的新券）→ 剩余期限最接近 10 年 → 银行间券优先
+        cands.sort(key=lambda c: (c[0], c[1], 1 if c[2].upper().endswith('.IB') else 0))
+        ser = cands[-1][3]
         score = (max(ser), len(ser))
         if best_score is None or score > best_score:
             best, best_score = ser, score

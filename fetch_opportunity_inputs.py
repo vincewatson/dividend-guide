@@ -198,7 +198,7 @@ def parse_bond_yield(inner, lo=9.0, hi=10.6):
     EDB「中债国债到期收益率:10年」(S0059749) 及中债指标全族对本账号无权限（换新 Key 后实测仍无），
     债券层行情有权限，故用活跃券收盘 YTM 续接；与中债 10 年曲线基差 −0.8~−1.6bp，水平一致。
     同一只债会在 .SH/.SZ/.IB/.BJ 多个场所重复出现（北交所报价明显偏高），**按券选一只**：
-    剩余期限最接近 10 年的银行间券（.IB），点数太少的不参与。
+    优先覆盖点数最多的（避免选中刚发行、只有 1 个点的新券），同等覆盖下取剩余期限最接近 10 年的、银行间券优先。
     """
     cols, rows = _table(inner)
     ci = next((i for i, n in enumerate(cols) if "代码" in n), None)
@@ -215,12 +215,21 @@ def parse_bond_yield(inner, lo=9.0, hi=10.6):
         if m is None or not (lo <= m <= hi) or v is None:
             continue
         by.setdefault(str(r[ci]), [m, {}])[1][_norm_date(r[di])] = v
-    cands = [(m, len(ser), code, ser) for code, (m, ser) in by.items() if len(ser) >= 3]
+    cands = []
+    for code, (m, ser) in by.items():
+        if not ser:
+            continue
+        # 多个交易日数值完全不变 = 僵尸券（无成交，Wind 沿用旧值，如「07国债06」常年 4.2665），排除
+        if len(ser) >= 2 and len(set(ser.values())) < 2:
+            continue
+        cands.append((len(ser), m, code, ser))
     if not cands:
         return {}
-    ib = [c for c in cands if c[2].upper().endswith(".IB")] or cands
-    ib.sort(key=lambda c: (c[0], c[1]))
-    return ib[-1][3]
+    latest = max(max(c[3]) for c in cands)
+    cands = [c for c in cands if latest in c[3]] or cands      # 必须在最新一天有值
+    # 覆盖点数最多（避免选中刚发行、只有 1 个点的新券）→ 剩余期限最接近 10 年 → 银行间券优先
+    cands.sort(key=lambda c: (c[0], c[1], 1 if c[2].upper().endswith(".IB") else 0))
+    return cands[-1][3]
 
 
 # ------------------------------------------------------------------ 取数
