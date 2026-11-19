@@ -219,14 +219,22 @@ def _fetch_gap_single(code, last_date, target):
         segs.append((cur.isoformat(), seg_end.isoformat()))
         cur = seg_end + datetime.timedelta(days=1)
     name = get_code_name().get(code, '')
-    label = ('%s %s' % (code, name)).strip()
+    labels = []
+    for nm in (name, name + '指数' if name and '指数' not in name else ''):
+        lb = ('%s %s' % (code, nm)).strip()
+        if lb and lb not in labels:
+            labels.append(lb)
     out = {}
     for s, e in segs:
-        q = '{} {}至{}的股息率历史数据按交易日列出，给出每个交易日的值'.format(label, s, e)
-        grouped = call_wind(q)
-        pts = grouped.get(code)
-        if pts is None and len(grouped) == 1:
-            pts = next(iter(grouped.values()))
+        pts = {}
+        for label in labels:            # 简称不足以让 Wind 认出指数时，追加「指数」再试一次（2026-11-19）
+            q = '{} {}至{}的股息率历史数据按交易日列出，给出每个交易日的值'.format(label, s, e)
+            grouped = call_wind(q)
+            pts = grouped.get(code)
+            if pts is None and len(grouped) == 1:
+                pts = next(iter(grouped.values()))
+            if pts:
+                break
         for p in (pts or []):
             if s <= p['date'] <= e:
                 out[p['date']] = p['yield']
