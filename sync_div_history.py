@@ -122,6 +122,16 @@ def call_wind(question):
     return {}
 
 
+def get_code_name():
+    """code → 指数简称（2026-11-19：股息率自然语言查询带上简称更稳；只给代码时 Wind 偶尔
+    会解析成「成分股股息率」，返回一堆股票而不是指数序列，表现为「无新增」空跑）。"""
+    try:
+        with io.open(INDEX_JSON, 'r', encoding='utf-8') as f:
+            return {x['code']: (x.get('name') or '') for x in json.load(f)}
+    except Exception:
+        return {}
+
+
 def get_existing_last_dates():
     """读取 indexData.json 中每个指数 divHistory 的最后日期（用于增量拉取）"""
     with io.open(INDEX_JSON, 'r', encoding='utf-8') as f:
@@ -135,6 +145,7 @@ def get_existing_last_dates():
 
 def _fetch_batch(batch, last_dates, full, code_mkt, targets, today, max_start):
     """单个批次：**按每只指数自身市场的最新交易日**切片拉取，返回 {code: [{'date','yield'}]}（无新增者空列表占位）。"""
+    names = get_code_name()
     out = {}
     starts = {}
     ends = {}
@@ -154,8 +165,9 @@ def _fetch_batch(batch, last_dates, full, code_mkt, targets, today, max_start):
             seg_end = min(cur + datetime.timedelta(days=SEG_DAYS), overall_end)
             active = [c for c in starts if starts[c] <= seg_end and cur <= ends[c]]
             if active:
-                q = '、'.join(active) + ' {}至{}的股息率历史数据按交易日列出，给出每个交易日的值'.format(
-                    cur.isoformat(), seg_end.isoformat())
+                q = '、'.join(('%s %s' % (c, names.get(c, ''))).strip() for c in active) + \
+                    ' {}至{}的股息率历史数据按交易日列出，给出每个交易日的值'.format(
+                        cur.isoformat(), seg_end.isoformat())
                 grouped = call_wind(q)
                 for code in active:
                     lo = max(cur, starts[code]).isoformat()
@@ -194,7 +206,10 @@ def fetch_history(codes, code_mkt, targets):
 
 
 def _fetch_gap_single(code, last_date, target):
-    """单指数拉取 [last_date, target] 日频段（分段 ≤90 天）。返回 {date: yield}。"""
+    """单指数拉取 [last_date, target] 日频段（分段 ≤90 天）。返回 {date: yield}。
+
+    2026-11-19：查询串带上指数简称（与 _fetch_batch 一致）。只给代码时 Wind 偶尔解析成
+    「成分股股息率」返回一堆股票，表现为空跑（如 000922.CSI → {}）。"""
     start = datetime.date.fromisoformat(last_date)
     end = datetime.date.fromisoformat(target)
     segs = []
@@ -203,9 +218,11 @@ def _fetch_gap_single(code, last_date, target):
         seg_end = min(cur + datetime.timedelta(days=90), end)
         segs.append((cur.isoformat(), seg_end.isoformat()))
         cur = seg_end + datetime.timedelta(days=1)
+    name = get_code_name().get(code, '')
+    label = ('%s %s' % (code, name)).strip()
     out = {}
     for s, e in segs:
-        q = '{} {}至{}的股息率历史数据按交易日列出，给出每个交易日的值'.format(code, s, e)
+        q = '{} {}至{}的股息率历史数据按交易日列出，给出每个交易日的值'.format(label, s, e)
         grouped = call_wind(q)
         pts = grouped.get(code)
         if pts is None and len(grouped) == 1:
