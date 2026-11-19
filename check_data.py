@@ -313,6 +313,20 @@ ah = jload('assetHistory.json')
 if ah and isinstance(ah, dict):
     ah_empty = [k for k, v in ah.items() if isinstance(v, list) and not v]
     check('assetHistory 无空序列', len(ah_empty) == 0, f'空序列: {ah_empty}' if ah_empty else f'{len(ah)} 个序列均非空')
+    # 10 年期国债日变动异常（2026-11-19 确立）：债券层选券若误中老券/僵尸券（如 07国债06 = 4.27%），
+    #   会把 1.6% 写成 4.27%。真实国债单日变动极少超过 30bp，超过即拦下不部署。
+    _ys = (ah.get('10年期国债到期收益率') or [])[-30:]
+    _bad = []
+    for _i in range(1, len(_ys)):
+        try:
+            _d = float(_ys[_i]['yield']) - float(_ys[_i - 1]['yield'])
+        except (TypeError, ValueError, KeyError):
+            continue
+        if abs(_d) > 0.30:
+            _bad.append('%s %.4f%%→%.4f%%' % (_ys[_i]['date'], _ys[_i - 1]['yield'], _ys[_i]['yield']))
+    check('assetHistory 10年期国债日变动 ≤30bp', not _bad,
+          ('异常跳变: ' + '; '.join(_bad[:3])) if _bad else '近 30 个点无异常跳变',
+          step_label='sync_asset_macro.py')
 
 yh = jload('yuebaoHistory.json')
 if yh:

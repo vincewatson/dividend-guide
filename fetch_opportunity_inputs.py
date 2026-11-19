@@ -198,7 +198,9 @@ def parse_bond_yield(inner, lo=9.0, hi=10.6):
     EDB「中债国债到期收益率:10年」(S0059749) 及中债指标全族对本账号无权限（换新 Key 后实测仍无），
     债券层行情有权限，故用活跃券收盘 YTM 续接；与中债 10 年曲线基差 −0.8~−1.6bp，水平一致。
     同一只债会在 .SH/.SZ/.IB/.BJ 多个场所重复出现（北交所报价明显偏高），**按券选一只**：
-    优先覆盖点数最多的（避免选中刚发行、只有 1 个点的新券），同等覆盖下取剩余期限最接近 10 年的、银行间券优先。
+    不同值最多（真实成交）→ 覆盖点数最多 → 剩余期限最接近 10 年 → 银行间券优先。
+    （2026-11-19：「只变过一两次值」的老券如 07国债06 也会被旧规则误选 → 改为按不同值个数排序，
+      不同值少于覆盖点数一半的视为僵尸券。）
     """
     cols, rows = _table(inner)
     ci = next((i for i, n in enumerate(cols) if "代码" in n), None)
@@ -219,17 +221,19 @@ def parse_bond_yield(inner, lo=9.0, hi=10.6):
     for code, (m, ser) in by.items():
         if not ser:
             continue
-        # 多个交易日数值完全不变 = 僵尸券（无成交，Wind 沿用旧值，如「07国债06」常年 4.2665），排除
-        if len(ser) >= 2 and len(set(ser.values())) < 2:
+        vals = [v for v in ser.values() if v is not None]
+        distinct = len(set(vals))
+        # 僵尸券（无成交，Wind 沿用旧值）：不同值个数不足覆盖点数的一半 → 排除
+        if len(vals) >= 3 and distinct < max(2, len(vals) // 2):
             continue
-        cands.append((len(ser), m, code, ser))
+        cands.append((distinct, len(ser), m, code, ser))
     if not cands:
         return {}
-    latest = max(max(c[3]) for c in cands)
-    cands = [c for c in cands if latest in c[3]] or cands      # 必须在最新一天有值
-    # 覆盖点数最多（避免选中刚发行、只有 1 个点的新券）→ 剩余期限最接近 10 年 → 银行间券优先
-    cands.sort(key=lambda c: (c[0], c[1], 1 if c[2].upper().endswith(".IB") else 0))
-    return cands[-1][3]
+    latest = max(max(c[4]) for c in cands)
+    cands = [c for c in cands if latest in c[4]] or cands      # 必须在最新一天有值
+    # 不同值最多（真实成交）→ 覆盖点数最多 → 剩余期限最接近 10 年 → 银行间券优先
+    cands.sort(key=lambda c: (c[0], c[1], -abs(c[2] - 10.0), 1 if c[3].upper().endswith(".IB") else 0))
+    return cands[-1][4]
 
 
 # ------------------------------------------------------------------ 取数
@@ -255,7 +259,10 @@ def fetch_one(api, key, start, end):
             print(f"  [i] EDB 10 年期国债不可用（{str(e)[:50]}）→ 改用债券层活跃券收盘价收益率", flush=True)
             pts = {}
         if not pts:
-            q = (f"查询当前活跃的10年期中国国债，自{start.isoformat()}至{end.isoformat()}"
+            # 2026-11-19：选券需要「是否真实成交」的判据，缺口只有 1~3 天时点数太少（僵尸券只差一两次值也能混过）
+            #   → 查询起点最少往前取 30 天，用于评估活跃度，取到的值仍只保留 [start, end]。
+            q_start = min(start, dt.date.today() - dt.timedelta(days=30))
+            q = (f"查询当前活跃的10年期中国国债，自{q_start.isoformat()}至{end.isoformat()}"
                  "每日收盘价收益率，按交易日列出")
             pts = parse_bond_yield(api.call("bond_data", "get_bond_market_data", {"question": q}))
         return {d: float(v) / 100 for d, v in pts.items() if start.isoformat() <= d <= end.isoformat()}

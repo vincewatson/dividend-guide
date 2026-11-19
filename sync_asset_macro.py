@@ -57,10 +57,11 @@ def ts():
 
 
 def atomic_write_json(path, obj):
-    """原子写入（临时文件 + os.replace），避免坚果云同步锁导致半截文件。"""
+    """原子写入（临时文件 + os.replace），避免坚果云同步锁导致半截文件。
+    2026-11-19：改为紧凑单行，与 data/*.json 统一格式（原 indent=1 会让每次日更产生 3.6 万行差异）。"""
     fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), suffix='.tmp')
     with os.fdopen(fd, 'w', encoding='utf-8') as f:
-        json.dump(obj, f, ensure_ascii=False, indent=1)
+        json.dump(obj, f, ensure_ascii=False)
     os.replace(tmp, path)
 
 
@@ -244,7 +245,10 @@ def fetch_bond_yield_10y_bond(lo=9.0, hi=10.6, days=45):
     水平一致，可直接拼接；口径标注为「活跃 10 年期国债收盘价收益率」。
     只取近 days 天：历史由中央库导出提供，长窗口会被 Wind 截断在最早的 100 行。
     同一只债在 .SH/.SZ/.IB/.BJ 多场所重复出现（北交所报价偏高），**按券选一只**：
-    剩余期限最接近 10 年的银行间券（.IB），点数太少的不参与。
+    取值变化最频繁（真实成交）→ 覆盖点数最多 → 剩余期限最接近 10 年 → 银行间券优先。
+    2026-11-19 修：原「多日数值完全相同即僵尸券」只剔除恒值券，漏掉「只变过一两次」的老券
+    （如 07国债06 = 2007 年发的 30 年期，剩余 10.49 年，31 个交易日只有 2 个不同值 4.2665/4.2686），
+    曾把 10 年期国债写成 4.27%。改为按「不同值个数」排序，并要求至少覆盖点数的一半。
     """
     start = (datetime.date.fromisoformat(END) - datetime.timedelta(days=days)).isoformat()
     inner = call_wind('bond_data', 'get_bond_market_data',
@@ -279,18 +283,20 @@ def fetch_bond_yield_10y_bond(lo=9.0, hi=10.6, days=45):
         for code, (m, ser) in by.items():
             if not ser:
                 continue
-            # 多个交易日数值完全不变 = 僵尸券（无成交，Wind 沿用旧值，如「07国债06」常年 4.2665），排除
-            if len(ser) >= 2 and len(set(ser.values())) < 2:
+            vals = [v for v in ser.values() if v is not None]
+            distinct = len(set(vals))
+            # 僵尸券（无成交，Wind 沿用旧值）：不同值个数不足覆盖点数的一半 → 排除
+            if len(vals) >= 3 and distinct < max(2, len(vals) // 2):
                 continue
-            cands.append((len(ser), m, code, ser))
+            cands.append((distinct, len(ser), m, code, ser))
         if not cands:
             continue
-        latest = max(max(c[3]) for c in cands)
-        cands = [c for c in cands if latest in c[3]] or cands      # 必须在最新一天有值
-        # 覆盖点数最多（避免选中刚发行、只有 1 个点的新券）→ 剩余期限最接近 10 年 → 银行间券优先
-        cands.sort(key=lambda c: (c[0], c[1], 1 if c[2].upper().endswith('.IB') else 0))
-        ser = cands[-1][3]
-        score = (max(ser), len(ser))
+        latest = max(max(c[4]) for c in cands)
+        cands = [c for c in cands if latest in c[4]] or cands      # 必须在最新一天有值
+        # 不同值最多（真实成交）→ 覆盖点数最多 → 剩余期限最接近 10 年 → 银行间券优先
+        cands.sort(key=lambda c: (c[0], c[1], -abs(c[2] - 10.0), 1 if c[3].upper().endswith('.IB') else 0))
+        ser = cands[-1][4]
+        score = (len(ser),)
         if best_score is None or score > best_score:
             best, best_score = ser, score
     return [{'date': k, 'yield': best[k]} for k in sorted(best)]
