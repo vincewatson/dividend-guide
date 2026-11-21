@@ -124,6 +124,19 @@ def record(n=1, sec=0.0, step=None):
         _save(obj)
 
 
+def _log_call(step, sec, rc, throttled):
+    """逐次调用留痕（2026-11-21）：`.wind_usage/calls-<日期>.jsonl`，每行 {t, step, sec, rc, throttle}。
+    仅用于分析「短时间内异常调用次数过多」的触发条件（同一时间窗内的调用密度）；失败不影响取数。"""
+    try:
+        os.makedirs(USAGE_DIR, exist_ok=True)
+        rec = {"t": round(time.time(), 3), "step": step, "sec": round(float(sec), 2),
+               "rc": rc, "throttle": bool(throttled)}
+        with open(os.path.join(USAGE_DIR, "calls-%s.jsonl" % _today()), "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 def used_today():
     """当日总调用数（跨档位）。"""
     return int(load().get("total", 0))
@@ -225,12 +238,18 @@ def _trip(reason):
                      "（手动解除：python3 wind_client.py --clear-breaker）\n" % (reason, BREAK_COOLDOWN // 60))
 
 
-def _check_result(cp):
-    """按返回判定成功/失败并维护熔断计数。"""
+def _is_throttled(cp):
+    """返回体/错误里是否出现限流文案。"""
     out = cp.stdout if isinstance(cp.stdout, str) else (cp.stdout or b"").decode("utf-8", "ignore")
     err = cp.stderr if isinstance(cp.stderr, str) else (cp.stderr or b"").decode("utf-8", "ignore")
     blob = (out or "") + (err or "")
-    if any(m in blob for m in THROTTLE_MARKS):
+    return any(m in blob for m in THROTTLE_MARKS)
+
+
+def _check_result(cp):
+    """按返回判定成功/失败并维护熔断计数。"""
+    out = cp.stdout if isinstance(cp.stdout, str) else (cp.stdout or b"").decode("utf-8", "ignore")
+    if _is_throttled(cp):
         _trip("Wind 返回「短时间内异常调用次数过多」（服务端限流）")
         return
     failed = cp.returncode != 0 or '"ok": false' in out[:300] or '"ok":false' in out[:300]
@@ -258,8 +277,13 @@ def run(cmd, **kwargs):
         return _refused(cmd, kwargs)
     t0 = time.time()
     cp = subprocess.run(cmd, **kwargs)
+    dt = time.time() - t0
     try:
-        record(1, time.time() - t0)
+        record(1, dt)
+    except Exception:
+        pass
+    try:
+        _log_call(_step(), dt, getattr(cp, "returncode", None), _is_throttled(cp))
     except Exception:
         pass
     try:

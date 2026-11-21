@@ -265,7 +265,10 @@ def fetch_one(api, key, start, end):
             q = (f"查询当前活跃的10年期中国国债，自{q_start.isoformat()}至{end.isoformat()}"
                  "每日收盘价收益率，按交易日列出")
             pts = parse_bond_yield(api.call("bond_data", "get_bond_market_data", {"question": q}))
-        return {d: float(v) / 100 for d, v in pts.items() if start.isoformat() <= d <= end.isoformat()}
+        # 只收 A 股交易日（2026-11-21）：债券层会给周末/节假日补一行「沿用上一交易日」的快照，须剔除
+        ok_days = {x.isoformat() for x in _trading_days(start, end)}
+        return {d: float(v) / 100 for d, v in pts.items()
+                if start.isoformat() <= d <= end.isoformat() and d in ok_days}
     # 自然语言日频查询：区间只含 1 个交易日时 Wind 可能不返回「日期」列（REITs 10-08 实测，见 sync_reits_daily）。
     # → 起点往前多取 7 天，保证区间 ≥2 个交易日；多取的天数在下面按 start 过滤掉，不重复写回。
     q_start = start - dt.timedelta(days=7) if how != "kline" else start

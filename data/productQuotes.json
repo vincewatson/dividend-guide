@@ -1,7 +1,7 @@
 {
  "schema": 1,
  "note": "产品行情快照库（只追加不覆盖）。键=产品代码，值=按日期升序的快照数组；date=最新交易日，dailyChange=当日涨跌幅(小数)，yrChange=年初至今涨跌幅(小数)，source=来源。",
- "updatedAt": "2026-11-19 20:44:38",
+ "updatedAt": "2026-11-21 15:50:37",
  "quotes": {
   "158023.OF": [
    {
@@ -80,6 +80,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0004,
     "yrChange": 0.0689,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0025,
+    "yrChange": 0.0716,
     "source": "wind"
    }
   ],
@@ -161,6 +167,12 @@
     "dailyChange": -0.0065,
     "yrChange": 0.0302,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0101,
+    "yrChange": 0.0198,
+    "source": "wind"
    }
   ],
   "159083.OF": [
@@ -228,6 +240,12 @@
     "date": "2026-11-18",
     "dailyChange": 0.0005,
     "yrChange": 0.0616,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0036,
+    "yrChange": 0.0552,
     "source": "wind"
    }
   ],
@@ -309,6 +327,12 @@
     "dailyChange": -0.0063,
     "yrChange": 0.0069,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0099,
+    "yrChange": -0.0031,
+    "source": "wind"
    }
   ],
   "159118.OF": [
@@ -388,6 +412,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0065,
     "yrChange": 0.0119,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0101,
+    "yrChange": 0.0016,
     "source": "wind"
    }
   ],
@@ -469,6 +499,12 @@
     "dailyChange": -0.0096,
     "yrChange": 0.0108,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0115,
+    "yrChange": -0.0009,
+    "source": "wind"
    }
   ],
   "159143.OF": [
@@ -549,6 +585,12 @@
     "dailyChange": -0.0105,
     "yrChange": -0.0239,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0118,
+    "yrChange": -0.0354,
+    "source": "wind"
    }
   ],
   "159188.OF": [
@@ -622,6 +664,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0031,
     "yrChange": -0.0239,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0106,
+    "yrChange": -0.0342,
     "source": "wind"
    }
   ],
@@ -703,6 +751,12 @@
     "dailyChange": 0.0028,
     "yrChange": 0.1332,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0105,
+    "yrChange": 0.1213,
+    "source": "wind"
    }
   ],
   "159209.OF": [
@@ -782,6 +836,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0035,
     "yrChange": -0.078,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0092,
+    "yrChange": -0.0865,
     "source": "wind"
    }
   ],
@@ -863,6 +923,12 @@
     "dailyChange": -0.0064,
     "yrChange": 0.0106,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0102,
+    "yrChange": 0.0003,
+    "source": "wind"
    }
   ],
   "159228.OF": [
@@ -943,6 +1009,12 @@
     "dailyChange": -0.0026,
     "yrChange": 0.0467,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0038,
+    "yrChange": 0.0427,
+    "source": "wind"
    }
   ],
   "159266.OF": [
@@ -1016,6 +1088,12 @@
     "date": "2026-11-18",
     "dailyChange": 0.0016,
     "yrChange": 0.0034,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0101,
+    "yrChange": -0.017,
     "source": "wind"
    }
   ],
@@ -1097,6 +1175,12 @@
     "dailyChange": -0.0096,
     "yrChange": 0.0064,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0115,
+    "yrChange": -0.0052,
+    "source": "wind"
    }
   ],
   "159281.OF": [
@@ -1170,6 +1254,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0104,
     "yrChange": -0.0068,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0101,
+    "yrChange": -0.0168,
     "source": "wind"
    }
   ],
@@ -1251,6 +1341,12 @@
     "dailyChange": -0.0006,
     "yrChange": 0.085,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0067,
+    "yrChange": 0.0923,
+    "source": "wind"
    }
   ],
   "159302.OF": [
@@ -1330,6 +1426,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0094,
     "yrChange": 0.0053,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0113,
+    "yrChange": -0.006,
     "source": "wind"
    }
   ],
@@ -1411,6 +1513,12 @@
     "dailyChange": -0.0026,
     "yrChange": 0.0517,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0036,
+    "yrChange": 0.0479,
+    "source": "wind"
    }
   ],
   "159331.OF": [
@@ -1490,6 +1598,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0096,
     "yrChange": 0.0072,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0116,
+    "yrChange": -0.0045,
     "source": "wind"
    }
   ],
@@ -1571,6 +1685,12 @@
     "dailyChange": -0.0031,
     "yrChange": 0.0871,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0064,
+    "yrChange": 0.0941,
+    "source": "wind"
    }
   ],
   "159333.OF": [
@@ -1651,6 +1771,12 @@
     "dailyChange": -0.0103,
     "yrChange": -0.0062,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0103,
+    "yrChange": -0.0164,
+    "source": "wind"
    }
   ],
   "159336.OF": [
@@ -1724,6 +1850,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0053,
     "yrChange": 0.0826,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0011,
+    "yrChange": 0.0814,
     "source": "wind"
    }
   ],
@@ -1805,6 +1937,12 @@
     "dailyChange": -0.0004,
     "yrChange": 0.1095,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0024,
+    "yrChange": 0.1122,
+    "source": "wind"
    }
   ],
   "159515.OF": [
@@ -1884,6 +2022,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0059,
     "yrChange": 0.0612,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0031,
+    "yrChange": 0.058,
     "source": "wind"
    }
   ],
@@ -1965,6 +2109,12 @@
     "dailyChange": -0.0013,
     "yrChange": 0.0839,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0032,
+    "yrChange": 0.0874,
+    "source": "wind"
    }
   ],
   "159545.OF": [
@@ -2044,6 +2194,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0082,
     "yrChange": -0.0702,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0135,
+    "yrChange": -0.0827,
     "source": "wind"
    }
   ],
@@ -2125,6 +2281,12 @@
     "dailyChange": -0.0013,
     "yrChange": 0.0865,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0032,
+    "yrChange": 0.09,
+    "source": "wind"
    }
   ],
   "159549.OF": [
@@ -2192,6 +2354,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0025,
     "yrChange": 0.0494,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0038,
+    "yrChange": 0.0454,
     "source": "wind"
    }
   ],
@@ -2266,6 +2434,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0073,
     "yrChange": 0.05,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0126,
+    "yrChange": 0.0368,
     "source": "wind"
    }
   ],
@@ -2347,6 +2521,12 @@
     "dailyChange": -0.0045,
     "yrChange": 0.0457,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.003,
+    "yrChange": 0.0426,
+    "source": "wind"
    }
   ],
   "159589.OF": [
@@ -2426,6 +2606,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0046,
     "yrChange": 0.0484,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.003,
+    "yrChange": 0.0452,
     "source": "wind"
    }
   ],
@@ -2507,6 +2693,12 @@
     "dailyChange": -0.0048,
     "yrChange": -0.0918,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0127,
+    "yrChange": -0.1033,
+    "source": "wind"
    }
   ],
   "159708.OF": [
@@ -2587,6 +2779,12 @@
     "dailyChange": -0.0042,
     "yrChange": -0.1517,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0148,
+    "yrChange": -0.1643,
+    "source": "wind"
    }
   ],
   "159726.OF": [
@@ -2666,6 +2864,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0118,
     "yrChange": 0.03,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0118,
+    "yrChange": 0.0178,
     "source": "wind"
    }
   ],
@@ -2753,6 +2957,12 @@
     "dailyChange": -0.0019,
     "yrChange": -0.0143,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.021,
+    "yrChange": -0.0349,
+    "source": "wind"
    }
   ],
   "159905.OF": [
@@ -2838,6 +3048,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0042,
     "yrChange": -0.1573,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0147,
+    "yrChange": -0.1697,
     "source": "wind"
    }
   ],
@@ -2925,6 +3141,12 @@
     "dailyChange": -0.0091,
     "yrChange": 0.087,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0019,
+    "yrChange": 0.089,
+    "source": "wind"
    }
   ],
   "510880.OF": [
@@ -3010,6 +3232,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0045,
     "yrChange": 0.1253,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0038,
+    "yrChange": 0.1297,
     "source": "wind"
    }
   ],
@@ -3097,6 +3325,12 @@
     "dailyChange": -0.0027,
     "yrChange": 0.1031,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0114,
+    "yrChange": 0.1157,
+    "source": "wind"
    }
   ],
   "512890.OF": [
@@ -3182,6 +3416,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0009,
     "yrChange": 0.0802,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0037,
+    "yrChange": 0.0842,
     "source": "wind"
    }
   ],
@@ -3269,6 +3509,12 @@
     "dailyChange": -0.0096,
     "yrChange": 0.0077,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0116,
+    "yrChange": -0.0039,
+    "source": "wind"
    }
   ],
   "513630.OF": [
@@ -3354,6 +3600,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0065,
     "yrChange": 0.0085,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0102,
+    "yrChange": -0.0018,
     "source": "wind"
    }
   ],
@@ -3441,6 +3693,12 @@
     "dailyChange": -0.0106,
     "yrChange": 0.0593,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0109,
+    "yrChange": 0.0478,
+    "source": "wind"
    }
   ],
   "513820.OF": [
@@ -3526,6 +3784,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0095,
     "yrChange": 0.0079,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0114,
+    "yrChange": -0.0036,
     "source": "wind"
    }
   ],
@@ -3613,6 +3877,12 @@
     "dailyChange": -0.0025,
     "yrChange": 0.0158,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0115,
+    "yrChange": -0.0056,
+    "source": "wind"
    }
   ],
   "513910.OF": [
@@ -3698,6 +3968,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0103,
     "yrChange": -0.0065,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0102,
+    "yrChange": -0.0167,
     "source": "wind"
    }
   ],
@@ -3785,6 +4061,12 @@
     "dailyChange": -0.0107,
     "yrChange": -0.0004,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.012,
+    "yrChange": -0.0123,
+    "source": "wind"
    }
   ],
   "513950.OF": [
@@ -3870,6 +4152,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0081,
     "yrChange": -0.0705,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0135,
+    "yrChange": -0.083,
     "source": "wind"
    }
   ],
@@ -3957,6 +4245,12 @@
     "dailyChange": -0.0046,
     "yrChange": 0.0459,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0031,
+    "yrChange": 0.0427,
+    "source": "wind"
    }
   ],
   "515100.OF": [
@@ -4042,6 +4336,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0024,
     "yrChange": 0.0439,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0038,
+    "yrChange": 0.04,
     "source": "wind"
    }
   ],
@@ -4129,6 +4429,12 @@
     "dailyChange": -0.0046,
     "yrChange": 0.0483,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.003,
+    "yrChange": 0.0452,
+    "source": "wind"
    }
   ],
   "515300.OF": [
@@ -4214,6 +4520,12 @@
     "date": "2026-11-18",
     "dailyChange": 0.0051,
     "yrChange": 0.0995,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0087,
+    "yrChange": 0.1075,
     "source": "wind"
    }
   ],
@@ -4301,6 +4613,12 @@
     "dailyChange": 0.0011,
     "yrChange": 0.117,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0066,
+    "yrChange": 0.1243,
+    "source": "wind"
    }
   ],
   "515460.OF": [
@@ -4386,6 +4704,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0035,
     "yrChange": -0.14,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0095,
+    "yrChange": -0.1482,
     "source": "wind"
    }
   ],
@@ -4473,6 +4797,12 @@
     "dailyChange": -0.0024,
     "yrChange": 0.1294,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0036,
+    "yrChange": 0.1253,
+    "source": "wind"
    }
   ],
   "515890.OF": [
@@ -4558,6 +4888,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0045,
     "yrChange": 0.0591,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.003,
+    "yrChange": 0.0559,
     "source": "wind"
    }
   ],
@@ -4645,6 +4981,12 @@
     "dailyChange": -0.0082,
     "yrChange": -0.07,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0136,
+    "yrChange": -0.0826,
+    "source": "wind"
    }
   ],
   "520610.OF": [
@@ -4730,6 +5072,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0064,
     "yrChange": -0.0425,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0101,
+    "yrChange": -0.0522,
     "source": "wind"
    }
   ],
@@ -4817,6 +5165,12 @@
     "dailyChange": -0.0105,
     "yrChange": -0.0287,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0108,
+    "yrChange": -0.0393,
+    "source": "wind"
    }
   ],
   "520810.OF": [
@@ -4902,6 +5256,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0096,
     "yrChange": 0.0144,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0116,
+    "yrChange": 0.0027,
     "source": "wind"
    }
   ],
@@ -4989,6 +5349,12 @@
     "dailyChange": -0.0081,
     "yrChange": -0.0737,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0134,
+    "yrChange": -0.0861,
+    "source": "wind"
    }
   ],
   "520900.OF": [
@@ -5069,6 +5435,12 @@
     "dailyChange": -0.0105,
     "yrChange": -0.0304,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0108,
+    "yrChange": -0.0408,
+    "source": "wind"
    }
   ],
   "520990.OF": [
@@ -5148,6 +5520,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0104,
     "yrChange": -0.0283,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0108,
+    "yrChange": -0.0388,
     "source": "wind"
    }
   ],
@@ -5235,6 +5613,12 @@
     "dailyChange": -0.009,
     "yrChange": 0.0861,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0018,
+    "yrChange": 0.088,
+    "source": "wind"
    }
   ],
   "560020.OF": [
@@ -5320,6 +5704,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0046,
     "yrChange": 0.0424,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.003,
+    "yrChange": 0.0392,
     "source": "wind"
    }
   ],
@@ -5407,6 +5797,12 @@
     "dailyChange": -0.0049,
     "yrChange": 0.0544,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0008,
+    "yrChange": 0.0553,
+    "source": "wind"
    }
   ],
   "560150.OF": [
@@ -5486,6 +5882,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0012,
     "yrChange": 0.081,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0032,
+    "yrChange": 0.0845,
     "source": "wind"
    }
   ],
@@ -5573,6 +5975,12 @@
     "dailyChange": -0.0034,
     "yrChange": -0.0683,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0097,
+    "yrChange": -0.0773,
+    "source": "wind"
    }
   ],
   "560370.OF": [
@@ -5658,6 +6066,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0034,
     "yrChange": -0.1499,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.009,
+    "yrChange": -0.1576,
     "source": "wind"
    }
   ],
@@ -5745,6 +6159,12 @@
     "dailyChange": -0.0025,
     "yrChange": 0.0405,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0036,
+    "yrChange": 0.0367,
+    "source": "wind"
    }
   ],
   "560570.OF": [
@@ -5830,6 +6250,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0004,
     "yrChange": 0.0919,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0067,
+    "yrChange": 0.0992,
     "source": "wind"
    }
   ],
@@ -5917,6 +6343,12 @@
     "dailyChange": -0.0049,
     "yrChange": 0.0799,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0007,
+    "yrChange": 0.0807,
+    "source": "wind"
    }
   ],
   "560720.OF": [
@@ -6002,6 +6434,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0025,
     "yrChange": 0.0388,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0036,
+    "yrChange": 0.035,
     "source": "wind"
    }
   ],
@@ -6089,6 +6527,12 @@
     "dailyChange": -0.0013,
     "yrChange": 0.1115,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0032,
+    "yrChange": 0.1151,
+    "source": "wind"
    }
   ],
   "561060.OF": [
@@ -6174,6 +6618,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0058,
     "yrChange": 0.049,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0031,
+    "yrChange": 0.0458,
     "source": "wind"
    }
   ],
@@ -6261,6 +6711,12 @@
     "dailyChange": -0.0034,
     "yrChange": -0.0193,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0088,
+    "yrChange": -0.0279,
+    "source": "wind"
    }
   ],
   "561450.OF": [
@@ -6347,6 +6803,12 @@
     "dailyChange": 0.001,
     "yrChange": 0.0627,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0063,
+    "yrChange": 0.0694,
+    "source": "wind"
    }
   ],
   "561490.OF": [
@@ -6420,6 +6882,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0036,
     "yrChange": -0.0463,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.009,
+    "yrChange": -0.0549,
     "source": "wind"
    }
   ],
@@ -6507,6 +6975,12 @@
     "dailyChange": -0.0031,
     "yrChange": 0.0982,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0061,
+    "yrChange": 0.1049,
+    "source": "wind"
    }
   ],
   "561630.OF": [
@@ -6592,6 +7066,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0034,
     "yrChange": -0.0275,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0089,
+    "yrChange": -0.0362,
     "source": "wind"
    }
   ],
@@ -6679,6 +7159,12 @@
     "dailyChange": -0.0035,
     "yrChange": -0.0324,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0091,
+    "yrChange": -0.0412,
+    "source": "wind"
    }
   ],
   "561680.OF": [
@@ -6764,6 +7250,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0004,
     "yrChange": 0.0756,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0068,
+    "yrChange": 0.0829,
     "source": "wind"
    }
   ],
@@ -6851,6 +7343,12 @@
     "dailyChange": -0.0049,
     "yrChange": 0.054,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0006,
+    "yrChange": 0.0546,
+    "source": "wind"
    }
   ],
   "562060.OF": [
@@ -6937,6 +7435,12 @@
     "dailyChange": -0.0008,
     "yrChange": 0.0443,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0135,
+    "yrChange": 0.0302,
+    "source": "wind"
    }
   ],
   "562150.OF": [
@@ -7016,6 +7520,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0035,
     "yrChange": -0.0698,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.009,
+    "yrChange": -0.0782,
     "source": "wind"
    }
   ],
@@ -7103,6 +7613,12 @@
     "dailyChange": -0.0005,
     "yrChange": 0.0846,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0067,
+    "yrChange": 0.0919,
+    "source": "wind"
    }
   ],
   "562200.OF": [
@@ -7176,6 +7692,12 @@
     "date": "2026-11-18",
     "dailyChange": -0.0044,
     "yrChange": -0.027,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.009,
+    "yrChange": -0.0391,
     "source": "wind"
    }
   ],
@@ -7263,6 +7785,12 @@
     "dailyChange": -0.0012,
     "yrChange": 0.0777,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0032,
+    "yrChange": 0.0811,
+    "source": "wind"
    }
   ],
   "563180.OF": [
@@ -7348,6 +7876,12 @@
     "date": "2026-11-19",
     "dailyChange": 0.0019,
     "yrChange": 0.0619,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0053,
+    "yrChange": 0.0676,
     "source": "wind"
    }
   ],
@@ -7435,6 +7969,12 @@
     "dailyChange": -0.0005,
     "yrChange": 0.1048,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0063,
+    "yrChange": 0.1118,
+    "source": "wind"
    }
   ],
   "563590.OF": [
@@ -7521,6 +8061,12 @@
     "dailyChange": -0.0005,
     "yrChange": 0.0768,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0067,
+    "yrChange": 0.084,
+    "source": "wind"
    }
   ],
   "563690.OF": [
@@ -7600,6 +8146,12 @@
     "date": "2026-11-18",
     "dailyChange": 0.0027,
     "yrChange": 0.0682,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.003,
+    "yrChange": 0.0699,
     "source": "wind"
    }
   ],
@@ -7687,6 +8239,12 @@
     "dailyChange": -0.0021,
     "yrChange": 0.0867,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0012,
+    "yrChange": 0.0854,
+    "source": "wind"
    }
   ],
   "563890.OF": [
@@ -7773,6 +8331,12 @@
     "dailyChange": -0.0059,
     "yrChange": 0.0553,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0033,
+    "yrChange": 0.0519,
+    "source": "wind"
    }
   ],
   "563980.OF": [
@@ -7852,6 +8416,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0004,
     "yrChange": 0.1057,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0026,
+    "yrChange": 0.1086,
     "source": "wind"
    }
   ],
@@ -7951,6 +8521,12 @@
     "dailyChange": -0.0066,
     "yrChange": 0.1508,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0086,
+    "yrChange": 0.1409,
+    "source": "wind"
    }
   ],
   "03110.HK": [
@@ -8048,6 +8624,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0081,
     "yrChange": 0.0332,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0116,
+    "yrChange": 0.0213,
     "source": "wind"
    }
   ],
@@ -8147,6 +8729,12 @@
     "dailyChange": -0.0189,
     "yrChange": 0.0256,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0231,
+    "yrChange": 0.0019,
+    "source": "wind"
    }
   ],
   "03190.HK": [
@@ -8245,6 +8833,12 @@
     "dailyChange": -0.0057,
     "yrChange": 0.1312,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.004,
+    "yrChange": 0.1266,
+    "source": "wind"
    }
   ],
   "03116.HK": [
@@ -8341,6 +8935,12 @@
    {
     "date": "2026-11-19",
     "dailyChange": -0.0093,
+    "yrChange": 0.0816,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0,
     "yrChange": 0.0816,
     "source": "wind"
    }
@@ -8441,6 +9041,12 @@
     "dailyChange": -0.0088,
     "yrChange": 0.0317,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.011,
+    "yrChange": 0.0204,
+    "source": "wind"
    }
   ],
   "03441.HK": [
@@ -8538,6 +9144,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0029,
     "yrChange": 0.3295,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0144,
+    "yrChange": 0.3103,
     "source": "wind"
    }
   ],
@@ -8637,6 +9249,12 @@
     "dailyChange": -0.0064,
     "yrChange": 0.0132,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0171,
+    "yrChange": -0.0042,
+    "source": "wind"
    }
   ],
   "03483.HK": [
@@ -8734,6 +9352,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0175,
     "yrChange": 0.1425,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0161,
+    "yrChange": 0.1241,
     "source": "wind"
    }
   ],
@@ -8833,6 +9457,12 @@
     "dailyChange": -0.0055,
     "yrChange": 0.0025,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.016,
+    "yrChange": -0.0136,
+    "source": "wind"
    }
   ],
   "03031.HK": [
@@ -8929,6 +9559,12 @@
    {
     "date": "2026-11-19",
     "dailyChange": -0.0095,
+    "yrChange": null,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0159,
     "yrChange": null,
     "source": "wind"
    }
@@ -9029,6 +9665,12 @@
     "dailyChange": -0.0061,
     "yrChange": null,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0122,
+    "yrChange": null,
+    "source": "wind"
    }
   ],
   "159399.OF": [
@@ -9114,6 +9756,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0044,
     "yrChange": -0.1401,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0042,
+    "yrChange": -0.1437,
     "source": "wind"
    }
   ],
@@ -9201,6 +9849,12 @@
     "dailyChange": 0.0002,
     "yrChange": -0.0489,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0006,
+    "yrChange": -0.0483,
+    "source": "wind"
    }
   ],
   "003318.OF": [
@@ -9280,6 +9934,12 @@
     "date": "2026-11-19",
     "dailyChange": 0.0001,
     "yrChange": -0.035,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0231,
+    "yrChange": -0.0573,
     "source": "wind"
    }
   ],
@@ -9367,6 +10027,12 @@
     "dailyChange": -0.0007,
     "yrChange": 0.1149,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0121,
+    "yrChange": 0.1284,
+    "source": "wind"
    }
   ],
   "007466.OF": [
@@ -9452,6 +10118,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0009,
     "yrChange": 0.0756,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0034,
+    "yrChange": 0.0793,
     "source": "wind"
    }
   ],
@@ -9539,6 +10211,12 @@
     "dailyChange": -0.0024,
     "yrChange": 0.0468,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0037,
+    "yrChange": 0.0429,
+    "source": "wind"
    }
   ],
   "008163.OF": [
@@ -9624,6 +10302,12 @@
     "date": "2026-11-19",
     "dailyChange": 0.0012,
     "yrChange": 0.1114,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0062,
+    "yrChange": 0.1183,
     "source": "wind"
    }
   ],
@@ -9711,6 +10395,12 @@
     "dailyChange": -0.0043,
     "yrChange": 0.1207,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0037,
+    "yrChange": 0.1248,
+    "source": "wind"
    }
   ],
   "016128.OF": [
@@ -9796,6 +10486,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0021,
     "yrChange": 0.0411,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0036,
+    "yrChange": 0.0374,
     "source": "wind"
    }
   ],
@@ -9883,6 +10579,12 @@
     "dailyChange": -0.009,
     "yrChange": 0.001,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0108,
+    "yrChange": -0.0098,
+    "source": "wind"
    }
   ],
   "019260.OF": [
@@ -9968,6 +10670,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0081,
     "yrChange": -0.0738,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0134,
+    "yrChange": -0.0863,
     "source": "wind"
    }
   ],
@@ -10055,6 +10763,12 @@
     "dailyChange": -0.0002,
     "yrChange": -0.0533,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0005,
+    "yrChange": -0.0537,
+    "source": "wind"
    }
   ],
   "020466.OF": [
@@ -10140,6 +10854,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0029,
     "yrChange": 0.0949,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0058,
+    "yrChange": 0.1012,
     "source": "wind"
    }
   ],
@@ -10227,6 +10947,12 @@
     "dailyChange": -0.0044,
     "yrChange": 0.039,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0029,
+    "yrChange": 0.036,
+    "source": "wind"
    }
   ],
   "020156.OF": [
@@ -10312,6 +11038,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0024,
     "yrChange": 0.0465,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0034,
+    "yrChange": 0.0429,
     "source": "wind"
    }
   ],
@@ -10399,6 +11131,12 @@
     "dailyChange": -0.0012,
     "yrChange": 0.0726,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0008,
+    "yrChange": 0.0734,
+    "source": "wind"
    }
   ],
   "021701.OF": [
@@ -10484,6 +11222,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0087,
     "yrChange": 0.0883,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0017,
+    "yrChange": 0.0902,
     "source": "wind"
    }
   ],
@@ -10571,6 +11315,12 @@
     "dailyChange": -0.0047,
     "yrChange": 0.0705,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0007,
+    "yrChange": 0.0712,
+    "source": "wind"
    }
   ],
   "021399.OF": [
@@ -10656,6 +11406,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0045,
     "yrChange": 0.0477,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0028,
+    "yrChange": 0.0448,
     "source": "wind"
    }
   ],
@@ -10743,6 +11499,12 @@
     "dailyChange": -0.01,
     "yrChange": -0.0256,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0102,
+    "yrChange": -0.0355,
+    "source": "wind"
    }
   ],
   "021961.OF": [
@@ -10822,6 +11584,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0098,
     "yrChange": -0.0304,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0101,
+    "yrChange": -0.0402,
     "source": "wind"
    }
   ],
@@ -10909,6 +11677,12 @@
     "dailyChange": -0.009,
     "yrChange": 0.0083,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.011,
+    "yrChange": -0.0028,
+    "source": "wind"
    }
   ],
   "022448.OF": [
@@ -10994,6 +11768,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0006,
     "yrChange": -0.1386,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0146,
+    "yrChange": -0.1511,
     "source": "wind"
    }
   ],
@@ -11083,6 +11863,12 @@
     "dailyChange": -0.0091,
     "yrChange": 0.0051,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0109,
+    "yrChange": -0.0059,
+    "source": "wind"
    }
   ],
   "023919.OF": [
@@ -11162,6 +11948,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0041,
     "yrChange": -0.133,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0039,
+    "yrChange": -0.1365,
     "source": "wind"
    }
   ],
@@ -11243,6 +12035,12 @@
     "dailyChange": -0.0091,
     "yrChange": -0.0019,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.011,
+    "yrChange": -0.0129,
+    "source": "wind"
    }
   ],
   "025958.OF": [
@@ -11322,6 +12120,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0062,
     "yrChange": -0.1066,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0114,
+    "yrChange": -0.1168,
     "source": "wind"
    }
   ],
@@ -11421,6 +12225,12 @@
     "dailyChange": -0.0082,
     "yrChange": null,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0153,
+    "yrChange": null,
+    "source": "wind"
    }
   ],
   "021583.OF": [
@@ -11494,6 +12304,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0097,
     "yrChange": -0.0097,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0096,
+    "yrChange": -0.0193,
     "source": "wind"
    }
   ],
@@ -11575,6 +12391,12 @@
     "dailyChange": -0.0091,
     "yrChange": 0.0034,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.011,
+    "yrChange": -0.0076,
+    "source": "wind"
    }
   ],
   "021375.OF": [
@@ -11648,6 +12470,12 @@
     "date": "2026-11-19",
     "dailyChange": -0.0025,
     "yrChange": 0.0672,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0037,
+    "yrChange": 0.0633,
     "source": "wind"
    }
   ],
@@ -11735,6 +12563,12 @@
     "dailyChange": -0.0089,
     "yrChange": null,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.014,
+    "yrChange": null,
+    "source": "wind"
    }
   ],
   "021388.OF": [
@@ -11791,6 +12625,12 @@
     "dailyChange": -0.0014,
     "yrChange": 0.0454,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0031,
+    "yrChange": 0.0421,
+    "source": "wind"
    }
   ],
   "581070.OF": [
@@ -11810,6 +12650,12 @@
     "date": "2026-11-16",
     "dailyChange": 0.0083,
     "yrChange": 0.0118,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0076,
+    "yrChange": 0.0195,
     "source": "wind"
    }
   ],
@@ -11837,6 +12683,12 @@
     "dailyChange": -0.0013,
     "yrChange": 0.0268,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": 0.0032,
+    "yrChange": 0.0301,
+    "source": "wind"
    }
   ],
   "158902.OF": [
@@ -11857,6 +12709,12 @@
     "dailyChange": 0.0058,
     "yrChange": 0.0026,
     "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0098,
+    "yrChange": -0.0072,
+    "source": "wind"
    }
   ],
   "158905.OF": [
@@ -11870,6 +12728,20 @@
     "date": "2026-11-16",
     "dailyChange": 0.0044,
     "yrChange": -0.0019,
+    "source": "wind"
+   },
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0102,
+    "yrChange": -0.0121,
+    "source": "wind"
+   }
+  ],
+  "024772.OF": [
+   {
+    "date": "2026-11-20",
+    "dailyChange": -0.0096,
+    "yrChange": -0.007,
     "source": "wind"
    }
   ]

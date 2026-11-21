@@ -327,6 +327,14 @@ if ah and isinstance(ah, dict):
     check('assetHistory 10年期国债日变动 ≤30bp', not _bad,
           ('异常跳变: ' + '; '.join(_bad[:3])) if _bad else '近 30 个点无异常跳变',
           step_label='sync_asset_macro.py')
+    # 非交易日假点（2026-11-21）：Wind 债券层会给周末补一行「沿用上一交易日」的快照，
+    #   曾把 11-21（周六）写成与 11-20 同值，导致 assetData 的 10Y 日期出现周六。
+    _wk = [p.get('date') for p in (ah.get('10年期国债到期收益率') or [])[-30:]
+           if isinstance(p, dict) and len(str(p.get('date', ''))) == 10
+           and datetime.date.fromisoformat(str(p['date'])).weekday() >= 5]
+    check('assetHistory 10年期国债无周末点', not _wk,
+          ('周末点: ' + ','.join(_wk[:3])) if _wk else '近 30 个点均在交易日',
+          step_label='sync_asset_macro.py')
 
 yh = jload('yuebaoHistory.json')
 if yh:

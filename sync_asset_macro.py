@@ -37,6 +37,7 @@ CENTRAL_DIR = os.environ.get('SX_DATA_CENTER') or os.path.normpath(os.path.join(
 
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
+import trade_calendar  # 交易日历（2026-11-21：债券层会为非交易日补一条「沿用上一交易日」的快照行，须剔除）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
 # 时间范围：近36个月（EDB 新契约要求 yyyy-MM-dd，2026-08-29 修正）
@@ -299,7 +300,17 @@ def fetch_bond_yield_10y_bond(lo=9.0, hi=10.6, days=45):
         score = (len(ser),)
         if best_score is None or score > best_score:
             best, best_score = ser, score
-    return [{'date': k, 'yield': best[k]} for k in sorted(best)]
+    # 只保留 A 股交易日（2026-11-21）：周末/节假日 Wind 会把上一交易日的收盘价收益率
+    #   再补一行「当日」，值与前一交易日完全相同，写进序列就等于给周六造了一个假点。
+    out = {}
+    for ds, v in best.items():
+        try:
+            dd = datetime.date.fromisoformat(str(ds)[:10])
+        except Exception:
+            continue
+        if trade_calendar.is_trading_day('CN', dd):
+            out[ds] = v
+    return [{'date': k, 'yield': out[k]} for k in sorted(out)]
 
 
 def fetch_bond_yield_10y():
