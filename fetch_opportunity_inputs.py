@@ -31,6 +31,7 @@ import pandas as pd
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
 import opportunity_central as oc
+import bond10y  # 10 年期国债活跃券选券（与 sync_asset_macro 共用，2026-11-23）
 
 INC = os.path.join(BASE, "inputs", "opportunity", "increments.csv")
 QUEUE = os.path.join(BASE, "inputs", "opportunity", ".cache", "central_queue")
@@ -202,38 +203,9 @@ def parse_bond_yield(inner, lo=9.0, hi=10.6):
     （2026-11-19：「只变过一两次值」的老券如 07国债06 也会被旧规则误选 → 改为按不同值个数排序，
       不同值少于覆盖点数一半的视为僵尸券。）
     """
+    # 选券规则唯一实现在 bond10y.py（2026-11-23 抽出，与 sync_asset_macro 共用）
     cols, rows = _table(inner)
-    ci = next((i for i, n in enumerate(cols) if "代码" in n), None)
-    vi = next((i for i, n in enumerate(cols) if "收盘价收益率" in n and "类型" not in n), None)
-    di = next((i for i, n in enumerate(cols) if n == "日期"), None)
-    mi = next((i for i, n in enumerate(cols) if "剩余期限" in n), None)
-    if None in (ci, vi, di, mi):
-        return {}
-    by = {}
-    for r in rows:
-        if len(r) <= max(ci, vi, di, mi):
-            continue
-        m, v = _num(r[mi]), _num(r[vi])
-        if m is None or not (lo <= m <= hi) or v is None:
-            continue
-        by.setdefault(str(r[ci]), [m, {}])[1][_norm_date(r[di])] = v
-    cands = []
-    for code, (m, ser) in by.items():
-        if not ser:
-            continue
-        vals = [v for v in ser.values() if v is not None]
-        distinct = len(set(vals))
-        # 僵尸券（无成交，Wind 沿用旧值）：不同值个数不足覆盖点数的一半 → 排除
-        if len(vals) >= 3 and distinct < max(2, len(vals) // 2):
-            continue
-        cands.append((distinct, len(ser), m, code, ser))
-    if not cands:
-        return {}
-    latest = max(max(c[4]) for c in cands)
-    cands = [c for c in cands if latest in c[4]] or cands      # 必须在最新一天有值
-    # 不同值最多（真实成交）→ 覆盖点数最多 → 剩余期限最接近 10 年 → 银行间券优先
-    cands.sort(key=lambda c: (c[0], c[1], -abs(c[2] - 10.0), 1 if c[3].upper().endswith(".IB") else 0))
-    return cands[-1][4]
+    return bond10y.pick_series(cols, rows, _norm_date, lo, hi)
 
 
 # ------------------------------------------------------------------ 取数

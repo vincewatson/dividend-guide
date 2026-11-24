@@ -24,10 +24,16 @@ cd "$(dirname "$0")"
 # 用同名函数转给 py -3；Mac / Linux 上 python3 可用，这段不起作用
 case "$(uname -s)" in
   MINGW*|MSYS*|CYGWIN*)
-    if ! command python3 -c "" >/dev/null 2>&1; then
+    # 2026-11-23（中央复盘）：必须真的打印出版本号才算可用。11-16 微软商店占位 python3 对 `-c ""` 没被识别为不可用，
+    #   入口秒退还白占了一次整跑名额（靠手工 shim 绕过）。
+    if [ "$(command python3 -c 'import sys;print(sys.version_info[0])' 2>/dev/null)" != "3" ]; then
       if command -v py >/dev/null 2>&1; then python3() { py -3 "$@"; }; else python3() { python "$@"; }; fi
     fi ;;
 esac
+if [ "$(python3 -c 'import sys;print(sys.version_info[0])' 2>/dev/null)" != "3" ]; then
+  echo "[ERROR] 找不到可用的 Python 3（python3 / py -3 / python 都不行）：请检查 Python 安装或 PATH。未执行任何步骤、未计整跑次数。"
+  exit 1
+fi
 # 2026-10-10：Agent 终端常不带 UTF-8 locale ⇒ Python 输出的中文（星期等）在报告里变成 ??。统一指定
 export PYTHONIOENCODING=utf-8 PYTHONUTF8=1
 export LANG="${LANG:-zh_CN.UTF-8}"

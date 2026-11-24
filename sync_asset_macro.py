@@ -38,6 +38,7 @@ CENTRAL_DIR = os.environ.get('SX_DATA_CENTER') or os.path.normpath(os.path.join(
 WIND_SKILL = os.path.expanduser('~/.agents/skills/wind-mcp-skill')
 import wind_client  # 统一 Wind 客户端（阶段 0：计数；规范见 docs/data-governance/update-redesign.md）
 import trade_calendar  # 交易日历（2026-11-21：债券层会为非交易日补一条「沿用上一交易日」的快照行，须剔除）
+import bond10y  # 10 年期国债活跃券选券（与 fetch_opportunity_inputs 共用，2026-11-23）
 CLI = wind_client.CLI  # 经额度守卫包装器，并统一计数
 
 # 时间范围：近36个月（EDB 新契约要求 yyyy-MM-dd，2026-08-29 修正）
@@ -254,52 +255,8 @@ def fetch_bond_yield_10y_bond(lo=9.0, hi=10.6, days=45):
     start = (datetime.date.fromisoformat(END) - datetime.timedelta(days=days)).isoformat()
     inner = call_wind('bond_data', 'get_bond_market_data',
                       {'question': '查询当前活跃的10年期中国国债，自{}至{}每日收盘价收益率，按交易日列出'.format(start, END)})
-    tabs = ((inner.get('data') or {}).get('data') or [])
-    best, best_score = {}, None
-    for tb in tabs:
-        cols = [c.get('name', '') if isinstance(c, dict) else str(c) for c in tb.get('columns', [])]
-        rows = tb.get('rows', [])
-        ci = next((i for i, n in enumerate(cols) if '代码' in n), None)
-        vi = next((i for i, n in enumerate(cols) if '收盘价收益率' in n and '类型' not in n), None)
-        di = next((i for i, n in enumerate(cols) if n == '日期'), None)
-        mi = next((i for i, n in enumerate(cols) if '剩余期限' in n), None)
-        if None in (ci, vi, di, mi):
-            continue
-        by = {}
-        for r in rows:
-            try:
-                m = float(r[mi])
-            except (TypeError, ValueError):
-                continue
-            if not (lo <= m <= hi):
-                continue
-            v = r[vi]
-            if v is None:
-                continue
-            try:
-                by.setdefault(str(r[ci]), [m, {}])[1][norm_date(r[di])] = round(float(v), 4)
-            except (TypeError, ValueError):
-                continue
-        cands = []
-        for code, (m, ser) in by.items():
-            if not ser:
-                continue
-            vals = [v for v in ser.values() if v is not None]
-            distinct = len(set(vals))
-            # 僵尸券（无成交，Wind 沿用旧值）：不同值个数不足覆盖点数的一半 → 排除
-            if len(vals) >= 3 and distinct < max(2, len(vals) // 2):
-                continue
-            cands.append((distinct, len(ser), m, code, ser))
-        if not cands:
-            continue
-        latest = max(max(c[4]) for c in cands)
-        cands = [c for c in cands if latest in c[4]] or cands      # 必须在最新一天有值
-        # 不同值最多（真实成交）→ 覆盖点数最多 → 剩余期限最接近 10 年 → 银行间券优先
-        cands.sort(key=lambda c: (c[0], c[1], -abs(c[2] - 10.0), 1 if c[3].upper().endswith('.IB') else 0))
-        ser = cands[-1][4]
-        score = (len(ser),)
-        if best_score is None or score > best_score:
-            best, best_score = ser, score
+    # 选券规则唯一实现在 bond10y.py（2026-11-23 抽出，与 fetch_opportunity_inputs 共用）
+    best = bond10y.pick_from_tables((inner.get('data') or {}).get('data') or [], norm_date, lo, hi)
     # 只保留 A 股交易日（2026-11-21）：周末/节假日 Wind 会把上一交易日的收盘价收益率
     #   再补一行「当日」，值与前一交易日完全相同，写进序列就等于给周六造了一个假点。
     out = {}
