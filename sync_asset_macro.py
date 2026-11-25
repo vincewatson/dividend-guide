@@ -302,6 +302,12 @@ def fetch_bond_yield_10y():
                     m[str(row['date'])[:10]] = round(float(row['value']) * 100, 4)
     except Exception:
         pass
+    # 2026-11-25：交易日**收盘前**跑日更时，Wind 债券层也会给「今天」补一行（值 = 上一交易日收盘）。
+    #   07:20 那次把 11-25 写成 1.582（与 11-24 同值），assetData 的 10Y 日期因此显示成还没收盘的今天。
+    #   同 ⑳ 的「非交易日快照」，统一裁到「最近已收盘交易日」（trade_calendar 已按 15:30 判收盘）。
+    _lc = trade_calendar.latest_trading_day('CN')
+    if _lc:
+        m = {k: v for k, v in m.items() if k <= _lc.isoformat()}
     return [{'date': k, 'yield': m[k]} for k in sorted(m)]
 
 

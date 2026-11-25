@@ -335,6 +335,11 @@ if ah and isinstance(ah, dict):
     check('assetHistory 10年期国债无周末点', not _wk,
           ('周末点: ' + ','.join(_wk[:3])) if _wk else '近 30 个点均在交易日',
           step_label='sync_asset_macro.py')
+    # 收盘前「今天」快照（2026-11-25）：交易日 15:30 之前跑日更，Wind 债券层会补一行「今天」，
+    #   值等于上一交易日收盘（11-25 07:20 那次写成 1.582 = 11-24 同值），assetData 的 10Y 日期因此错成今天。
+    _last10 = str(((ah.get('10年期国债到期收益率') or [{}])[-1] or {}).get('date') or '')[:10]
+    check('assetHistory 10年期国债不晚于最近已收盘交易日', bool(_last10) and _last10 <= str(CN_LATEST)[:10],
+          f'{_last10} vs 已收盘交易日 {CN_LATEST}', step_label='sync_asset_macro.py')
 
 yh = jload('yuebaoHistory.json')
 if yh:
